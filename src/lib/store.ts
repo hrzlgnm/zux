@@ -7,6 +7,7 @@ export const graphEdges = writable<Map<string, GraphEdge>>(new Map());
 export const selectedNodeId = writable<string | null>(null);
 export const isScanning = writable<boolean>(false);
 export const serviceTypes = writable<Set<string>>(new Set());
+export const serviceTypeFilter = writable<Set<string> | null>(null);
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
   let types = 0, instances = 0, hosts = 0, addresses = 0;

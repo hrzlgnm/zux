@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { stats, isScanning, graphNodes, graphEdges, serviceTypes } from './store';
+  import { stats, isScanning, graphNodes, graphEdges, serviceTypes, serviceTypeFilter } from './store';
   import { invoke } from '@tauri-apps/api/core';
 
   let activeTypes = $state<Set<string>>(new Set());
@@ -27,6 +27,16 @@
     const svc = $serviceTypes;
     if (svc.size > 0 && activeTypes.size === 0) {
       activeTypes = new Set(svc);
+    }
+  });
+
+  $effect(() => {
+    showAll;
+    activeTypes.size;
+    if (showAll) {
+      serviceTypeFilter.set(null);
+    } else {
+      serviceTypeFilter.set(new Set(activeTypes));
     }
   });
 </script>

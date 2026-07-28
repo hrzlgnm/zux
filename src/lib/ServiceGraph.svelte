@@ -2,15 +2,14 @@
   import { onMount, onDestroy } from 'svelte';
   import { Network } from 'vis-network';
   import { DataSet } from 'vis-data';
-  import { graphNodes, graphEdges, selectedNodeId } from './store';
+  import { get } from 'svelte/store';
+  import { graphNodes, graphEdges, selectedNodeId, serviceTypeFilter } from './store';
   import type { GraphNode, GraphEdge } from './types';
 
   let container: HTMLDivElement;
   let network: Network;
   let visNodes = new DataSet<any>([]);
   let visEdges = new DataSet<any>([]);
-  let unsubNodes: () => void;
-  let unsubEdges: () => void;
 
   const options: any = {
     nodes: {
@@ -66,14 +65,50 @@
     layout: { improvedLayout: true },
   };
 
-  function syncNodes(nodes: Map<string, GraphNode>) {
-    visNodes.clear();
-    visNodes.add(Array.from(nodes.values()));
-  }
+  function syncFiltered() {
+    const nodes = get(graphNodes);
+    const edges = get(graphEdges);
+    const filter = get(serviceTypeFilter);
 
-  function syncEdges(edges: Map<string, GraphEdge>) {
+    if (filter === null) {
+      visNodes.clear();
+      visNodes.add(Array.from(nodes.values()));
+      visEdges.clear();
+      visEdges.add(Array.from(edges.values()));
+      return;
+    }
+
+    const visibleIds = new Set<string>();
+    const visibleNodes: GraphNode[] = [];
+    const visibleEdges: GraphEdge[] = [];
+
+    for (const n of nodes.values()) {
+      if (n.group === 'service-type') {
+        if (filter.has(n.id.replace('type:', ''))) {
+          visibleIds.add(n.id);
+          visibleNodes.push(n);
+        }
+      } else if (n.group === 'instance') {
+        if (n.serviceType && filter.has(n.serviceType)) {
+          visibleIds.add(n.id);
+          visibleNodes.push(n);
+        }
+      } else {
+        visibleIds.add(n.id);
+        visibleNodes.push(n);
+      }
+    }
+
+    for (const e of edges.values()) {
+      if (visibleIds.has(e.from) && visibleIds.has(e.to)) {
+        visibleEdges.push(e);
+      }
+    }
+
+    visNodes.clear();
+    visNodes.add(visibleNodes);
     visEdges.clear();
-    visEdges.add(Array.from(edges.values()));
+    visEdges.add(visibleEdges);
   }
 
   onMount(() => {
@@ -91,14 +126,16 @@
       selectedNodeId.set(null);
     });
 
-    unsubNodes = graphNodes.subscribe(syncNodes);
-    unsubEdges = graphEdges.subscribe(syncEdges);
-  });
+    const unsub1 = graphNodes.subscribe(syncFiltered);
+    const unsub2 = graphEdges.subscribe(syncFiltered);
+    const unsub3 = serviceTypeFilter.subscribe(syncFiltered);
 
-  onDestroy(() => {
-    unsubNodes?.();
-    unsubEdges?.();
-    network?.destroy();
+    onDestroy(() => {
+      unsub1();
+      unsub2();
+      unsub3();
+      network?.destroy();
+    });
   });
 </script>
 
