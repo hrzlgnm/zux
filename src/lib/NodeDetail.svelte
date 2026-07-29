@@ -45,7 +45,7 @@
       {#if node.txt && Object.keys(node.txt).length > 0}
         <div class="field"><span class="label">TXT Records</span></div>
         <div class="txt-records">
-          {#each Object.entries(node.txt) as [k, v]}
+          {#each Object.entries(node.txt).sort(([a], [b]) => a.localeCompare(b)) as [k, v]}
             <div class="txt-entry"><em>{k}</em> = {v || '(empty)'}</div>
           {/each}
         </div>
@@ -59,11 +59,13 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 280px;
+    width: 360px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
     background: #16213e;
     border: 1px solid #0f3460;
     border-radius: 8px;
-    padding: 14px;
+    padding: 16px;
     color: #e0e0e0;
     z-index: 10;
     box-shadow: 0 4px 20px rgba(0,0,0,0.4);
@@ -117,7 +119,7 @@
     background: #1a1a2e;
     border-radius: 4px;
     padding: 6px 8px;
-    max-height: 150px;
+    max-height: 300px;
     overflow-y: auto;
   }
   .txt-entry {
