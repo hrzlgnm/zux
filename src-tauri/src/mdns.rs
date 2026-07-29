@@ -212,20 +212,32 @@ fn clean_hostname(hostname: &str) -> String {
     hostname.trim_end_matches('.').replace(".local.", ".").trim_end_matches('.').to_string()
 }
 
-fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>) -> Vec<String> {
+fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>, addresses: &[AddressInfo]) -> Vec<String> {
     let mut urls = Vec::new();
-    let host = clean_hostname(info.get_hostname());
     let port = info.get_port();
     let ty = info.ty_domain.to_lowercase();
     let path = txt.get("path").map(|p| {
         let p = p.trim();
         if p.starts_with('/') { p.to_string() } else { format!("/{p}") }
     });
+    let path = path.as_deref().unwrap_or("/");
 
-    if ty.starts_with("_http._tcp") {
-        urls.push(format!("http://{host}:{port}{}", path.as_deref().unwrap_or("/")));
-    } else if ty.starts_with("_https._tcp") {
-        urls.push(format!("https://{host}:{port}{}", path.as_deref().unwrap_or("/")));
+    if ty.starts_with("_http._tcp") || ty.starts_with("_https._tcp") {
+        let scheme = if ty.starts_with("_https._tcp") { "https" } else { "http" };
+        let host = clean_hostname(info.get_hostname());
+        urls.push(format!("{scheme}://{host}:{port}{path}"));
+        for a in addresses {
+            let ip = &a.ip;
+            let addr_str = if ip.contains(':') {
+                format!("[{ip}]")
+            } else {
+                ip.to_string()
+            };
+            let u = format!("{scheme}://{addr_str}:{port}{path}");
+            if !urls.contains(&u) {
+                urls.push(u);
+            }
+        }
     }
 
     for (_k, v) in txt {
@@ -256,7 +268,25 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
         .iter()
         .map(|p| (p.key().to_string(), p.val_str().to_string()))
         .collect();
-    let urls = derive_urls(info, &txt);
+    let addresses: Vec<AddressInfo> = info
+        .get_addresses()
+        .iter()
+        .filter(|s| !filter_non_link_local || keep_address(s))
+        .map(|s| {
+            let interfaces: Vec<String> = match s {
+                ScopedIp::V4(v4) => {
+                    v4.interface_ids().iter().map(|id| id.name.clone()).collect()
+                }
+                ScopedIp::V6(v6) => vec![v6.scope_id().name.clone()],
+                _ => vec![],
+            };
+            AddressInfo {
+                ip: s.to_ip_addr().to_string(),
+                interfaces,
+            }
+        })
+        .collect();
+    let urls = derive_urls(info, &txt, &addresses);
     ServiceDiscovered {
         id: fullname.to_string(),
         name,
@@ -264,24 +294,7 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
         sub_type: info.get_subtype().clone(),
         hostname: info.get_hostname().to_string(),
         port: info.get_port(),
-        addresses: info
-            .get_addresses()
-            .iter()
-            .filter(|s| !filter_non_link_local || keep_address(s))
-            .map(|s| {
-                let interfaces: Vec<String> = match s {
-                    ScopedIp::V4(v4) => {
-                        v4.interface_ids().iter().map(|id| id.name.clone()).collect()
-                    }
-                    ScopedIp::V6(v6) => vec![v6.scope_id().name.clone()],
-                    _ => vec![],
-                };
-                AddressInfo {
-                    ip: s.to_ip_addr().to_string(),
-                    interfaces,
-                }
-            })
-            .collect(),
+        addresses,
         txt,
         urls,
     }
