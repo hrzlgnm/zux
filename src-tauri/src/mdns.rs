@@ -228,6 +228,9 @@ fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>, addresses:
         urls.push(format!("{scheme}://{host}:{port}{path}"));
         for a in addresses {
             let ip = &a.ip;
+            if ip.starts_with("fe80:") || ip.starts_with("FE80:") {
+                continue;
+            }
             let addr_str = if ip.contains(':') {
                 format!("[{ip}]")
             } else {
