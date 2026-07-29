@@ -59,13 +59,13 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 360px;
-    max-height: calc(100vh - 40px);
+    width: 440px;
+    max-height: calc(100vh - 20px);
     overflow-y: auto;
     background: #16213e;
     border: 1px solid #0f3460;
     border-radius: 8px;
-    padding: 16px;
+    padding: 20px;
     color: #e0e0e0;
     z-index: 10;
     box-shadow: 0 4px 20px rgba(0,0,0,0.4);
@@ -81,8 +81,8 @@
     cursor: pointer;
   }
   h3 {
-    margin: 0 0 8px;
-    font-size: 15px;
+    margin: 0 0 10px;
+    font-size: 17px;
     color: #e0e0e0;
     word-break: break-all;
   }
@@ -91,7 +91,7 @@
     display: inline-block;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
   }
   .type-service-type { background: #0288d1; color: #e1f5fe; }
@@ -110,7 +110,7 @@
   }
   .field .label {
     color: #78909c;
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -123,9 +123,9 @@
     overflow-y: auto;
   }
   .txt-entry {
-    font-size: 11px;
+    font-size: 12px;
     color: #b0bec5;
-    padding: 1px 0;
+    padding: 2px 0;
   }
   .txt-entry em {
     color: #80cbc4;
