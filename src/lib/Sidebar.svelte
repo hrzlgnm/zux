@@ -1,17 +1,8 @@
 <script lang="ts">
-  import { stats, isScanning, graphNodes, graphEdges, serviceTypes, serviceTypeFilter, physicsConfig } from './store';
+  import { stats, isScanning, physicsConfig } from './store';
   import { invoke } from '@tauri-apps/api/core';
 
-  let activeTypes = $state<Set<string>>(new Set());
-  let showAll = $state(true);
   let physicsOpen = $state(false);
-
-  function toggleType(t: string) {
-    if (showAll) showAll = false;
-    if (activeTypes.has(t)) activeTypes.delete(t);
-    else activeTypes.add(t);
-    serviceTypeFilter.set(new Set(activeTypes));
-  }
 
   async function startScan() {
     isScanning.set(true);
@@ -24,15 +15,6 @@
       isScanning.set(false);
     }
   }
-
-  $effect(() => {
-    showAll;
-    if (showAll) {
-      serviceTypeFilter.set(null);
-    } else {
-      serviceTypeFilter.set(new Set(activeTypes));
-    }
-  });
 </script>
 
 <aside class="sidebar">
@@ -108,24 +90,6 @@
     {/if}
   </div>
 
-  {#if $serviceTypes.size > 0}
-    <div class="filters">
-      <h3>Service Types</h3>
-      <label class="filter-all">
-        <input type="checkbox" checked={showAll} onchange={() => { showAll = !showAll; }} />
-        Show All
-      </label>
-      {#if !showAll}
-        {#each Array.from($serviceTypes).sort() as st}
-          <label class="filter-item">
-            <input type="checkbox" checked={activeTypes.has(st)}
-              onchange={() => toggleType(st)} />
-            {st.replace('.local.', '')}
-          </label>
-        {/each}
-      {/if}
-    </div>
-  {/if}
 </aside>
 
 <style>
@@ -211,25 +175,6 @@
   .dot.inst { background: #81c784; }
   .dot.host { background: #ffb74d; border-radius: 2px; }
   .dot.addr { background: #ce93d8; border-radius: 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-  .filters {
-    margin-top: 4px;
-  }
-  .filters h3 {
-    font-size: 13px;
-    margin: 0 0 6px;
-    color: #90a4ae;
-  }
-  .filter-all, .filter-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    padding: 3px 0;
-    cursor: pointer;
-  }
-  .filter-all input, .filter-item input {
-    accent-color: #4fc3f7;
-  }
   .section {
     margin-top: 4px;
   }

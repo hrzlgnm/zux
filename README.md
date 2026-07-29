@@ -1,7 +1,7 @@
-# Tauri + SvelteKit
+# zux
 
-This template should help get you started developing with Tauri and SvelteKit in Vite.
+mDNS-SD browser with force-directed graph visualization.
 
-## Recommended IDE Setup
+## TODO
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+- [ ] Service type filter (checkbox list to toggle visibility of service types in the graph)

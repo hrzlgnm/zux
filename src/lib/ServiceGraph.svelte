@@ -3,8 +3,7 @@
   import { Network } from 'vis-network';
   import { DataSet } from 'vis-data';
   import { get } from 'svelte/store';
-  import { graphNodes, graphEdges, selectedNodeId, serviceTypeFilter, physicsConfig } from './store';
-  import type { GraphNode, GraphEdge } from './types';
+  import { graphNodes, graphEdges, selectedNodeId, physicsConfig } from './store';
 
   let container: HTMLDivElement;
   let network: Network;
@@ -69,50 +68,11 @@
     layout: { improvedLayout: true },
   };
 
-  function syncFiltered() {
-    const nodes = get(graphNodes);
-    const edges = get(graphEdges);
-    const filter = get(serviceTypeFilter);
-
-    if (filter === null) {
-      visNodes.clear();
-      visNodes.add(Array.from(nodes.values()));
-      visEdges.clear();
-      visEdges.add(Array.from(edges.values()));
-      return;
-    }
-
-    const visibleIds = new Set<string>();
-    const visibleNodes: GraphNode[] = [];
-    const visibleEdges: GraphEdge[] = [];
-
-    for (const n of nodes.values()) {
-      if (n.group === 'service-type') {
-        if (filter.has(n.id.replace('type:', ''))) {
-          visibleIds.add(n.id);
-          visibleNodes.push(n);
-        }
-      } else if (n.group === 'instance') {
-        if (n.serviceType && filter.has(n.serviceType)) {
-          visibleIds.add(n.id);
-          visibleNodes.push(n);
-        }
-      } else {
-        visibleIds.add(n.id);
-        visibleNodes.push(n);
-      }
-    }
-
-    for (const e of edges.values()) {
-      if (visibleIds.has(e.from) && visibleIds.has(e.to)) {
-        visibleEdges.push(e);
-      }
-    }
-
+  function syncGraph() {
     visNodes.clear();
-    visNodes.add(visibleNodes);
+    visNodes.add(Array.from(get(graphNodes).values()));
     visEdges.clear();
-    visEdges.add(visibleEdges);
+    visEdges.add(Array.from(get(graphEdges).values()));
   }
 
   function applyPhysics(cfg: import('./types').PhysicsConfig) {
@@ -137,16 +97,14 @@
       selectedNodeId.set(null);
     });
 
-    const unsub1 = graphNodes.subscribe(syncFiltered);
-    const unsub2 = graphEdges.subscribe(syncFiltered);
-    const unsub3 = serviceTypeFilter.subscribe(syncFiltered);
-    const unsub4 = physicsConfig.subscribe(applyPhysics);
+    const unsub1 = graphNodes.subscribe(syncGraph);
+    const unsub2 = graphEdges.subscribe(syncGraph);
+    const unsub3 = physicsConfig.subscribe(applyPhysics);
 
     onDestroy(() => {
       unsub1();
       unsub2();
       unsub3();
-      unsub4();
       network?.destroy();
     });
   });
