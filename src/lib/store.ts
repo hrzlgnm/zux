@@ -18,19 +18,21 @@ export const physicsConfig = writable<PhysicsConfig>({
 });
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
-  let types = 0, instances = 0, hosts = 0, addresses = 0;
+  let types = 0, instances = 0, hosts = 0, interfaces = 0, addresses = 0;
   for (const n of $nodes.values()) {
     if (n.group === 'service-type') types++;
     else if (n.group === 'instance') instances++;
     else if (n.group === 'host') hosts++;
+    else if (n.group === 'interface') interfaces++;
     else if (n.group === 'address') addresses++;
   }
-  return { types, instances, hosts, addresses, edges: $edges.size };
+  return { types, instances, hosts, interfaces, addresses, edges: $edges.size };
 });
 
 function typeId(st: string) { return `type:${st}`; }
 function instId(name: string, st: string) { return `inst:${name}:${st}`; }
 function hostId(h: string) { return `host:${h}`; }
+function ifaceId(name: string) { return `iface:${name}`; }
 function addrId(a: string) { return `addr:${a}`; }
 
 export function setupEventListeners() {
@@ -78,12 +80,21 @@ export function setupEventListeners() {
           }
           if (d.addresses) {
             for (const a of d.addresses) {
-              const aId = addrId(a);
+              const aId = addrId(a.ip);
               if (!m.has(aId)) {
                 m.set(aId, {
-                  id: aId, label: a,
+                  id: aId, label: a.ip,
                   group: 'address', shape: 'triangle', size: 12, color: '#ce93d8',
                 });
+              }
+              for (const iface of a.interfaces) {
+                const iId = ifaceId(iface);
+                if (!m.has(iId)) {
+                  m.set(iId, {
+                    id: iId, label: iface,
+                    group: 'interface', shape: 'hexagon', size: 14, color: '#4dd0e1',
+                  });
+                }
               }
             }
           }
@@ -101,12 +112,16 @@ export function setupEventListeners() {
           });
           if (d.addresses) {
             for (const a of d.addresses) {
-              const aId = addrId(a);
-              const edgeId = `e:ha:${hId}:${aId}`;
-              if (!m.has(edgeId)) {
-                m.set(edgeId, {
-                  id: edgeId,
-                  from: hId, to: aId, color: '#b39ddb',
+              for (const iface of a.interfaces) {
+                const iId = ifaceId(iface);
+                const aId = addrId(a.ip);
+                m.set(`e:hi:${hId}:${iId}`, {
+                  id: `e:hi:${hId}:${iId}`,
+                  from: hId, to: iId, color: '#4dd0e1',
+                });
+                m.set(`e:ia:${iId}:${aId}`, {
+                  id: `e:ia:${iId}:${aId}`,
+                  from: iId, to: aId, color: '#b39ddb',
                 });
               }
             }

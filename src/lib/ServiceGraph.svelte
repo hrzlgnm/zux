@@ -60,6 +60,11 @@
         color: { background: '#ce93d8', border: '#7b1fa2' },
         font: { color: '#f3e5f5', size: 11 },
       },
+      interface: {
+        shape: 'hexagon',
+        color: { background: '#4dd0e1', border: '#00acc1' },
+        font: { color: '#e0f7fa', size: 11 },
+      },
     },
     interaction: {
       dragNodes: true,
@@ -101,7 +106,7 @@
     network = new Network(container, { nodes: visNodes, edges: visEdges }, options);
 
     const ro = new ResizeObserver(() => {
-      network.setSize(container.offsetWidth, container.offsetHeight);
+      network.setSize(`${container.offsetWidth}px`, `${container.offsetHeight}px`);
     });
     ro.observe(container);
 

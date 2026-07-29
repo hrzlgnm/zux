@@ -1,7 +1,12 @@
+export interface AddressInfo {
+  ip: string;
+  interfaces: string[];
+}
+
 export interface GraphNode {
   id: string;
   label: string;
-  group: 'service-type' | 'instance' | 'host' | 'address';
+  group: 'service-type' | 'instance' | 'host' | 'address' | 'interface';
   title?: string;
   shape?: string;
   size?: number;
@@ -10,7 +15,7 @@ export interface GraphNode {
   subType?: string;
   hostname?: string;
   port?: number;
-  addresses?: string[];
+  addresses?: AddressInfo[];
   txt?: Record<string, string>;
 }
 

@@ -5,6 +5,12 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
 
 #[derive(Clone, Serialize, Debug, PartialEq)]
+pub struct AddressInfo {
+    pub ip: String,
+    pub interfaces: Vec<String>,
+}
+
+#[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct ServiceDiscovered {
     pub id: String,
     pub name: String,
@@ -12,7 +18,7 @@ pub struct ServiceDiscovered {
     pub sub_type: Option<String>,
     pub hostname: String,
     pub port: u16,
-    pub addresses: Vec<String>,
+    pub addresses: Vec<AddressInfo>,
     pub txt: HashMap<String, String>,
 }
 
@@ -216,7 +222,19 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
             .get_addresses()
             .iter()
             .filter(|s| !filter_non_link_local || keep_address(s))
-            .map(|s| scoped_ip_to_string(s))
+            .map(|s| {
+                let interfaces: Vec<String> = match s {
+                    ScopedIp::V4(v4) => {
+                        v4.interface_ids().iter().map(|id| id.name.clone()).collect()
+                    }
+                    ScopedIp::V6(v6) => vec![v6.scope_id().name.clone()],
+                    _ => vec![],
+                };
+                AddressInfo {
+                    ip: s.to_ip_addr().to_string(),
+                    interfaces,
+                }
+            })
             .collect(),
         txt: info
             .txt_properties
@@ -224,10 +242,6 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
             .map(|p| (p.key().to_string(), p.val_str().to_string()))
             .collect(),
     }
-}
-
-fn scoped_ip_to_string(ip: &ScopedIp) -> String {
-    ip.to_ip_addr().to_string()
 }
 
 fn keep_address(ip: &ScopedIp) -> bool {

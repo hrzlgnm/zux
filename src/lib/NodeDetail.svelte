@@ -39,7 +39,14 @@
       {/if}
       {#if node.addresses && node.addresses.length > 0}
         <div class="field"><span class="label">Addresses</span>
-          <span>{node.addresses.join(', ')}</span>
+          {#each node.addresses as a}
+            <div class="addr-row">
+              <span class="addr-ip">{a.ip}</span>
+              {#if a.interfaces.length > 0}
+                <span class="addr-ifaces">({a.interfaces.join(', ')})</span>
+              {/if}
+            </div>
+          {/each}
         </div>
       {/if}
       {#if node.txt && Object.keys(node.txt).length > 0}
@@ -115,6 +122,13 @@
     letter-spacing: 0.5px;
   }
   .field span { color: #e0e0e0; word-break: break-all; font-size: 14px; }
+  .addr-row {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+  .addr-ip { color: #e0e0e0; word-break: break-all; font-size: 14px; }
+  .addr-ifaces { color: #4dd0e1; font-size: 12px; }
   .txt-records {
     background: #1a1a2e;
     border-radius: 4px;
