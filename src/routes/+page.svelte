@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { setupEventListeners, isScanning } from '$lib/store';
+  import { setupEventListeners, isScanning, clearGraph } from '$lib/store';
   import { invoke } from '@tauri-apps/api/core';
   import ServiceGraph from '$lib/ServiceGraph.svelte';
   import Sidebar from '$lib/Sidebar.svelte';
@@ -8,6 +8,7 @@
 
   onMount(() => {
     setupEventListeners();
+    clearGraph();
     invoke('start_discovery').then(() => isScanning.set(false)).catch(() => {});
   });
 </script>

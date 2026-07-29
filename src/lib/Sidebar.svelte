@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { stats, isScanning, physicsConfig } from './store';
+  import { stats, isScanning, physicsConfig, clearGraph } from './store';
   import { invoke } from '@tauri-apps/api/core';
 
   let physicsOpen = $state(false);
 
   async function startScan() {
     isScanning.set(true);
+    clearGraph();
     try {
       console.log('[zux] invoking start_discovery');
       await invoke('start_discovery');

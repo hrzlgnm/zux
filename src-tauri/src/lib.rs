@@ -2,7 +2,7 @@ mod mdns;
 
 use clap::Parser;
 use mdns::MdnsBrowser;
-use std::sync::Arc;
+use std::sync::Mutex;
 use tauri::{Emitter, State};
 
 #[derive(Parser)]
@@ -13,17 +13,15 @@ struct Cli {
     keep_all_ips: bool,
 }
 
-struct AppState {
-    browser: Arc<MdnsBrowser>,
-}
-
 #[tauri::command]
 async fn start_discovery(
     app: tauri::AppHandle,
-    state: State<'_, AppState>,
+    state: State<'_, Mutex<MdnsBrowser>>,
 ) -> Result<(), String> {
     eprintln!("[tauri] start_discovery called");
-    let mut rx = state.browser.subscribe();
+    let mut browser = state.lock().map_err(|e| e.to_string())?;
+    browser.reset().map_err(|e| e.to_string())?;
+    let mut rx = browser.subscribe();
     let app_clone = app.clone();
 
     tokio::spawn(async move {
@@ -37,8 +35,7 @@ async fn start_discovery(
         eprintln!("[tauri] event listener ended");
     });
 
-    state.browser.start().map_err(|e| e.to_string())?;
-
+    browser.start().map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -49,9 +46,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState {
-            browser: Arc::new(browser),
-        })
+        .manage(Mutex::new(browser))
         .invoke_handler(tauri::generate_handler![start_discovery])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

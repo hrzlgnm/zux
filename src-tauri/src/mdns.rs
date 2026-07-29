@@ -58,6 +58,16 @@ impl MdnsBrowser {
         self.tx.subscribe()
     }
 
+    pub fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        eprintln!("[mdns] resetting...");
+        self.daemon = ServiceDaemon::new()?;
+        let (tx, _) = broadcast::channel(512);
+        self.tx = tx;
+        self.active_browses.lock().unwrap().clear();
+        self.seen_instances.lock().unwrap().clear();
+        Ok(())
+    }
+
     pub fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("[mdns] starting discovery...");
         let enum_rx = self.daemon.browse("_services._dns-sd._udp.local.")?;

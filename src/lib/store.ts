@@ -17,6 +17,13 @@ export const physicsConfig = writable<PhysicsConfig>({
   damping: 0.4,
 });
 
+export function clearGraph() {
+  graphNodes.set(new Map());
+  graphEdges.set(new Map());
+  selectedNodeId.set(null);
+  serviceTypes.set(new Set());
+}
+
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
   let types = 0, instances = 0, hosts = 0, addresses = 0;
   for (const n of $nodes.values()) {
