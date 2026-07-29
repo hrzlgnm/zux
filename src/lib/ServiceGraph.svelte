@@ -14,11 +14,11 @@
   let prevEdgeIds = new Set<string>();
   let prevNodeData = new Map<string, GraphNode>();
 
-  function buildPhysicsOpts(cfg: import('./types').PhysicsConfig) {
+  function buildPhysicsOpts(cfg: import('./types').PhysicsConfig, includeStabilization = false) {
     const isRepulsion = cfg.solver === 'repulsion' || cfg.solver === 'hierarchicalRepulsion';
     return {
       solver: cfg.solver,
-      stabilization: { iterations: 200 },
+      ...(includeStabilization ? { stabilization: { iterations: 200 } } : {}),
       [cfg.solver]: {
         ...(isRepulsion ? { nodeDistance: -cfg.gravitationalConstant } : { gravitationalConstant: cfg.gravitationalConstant }),
         centralGravity: cfg.centralGravity,
@@ -105,7 +105,7 @@
 
   function applyPhysics(cfg: import('./types').PhysicsConfig) {
     if (!network) return;
-    network.setOptions({ physics: buildPhysicsOpts(cfg) });
+    network.setOptions({ physics: buildPhysicsOpts(cfg, false) });
   }
 
   function nodeMatchesQuery(n: GraphNode, q: string): boolean {
@@ -152,7 +152,7 @@
 
   onMount(() => {
     const initialCfg = get(physicsConfig);
-    options.physics = buildPhysicsOpts(initialCfg);
+    options.physics = buildPhysicsOpts(initialCfg, true);
     network = new Network(container, { nodes: visNodes, edges: visEdges }, options);
 
     const ro = new ResizeObserver(() => {
