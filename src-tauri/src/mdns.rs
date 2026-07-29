@@ -130,12 +130,11 @@ impl MdnsBrowser {
                                             let discovered = resolved_to_discovered(&svc, filter);
                                             let id = discovered.id.clone();
                                             let mut cache = seen.lock().unwrap();
-                                            if let Some(prev) = cache.get(&id) {
-                                                if *prev == discovered {
+                                            if let Some(prev) = cache.get(&id)
+                                                && *prev == discovered {
                                                     log::info!("[mdns] unchanged: {}", discovered.name);
                                                     continue;
                                                 }
-                                            }
                                              log::info!("[mdns] resolved: {}", discovered.name);
                                             cache.insert(id, discovered.clone());
                                             drop(cache);
@@ -244,14 +243,13 @@ fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>, addresses:
     }
 
     for v in txt.values() {
-        if let Ok(parsed) = Url::parse(v.trim()) {
-            if parsed.scheme() == "http" || parsed.scheme() == "https" {
+        if let Ok(parsed) = Url::parse(v.trim())
+            && (parsed.scheme() == "http" || parsed.scheme() == "https") {
                 let s = parsed.to_string();
                 if !urls.contains(&s) {
                     urls.push(s);
                 }
             }
-        }
     }
 
     urls
