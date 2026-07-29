@@ -37,21 +37,21 @@ async fn start_discovery(
     app: tauri::AppHandle,
     state: State<'_, Mutex<MdnsBrowser>>,
 ) -> Result<(), String> {
-    log::info!("[tauri] start_discovery called");
+    log::debug!("[tauri] start_discovery called");
     let mut browser = state.lock().map_err(|e| { log::error!("[tauri] lock error: {e}"); e.to_string() })?;
     browser.reset().map_err(|e| { log::error!("[tauri] reset error: {e}"); e.to_string() })?;
     let mut rx = browser.subscribe();
     let app_clone = app.clone();
 
     tokio::spawn(async move {
-        log::info!("[tauri] event listener started");
+        log::debug!("[tauri] event listener started");
         while let Ok(event) = rx.recv().await {
-            log::info!("[tauri] forwarding event to frontend");
+            log::debug!("[tauri] forwarding event to frontend");
             if let Err(e) = app_clone.emit("mdns-event", &event) {
                 log::error!("[tauri] emit error: {e}");
             }
         }
-        log::info!("[tauri] event listener ended");
+        log::debug!("[tauri] event listener ended");
     });
 
     browser.start().map_err(|e| { log::error!("[tauri] start error: {e}"); e.to_string() })?;
