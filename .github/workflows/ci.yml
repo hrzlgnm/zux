@@ -11,7 +11,7 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: ~/.cache/typos
-          key: typos-${{ hashFiles('**/*.rs', '**/*.ts', '**/*.svelte', '**/*.json', '**/*.md') }}
+          key: typos-${{ hashFiles('**/*.rs', '**/*.ts', '**/*.svelte', '**/*.json', '**/*.md', '**/_typos.toml', '**/.ignore') }}
       - name: install typos
         run: cargo install typos-cli
       - run: typos .
@@ -46,3 +46,12 @@ jobs:
         run: npm ci
       - name: check
         run: npm run check
+
+  alls-green:
+    if: always()
+    needs: [typos, clippy, svelte-check]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
