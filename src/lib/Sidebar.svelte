@@ -6,7 +6,7 @@
 
 <aside class="sidebar">
   <h2 class="title">zux</h2>
-  <p class="subtitle">mDNS-SD Browser</p>
+  <p class="subtitle">mDNS-SD Visualizer</p>
 
   <div class="stats">
     <div class="stat"><span class="num">{$stats.types}</span> types</div>
