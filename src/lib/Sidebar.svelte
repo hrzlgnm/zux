@@ -210,12 +210,14 @@
     color: #b0bec5;
   }
   .ctrl select {
-    background: #16213e;
-    color: #e0e0e0;
-    border: 1px solid #0f3460;
+    appearance: none;
+    background: #1a1a2e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='%2378909c'/%3E%3C/svg%3E") no-repeat right 6px center;
+    color: #b0bec5;
+    border: 1px solid #16213e;
     border-radius: 4px;
-    padding: 4px;
+    padding: 4px 22px 4px 6px;
     font-size: 11px;
+    cursor: pointer;
   }
   .ctrl input[type="range"] {
     width: 100%;
