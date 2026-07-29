@@ -61,7 +61,7 @@ impl MdnsBrowser {
     }
 
     pub fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        eprintln!("[mdns] resetting...");
+        log::info!("[mdns] resetting...");
         self.daemon = ServiceDaemon::new()?;
         let (tx, _) = broadcast::channel(512);
         self.tx = tx;
@@ -71,9 +71,9 @@ impl MdnsBrowser {
     }
 
     pub fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
-        eprintln!("[mdns] starting discovery...");
+        log::info!("[mdns] starting discovery...");
         let enum_rx = self.daemon.browse("_services._dns-sd._udp.local.")?;
-        eprintln!("[mdns] enumeration receiver obtained");
+        log::info!("[mdns] enumeration receiver obtained");
         let tx = self.tx.clone();
         let daemon = self.daemon.clone();
         let active_browses = self.active_browses.clone();
@@ -86,7 +86,7 @@ impl MdnsBrowser {
                     ServiceEvent::ServiceResolved(r) => (r.get_fullname().to_string(), true),
                     ServiceEvent::ServiceFound(_, f) => (f.to_string(), false),
                     ServiceEvent::SearchStarted(st) => {
-                        eprintln!("[mdns] search started: {st}");
+                        log::info!("[mdns] search started: {st}");
                         continue;
                     }
                     _ => continue,
@@ -100,10 +100,10 @@ impl MdnsBrowser {
 
                 if let Some(service_type) = result {
                     if service_type.contains("._sub.") {
-                        eprintln!("[mdns] skipping subtype: {service_type}");
+                        log::info!("[mdns] skipping subtype: {service_type}");
                         continue;
                     }
-                    eprintln!("[mdns] discovered type: {service_type}");
+                    log::info!("[mdns] discovered type: {service_type}");
 
                     let _ = tx.send(MdnsEvent::TypeAdded {
                         service_type: service_type.clone(),
@@ -132,18 +132,18 @@ impl MdnsBrowser {
                                             let mut cache = seen.lock().unwrap();
                                             if let Some(prev) = cache.get(&id) {
                                                 if *prev == discovered {
-                                                    eprintln!("[mdns] unchanged: {}", discovered.name);
+                                                    log::info!("[mdns] unchanged: {}", discovered.name);
                                                     continue;
                                                 }
                                             }
-                                            eprintln!("[mdns] resolved: {}", discovered.name);
+                                             log::info!("[mdns] resolved: {}", discovered.name);
                                             cache.insert(id, discovered.clone());
                                             drop(cache);
                                             let _ = tx2
                                                 .send(MdnsEvent::Added(discovered));
                                         }
                                         ServiceEvent::ServiceRemoved(st, fullname) => {
-                                            eprintln!("[mdns] removed: {fullname}");
+                                            log::info!("[mdns] removed: {fullname}");
                                             let id = extract_instance_id(&fullname);
                                             if let Some(ref instid) = id {
                                                 seen.lock().unwrap().remove(instid);
@@ -159,7 +159,7 @@ impl MdnsBrowser {
                             });
                         }
                         Err(e) => {
-                            eprintln!("[mdns] browse error for {}: {}", service_type, e);
+                            log::error!("[mdns] browse error for {}: {}", service_type, e);
                         }
                     }
                 }
