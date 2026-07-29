@@ -209,6 +209,7 @@ fn resolved_to_discovered(info: &ResolvedService) -> ServiceDiscovered {
         addresses: info
             .get_addresses()
             .iter()
+            .filter(|s| keep_address(s))
             .map(|s| scoped_ip_to_string(s))
             .collect(),
         txt: info
@@ -219,8 +220,19 @@ fn resolved_to_discovered(info: &ResolvedService) -> ServiceDiscovered {
     }
 }
 
+fn is_unicast_link_local_v6(addr: &std::net::Ipv6Addr) -> bool {
+    (addr.segments()[0] & 0xffc0) == 0xfe80
+}
+
 fn scoped_ip_to_string(ip: &ScopedIp) -> String {
     ip.to_ip_addr().to_string()
+}
+
+fn keep_address(ip: &ScopedIp) -> bool {
+    match ip.to_ip_addr() {
+        std::net::IpAddr::V4(_) => true,
+        std::net::IpAddr::V6(v6) => is_unicast_link_local_v6(&v6),
+    }
 }
 
 fn extract_instance_id(fullname: &str) -> Option<String> {
