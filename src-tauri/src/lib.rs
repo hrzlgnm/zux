@@ -3,7 +3,6 @@ mod mdns;
 use clap::Parser;
 use log::LevelFilter;
 use mdns::MdnsBrowser;
-use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{Emitter, State};
 use tauri_plugin_log::{Target, TargetKind};
@@ -28,9 +27,9 @@ struct Cli {
     /// Log level (trace, debug, info, warn, error) [default: info]
     #[arg(long, default_value = "info")]
     log_level: String,
-    /// Optional path to a log file
+    /// Log to file in the OS-specific log directory
     #[arg(long)]
-    log_file: Option<String>,
+    log_to_file: bool,
 }
 
 #[tauri::command]
@@ -65,15 +64,12 @@ pub fn run() {
     let level = parse_log_level(&cli.log_level);
 
     let mut log_builder = tauri_plugin_log::Builder::new()
-        .level(level);
+        .level(level)
+        .clear_targets()
+        .target(Target::new(TargetKind::Stdout));
 
-    if let Some(path) = &cli.log_file {
-        log_builder = log_builder.target(
-            Target::new(TargetKind::Folder {
-                path: PathBuf::from(path),
-                file_name: None,
-            }),
-        );
+    if cli.log_to_file {
+        log_builder = log_builder.target(Target::new(TargetKind::LogDir { file_name: None }));
     }
 
     let browser = MdnsBrowser::new(!cli.keep_all_ips).expect("failed to create mDNS browser");
