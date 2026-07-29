@@ -11,7 +11,7 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: ~/.cache/typos
-          key: typos-${{ hashFiles('**/*.rs', '**/*.ts', '**/*.svelte', '**/*.json', '**/*.md') }}
+          key: typos-${{ hashFiles('**/*.rs', '**/*.ts', '**/*.svelte', '**/*.json', '**/*.md', '**/_typos.toml', '**/.ignore') }}
       - name: install typos
         run: cargo install typos-cli
       - run: typos .

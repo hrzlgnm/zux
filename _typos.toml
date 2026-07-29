@@ -1,0 +1,3 @@
+[default.extend-words]
+# alls-green is a GitHub Actions status check for branch protection
+alls = "alls"
