@@ -196,40 +196,17 @@ fn extract_service_type_from_found(found: &str) -> Option<String> {
     None
 }
 
-fn unescape_dns_label(label: &str) -> String {
-    let mut out = String::with_capacity(label.len());
-    let mut chars = label.chars();
-    while let Some(c) = chars.next() {
-        if c == '\\' {
-            match chars.next() {
-                Some('.') => out.push('.'),
-                Some(d1 @ '0'..='9') => {
-                    let d2 = chars.next().unwrap_or('0');
-                    let d3 = chars.next().unwrap_or('0');
-                    let code = (d1 as u8 - b'0') * 100
-                        + (d2 as u8 - b'0') * 10
-                        + (d3 as u8 - b'0');
-                    out.push(code as char);
-                }
-                Some(c) => { out.push('\\'); out.push(c); }
-                None => out.push('\\'),
-            }
-        } else {
-            out.push(c);
-        }
-    }
-    out
-}
-
 fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -> ServiceDiscovered {
-    let fullname = info.get_fullname().to_string();
-    let raw_name = fullname
-        .splitn(2, '.')
-        .next()
-        .unwrap_or("");
-    let name = unescape_dns_label(raw_name);
+    let fullname = info.get_fullname();
+    let suffix = info.ty_domain.trim_end_matches('.');
+    let name = fullname
+        .trim_end_matches('.')
+        .strip_suffix(suffix)
+        .and_then(|s| s.strip_suffix('.'))
+        .unwrap_or("")
+        .to_string();
     ServiceDiscovered {
-        id: fullname,
+        id: fullname.to_string(),
         name,
         service_type: info.ty_domain.to_string(),
         sub_type: info.get_subtype().clone(),
