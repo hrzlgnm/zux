@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { stats, isScanning, graphNodes, graphEdges, serviceTypes, serviceTypeFilter } from './store';
+  import { stats, isScanning, graphNodes, graphEdges, serviceTypes, serviceTypeFilter, physicsConfig } from './store';
   import { invoke } from '@tauri-apps/api/core';
 
   let activeTypes = $state<Set<string>>(new Set());
   let showAll = $state(true);
+  let physicsOpen = $state(false);
 
   function toggleType(t: string) {
     if (showAll) showAll = false;
     if (activeTypes.has(t)) activeTypes.delete(t);
     else activeTypes.add(t);
+    serviceTypeFilter.set(new Set(activeTypes));
   }
 
   async function startScan() {
@@ -24,15 +26,7 @@
   }
 
   $effect(() => {
-    const svc = $serviceTypes;
-    if (svc.size > 0 && activeTypes.size === 0) {
-      activeTypes = new Set(svc);
-    }
-  });
-
-  $effect(() => {
     showAll;
-    activeTypes.size;
     if (showAll) {
       serviceTypeFilter.set(null);
     } else {
@@ -65,19 +59,71 @@
     <div class="legend-item"><span class="dot addr"></span> Address</div>
   </div>
 
+  <div class="section">
+    <button class="section-toggle" onclick={() => physicsOpen = !physicsOpen}>
+      <span class="arrow">{physicsOpen ? '▼' : '▶'}</span> Physics
+    </button>
+    {#if physicsOpen}
+      <div class="physics-controls">
+        <label class="ctrl">
+          Solver
+          <select value={$physicsConfig.solver} onchange={(e) => { const t = e.target as HTMLSelectElement; physicsConfig.set({ ...$physicsConfig, solver: t.value as import('./types').Solver }); }}>
+            <option value="forceAtlas2Based">forceAtlas2Based</option>
+            <option value="barnesHut">barnesHut</option>
+            <option value="repulsion">repulsion</option>
+            <option value="hierarchicalRepulsion">hierarchicalRepulsion</option>
+          </select>
+        </label>
+        <label class="ctrl">
+          Gravity <span class="val">{$physicsConfig.gravitationalConstant}</span>
+          <input type="range" min="-200" max="0" step="1"
+            value={$physicsConfig.gravitationalConstant}
+            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, gravitationalConstant: Number(t.value) }); }} />
+        </label>
+        <label class="ctrl">
+          Cent. Gravity <span class="val">{$physicsConfig.centralGravity.toFixed(3)}</span>
+          <input type="range" min="0" max="0.1" step="0.001"
+            value={$physicsConfig.centralGravity}
+            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, centralGravity: Number(t.value) }); }} />
+        </label>
+        <label class="ctrl">
+          Spring Len <span class="val">{$physicsConfig.springLength}</span>
+          <input type="range" min="50" max="500" step="5"
+            value={$physicsConfig.springLength}
+            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, springLength: Number(t.value) }); }} />
+        </label>
+        <label class="ctrl">
+          Spring Const <span class="val">{$physicsConfig.springConstant.toFixed(3)}</span>
+          <input type="range" min="0.001" max="0.1" step="0.001"
+            value={$physicsConfig.springConstant}
+            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, springConstant: Number(t.value) }); }} />
+        </label>
+        <label class="ctrl">
+          Damping <span class="val">{$physicsConfig.damping.toFixed(2)}</span>
+          <input type="range" min="0" max="1" step="0.01"
+            value={$physicsConfig.damping}
+            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, damping: Number(t.value) }); }} />
+        </label>
+      </div>
+    {/if}
+  </div>
+
   {#if $serviceTypes.size > 0}
     <div class="filters">
       <h3>Service Types</h3>
       <label class="filter-all">
-        <input type="checkbox" bind:checked={showAll} /> Show All
+        <input type="checkbox" checked={showAll} onchange={() => { showAll = !showAll; }} />
+        Show All
       </label>
-      {#each Array.from($serviceTypes) as st}
-        <label class="filter-item">
-          <input type="checkbox" checked={activeTypes.has(st)}
-            onchange={() => toggleType(st)} />
-          {st.replace('.local.', '')}
-        </label>
-      {/each}
+      {#if !showAll}
+        {#each Array.from($serviceTypes).sort() as st}
+          <label class="filter-item">
+            <input type="checkbox" checked={activeTypes.has(st)}
+              onchange={() => toggleType(st)} />
+            {st.replace('.local.', '')}
+          </label>
+        {/each}
+      {/if}
     </div>
   {/if}
 </aside>
@@ -183,5 +229,57 @@
   }
   .filter-all input, .filter-item input {
     accent-color: #4fc3f7;
+  }
+  .section {
+    margin-top: 4px;
+  }
+  .section-toggle {
+    background: none;
+    border: none;
+    color: #90a4ae;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    width: 100%;
+    text-align: left;
+  }
+  .arrow {
+    margin-right: 4px;
+    font-size: 10px;
+  }
+  .physics-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    background: #1a1a2e;
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+  .ctrl {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    color: #b0bec5;
+  }
+  .ctrl select {
+    background: #16213e;
+    color: #e0e0e0;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 11px;
+  }
+  .ctrl input[type="range"] {
+    width: 100%;
+    accent-color: #4fc3f7;
+  }
+  .val {
+    float: right;
+    color: #4fc3f7;
+    font-weight: 600;
+    font-size: 11px;
   }
 </style>
