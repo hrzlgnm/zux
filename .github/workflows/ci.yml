@@ -44,9 +44,25 @@ jobs:
       - name: check
         run: npm run check
 
+  signer-check:
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: install dependencies
+        run: npm ci
+      - name: check
+        run: npm run tauri signer sign package.json
+
   alls-green:
     if: always()
-    needs: [typos, clippy, svelte-check]
+    needs: [typos, clippy, svelte-check, signer-check]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@release/v1
