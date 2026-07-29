@@ -28,11 +28,11 @@ pub struct ServiceDiscovered {
 #[serde(tag = "type", content = "data")]
 pub enum MdnsEvent {
     #[serde(rename = "service-added")]
-    ServiceAdded(ServiceDiscovered),
+    Added(ServiceDiscovered),
     #[serde(rename = "service-removed")]
-    ServiceRemoved { id: String, service_type: String },
+    Removed { id: String, service_type: String },
     #[serde(rename = "service-type-added")]
-    ServiceTypeAdded { service_type: String },
+    TypeAdded { service_type: String },
 }
 
 pub struct MdnsBrowser {
@@ -105,7 +105,7 @@ impl MdnsBrowser {
                     }
                     eprintln!("[mdns] discovered type: {service_type}");
 
-                    let _ = tx.send(MdnsEvent::ServiceTypeAdded {
+                    let _ = tx.send(MdnsEvent::TypeAdded {
                         service_type: service_type.clone(),
                     });
 
@@ -140,7 +140,7 @@ impl MdnsBrowser {
                                             cache.insert(id, discovered.clone());
                                             drop(cache);
                                             let _ = tx2
-                                                .send(MdnsEvent::ServiceAdded(discovered));
+                                                .send(MdnsEvent::Added(discovered));
                                         }
                                         ServiceEvent::ServiceRemoved(st, fullname) => {
                                             eprintln!("[mdns] removed: {fullname}");
@@ -148,7 +148,7 @@ impl MdnsBrowser {
                                             if let Some(ref instid) = id {
                                                 seen.lock().unwrap().remove(instid);
                                             }
-                                            let _ = tx2.send(MdnsEvent::ServiceRemoved {
+                                            let _ = tx2.send(MdnsEvent::Removed {
                                                 id: id.unwrap_or(fullname),
                                                 service_type: st,
                                             });
@@ -243,7 +243,7 @@ fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>, addresses:
         }
     }
 
-    for (_k, v) in txt {
+    for v in txt.values() {
         if let Ok(parsed) = Url::parse(v.trim()) {
             if parsed.scheme() == "http" || parsed.scheme() == "https" {
                 let s = parsed.to_string();
@@ -311,5 +311,5 @@ fn keep_address(ip: &ScopedIp) -> bool {
 }
 
 fn extract_instance_id(fullname: &str) -> Option<String> {
-    fullname.splitn(2, '.').next().map(|s| s.to_string())
+    fullname.split('.').next().map(|s| s.to_string())
 }
