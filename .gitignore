@@ -1,6 +1,6 @@
-.# Hack to make ripgrep and other tools not to ignore .github directory
+# Hack to make ripgrep and other tools not to ignore .github directory
 !.github/
-DS_Store
+.DS_Store
 node_modules
 /build
 /.svelte-kit
