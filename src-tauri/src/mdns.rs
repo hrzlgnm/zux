@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
+use url::Url;
 
 #[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct AddressInfo {
@@ -228,10 +229,12 @@ fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>) -> Vec<Str
     }
 
     for (_k, v) in txt {
-        let trimmed = v.trim();
-        if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
-            if !urls.contains(&trimmed.to_string()) {
-                urls.push(trimmed.to_string());
+        if let Ok(parsed) = Url::parse(v.trim()) {
+            if parsed.scheme() == "http" || parsed.scheme() == "https" {
+                let s = parsed.to_string();
+                if !urls.contains(&s) {
+                    urls.push(s);
+                }
             }
         }
     }
