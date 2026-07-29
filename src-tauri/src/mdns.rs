@@ -216,11 +216,15 @@ fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>) -> Vec<Str
     let host = clean_hostname(info.get_hostname());
     let port = info.get_port();
     let ty = info.ty_domain.to_lowercase();
+    let path = txt.get("path").map(|p| {
+        let p = p.trim();
+        if p.starts_with('/') { p.to_string() } else { format!("/{p}") }
+    });
 
     if ty.starts_with("_http._tcp") {
-        urls.push(format!("http://{host}:{port}/"));
+        urls.push(format!("http://{host}:{port}{}", path.as_deref().unwrap_or("/")));
     } else if ty.starts_with("_https._tcp") {
-        urls.push(format!("https://{host}:{port}/"));
+        urls.push(format!("https://{host}:{port}{}", path.as_deref().unwrap_or("/")));
     }
 
     for (_k, v) in txt {
