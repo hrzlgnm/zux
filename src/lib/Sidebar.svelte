@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { stats, physicsConfig } from './store';
+  import { stats, physicsConfig, filterQuery } from './store';
 
   let physicsOpen = $state(false);
 </script>
@@ -72,6 +72,8 @@
       </div>
     {/if}
   </div>
+
+  <input type="text" class="filter-input" placeholder="Filter nodes..." bind:value={$filterQuery} onkeydown={(e) => { if (e.key === 'Escape') { $filterQuery = ''; } }} />
 
 </aside>
 
@@ -197,5 +199,22 @@
     color: #4fc3f7;
     font-weight: 600;
     font-size: 11px;
+  }
+  .filter-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-size: 13px;
+    outline: none;
+  }
+  .filter-input::placeholder {
+    color: #546e7a;
+  }
+  .filter-input:focus {
+    border-color: #4fc3f7;
   }
 </style>

@@ -3,7 +3,7 @@
   import { Network } from 'vis-network';
   import { DataSet } from 'vis-data';
   import { get } from 'svelte/store';
-  import { graphNodes, graphEdges, selectedNodeId, physicsConfig } from './store';
+  import { graphNodes, graphEdges, selectedNodeId, physicsConfig, filterQuery } from './store';
   import type { GraphNode, GraphEdge } from './types';
 
   let container: HTMLDivElement;
@@ -95,6 +95,48 @@
     network.setOptions({ physics: buildPhysicsOpts(cfg) });
   }
 
+  function nodeMatchesQuery(n: GraphNode, q: string): boolean {
+    const lower = q.toLowerCase();
+    if (n.label.toLowerCase().includes(lower)) return true;
+    if (n.hostname?.toLowerCase().includes(lower)) return true;
+    if (n.serviceType?.toLowerCase().includes(lower)) return true;
+    if (n.subType?.toLowerCase().includes(lower)) return true;
+    if (n.port?.toString().includes(lower)) return true;
+    if (n.addresses) for (const a of n.addresses) { if (a.ip.includes(lower)) return true; }
+    if (n.interfaces) for (const i of n.interfaces) { if (i.toLowerCase().includes(lower)) return true; }
+    if (n.urls) for (const u of n.urls) { if (u.toLowerCase().includes(lower)) return true; }
+    if (n.txt) for (const [k, v] of Object.entries(n.txt)) { if (k.toLowerCase().includes(lower) || v.toLowerCase().includes(lower)) return true; }
+    return false;
+  }
+
+  function applyFilter(q: string) {
+    const allNodes = get(graphNodes);
+    if (q.length === 0) {
+      const updates: any[] = [];
+      for (const n of allNodes.values()) updates.push({ id: n.id, hidden: false });
+      if (updates.length > 0) visNodes.updateOnly(updates);
+      return;
+    }
+
+    const matchingIds = new Set<string>();
+    for (const n of allNodes.values()) {
+      if (nodeMatchesQuery(n, q)) matchingIds.add(n.id);
+    }
+
+    const allEdges = get(graphEdges);
+    const neighborIds = new Set<string>(matchingIds);
+    for (const e of allEdges.values()) {
+      if (matchingIds.has(e.from) && !matchingIds.has(e.to)) neighborIds.add(e.to);
+      if (matchingIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from);
+    }
+
+    const updates: any[] = [];
+    for (const n of allNodes.values()) {
+      updates.push({ id: n.id, hidden: !neighborIds.has(n.id) });
+    }
+    if (updates.length > 0) visNodes.updateOnly(updates);
+  }
+
   onMount(() => {
     const initialCfg = get(physicsConfig);
     options.physics = buildPhysicsOpts(initialCfg);
@@ -120,11 +162,13 @@
     const unsub1 = graphNodes.subscribe(syncGraph);
     const unsub2 = graphEdges.subscribe(syncGraph);
     const unsub3 = physicsConfig.subscribe(applyPhysics);
+    const unsub4 = filterQuery.subscribe(applyFilter);
 
     onDestroy(() => {
       unsub1();
       unsub2();
       unsub3();
+      unsub4();
       ro.disconnect();
       network?.destroy();
     });
