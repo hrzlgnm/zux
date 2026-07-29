@@ -59,7 +59,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 540px;
+    width: 640px;
     max-height: calc(100vh - 20px);
     overflow-y: auto;
     background: #16213e;
