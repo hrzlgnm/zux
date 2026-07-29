@@ -16,6 +16,7 @@ export interface GraphNode {
   hostname?: string;
   port?: number;
   addresses?: AddressInfo[];
+  interfaces?: string[];
   txt?: Record<string, string>;
 }
 

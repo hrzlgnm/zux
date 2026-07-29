@@ -49,6 +49,11 @@
           {/each}
         </div>
       {/if}
+      {#if node.interfaces && node.interfaces.length > 0}
+        <div class="field"><span class="label">Interfaces</span>
+          <span>{node.interfaces.join(', ')}</span>
+        </div>
+      {/if}
       {#if node.txt && Object.keys(node.txt).length > 0}
         <div class="field"><span class="label">TXT Records</span></div>
         <div class="txt-records">

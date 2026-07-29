@@ -89,6 +89,7 @@ export function setupEventListeners() {
                 m.set(aId, {
                   id: aId, label: a.ip,
                   group: 'address', shape: 'triangle', size: 12, color: '#ce93d8',
+                  interfaces: a.interfaces,
                 });
               }
             }
