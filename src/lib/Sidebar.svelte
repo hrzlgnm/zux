@@ -25,7 +25,6 @@
     <div class="stat"><span class="num">{$stats.types}</span> types</div>
     <div class="stat"><span class="num">{$stats.instances}</span> instances</div>
     <div class="stat"><span class="num">{$stats.hosts}</span> hosts</div>
-    <div class="stat"><span class="num">{$stats.interfaces}</span> interfaces</div>
     <div class="stat"><span class="num">{$stats.addresses}</span> addresses</div>
     <div class="stat"><span class="num">{$stats.edges}</span> links</div>
   </div>
@@ -39,7 +38,6 @@
     <div class="legend-item"><span class="dot type"></span> Service Type</div>
     <div class="legend-item"><span class="dot inst"></span> Instance</div>
     <div class="legend-item"><span class="dot host"></span> Host</div>
-    <div class="legend-item"><span class="dot iface"></span> Interface</div>
     <div class="legend-item"><span class="dot addr"></span> Address</div>
   </div>
 
@@ -176,7 +174,6 @@
   .dot.type { background: #4fc3f7; border-radius: 2px; transform: rotate(45deg); }
   .dot.inst { background: #81c784; }
   .dot.host { background: #ffb74d; border-radius: 2px; }
-  .dot.iface { background: #4dd0e1; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
   .dot.addr { background: #ce93d8; border-radius: 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
   .section {
     margin-top: 4px;

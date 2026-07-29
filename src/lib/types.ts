@@ -6,7 +6,7 @@ export interface AddressInfo {
 export interface GraphNode {
   id: string;
   label: string;
-  group: 'service-type' | 'instance' | 'host' | 'address' | 'interface';
+  group: 'service-type' | 'instance' | 'host' | 'address';
   title?: string;
   shape?: string;
   size?: number;
