@@ -4,11 +4,14 @@
   import { DataSet } from 'vis-data';
   import { get } from 'svelte/store';
   import { graphNodes, graphEdges, selectedNodeId, physicsConfig } from './store';
+  import type { GraphNode, GraphEdge } from './types';
 
   let container: HTMLDivElement;
   let network: Network;
   let visNodes = new DataSet<any>([]);
   let visEdges = new DataSet<any>([]);
+  let prevNodeIds = new Set<string>();
+  let prevEdgeIds = new Set<string>();
 
   function buildPhysicsOpts(cfg: import('./types').PhysicsConfig) {
     const isRepulsion = cfg.solver === 'repulsion' || cfg.solver === 'hierarchicalRepulsion';
@@ -69,10 +72,22 @@
   };
 
   function syncGraph() {
-    visNodes.clear();
-    visNodes.add(Array.from(get(graphNodes).values()));
-    visEdges.clear();
-    visEdges.add(Array.from(get(graphEdges).values()));
+    const nodes = get(graphNodes);
+    const edges = get(graphEdges);
+
+    const curNodeIds = new Set(nodes.keys());
+    for (const id of prevNodeIds) { if (!curNodeIds.has(id)) visNodes.remove(id); }
+    const addN: GraphNode[] = [];
+    for (const [id, n] of nodes) { if (!prevNodeIds.has(id)) addN.push(n); }
+    if (addN.length > 0) visNodes.add(addN);
+    prevNodeIds = curNodeIds;
+
+    const curEdgeIds = new Set(edges.keys());
+    for (const id of prevEdgeIds) { if (!curEdgeIds.has(id)) visEdges.remove(id); }
+    const addE: GraphEdge[] = [];
+    for (const [id, e] of edges) { if (!prevEdgeIds.has(id)) addE.push(e); }
+    if (addE.length > 0) visEdges.add(addE);
+    prevEdgeIds = curEdgeIds;
   }
 
   function applyPhysics(cfg: import('./types').PhysicsConfig) {
