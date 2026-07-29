@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct ServiceDiscovered {
     pub id: String,
     pub name: String,
@@ -30,6 +30,7 @@ pub struct MdnsBrowser {
     daemon: ServiceDaemon,
     tx: broadcast::Sender<MdnsEvent>,
     active_browses: Arc<Mutex<HashMap<String, bool>>>,
+    seen_instances: Arc<Mutex<HashMap<String, ServiceDiscovered>>>,
     started: std::sync::atomic::AtomicBool,
 }
 
@@ -41,6 +42,7 @@ impl MdnsBrowser {
             daemon,
             tx,
             active_browses: Arc::new(Mutex::new(HashMap::new())),
+            seen_instances: Arc::new(Mutex::new(HashMap::new())),
             started: std::sync::atomic::AtomicBool::new(false),
         })
     }
@@ -60,6 +62,7 @@ impl MdnsBrowser {
         let tx = self.tx.clone();
         let daemon = self.daemon.clone();
         let active_browses = self.active_browses.clone();
+        let seen_instances = self.seen_instances.clone();
 
         std::thread::spawn(move || {
             while let Ok(event) = enum_rx.recv() {
@@ -102,18 +105,32 @@ impl MdnsBrowser {
                     match daemon.browse(&service_type) {
                         Ok(type_rx) => {
                             let tx2 = tx.clone();
+                            let seen = seen_instances.clone();
                             std::thread::spawn(move || {
                                 while let Ok(ev) = type_rx.recv() {
                                     match ev {
                                         ServiceEvent::ServiceResolved(svc) => {
                                             let discovered = resolved_to_discovered(&svc);
+                                            let id = discovered.id.clone();
+                                            let mut cache = seen.lock().unwrap();
+                                            if let Some(prev) = cache.get(&id) {
+                                                if *prev == discovered {
+                                                    eprintln!("[mdns] unchanged: {}", discovered.name);
+                                                    continue;
+                                                }
+                                            }
                                             eprintln!("[mdns] resolved: {}", discovered.name);
+                                            cache.insert(id, discovered.clone());
+                                            drop(cache);
                                             let _ = tx2
                                                 .send(MdnsEvent::ServiceAdded(discovered));
                                         }
                                         ServiceEvent::ServiceRemoved(st, fullname) => {
                                             eprintln!("[mdns] removed: {fullname}");
                                             let id = extract_instance_id(&fullname);
+                                            if let Some(ref instid) = id {
+                                                seen.lock().unwrap().remove(instid);
+                                            }
                                             let _ = tx2.send(MdnsEvent::ServiceRemoved {
                                                 id: id.unwrap_or(fullname),
                                                 service_type: st,
