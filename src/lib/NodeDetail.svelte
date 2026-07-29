@@ -28,6 +28,9 @@
       {#if node.serviceType}
         <div class="field"><span class="label">Type</span><span>{node.serviceType}</span></div>
       {/if}
+      {#if node.subType}
+        <div class="field"><span class="label">Subtype</span><span>{node.subType}</span></div>
+      {/if}
       {#if node.hostname}
         <div class="field"><span class="label">Hostname</span><span>{node.hostname}</span></div>
       {/if}

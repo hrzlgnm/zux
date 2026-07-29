@@ -7,6 +7,7 @@ export interface GraphNode {
   size?: number;
   color?: string;
   serviceType?: string;
+  subType?: string;
   hostname?: string;
   port?: number;
   addresses?: string[];
