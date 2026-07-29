@@ -5,7 +5,7 @@ on:
 
 jobs:
   typos:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/cache@v6
@@ -17,7 +17,7 @@ jobs:
       - run: typos .
 
   clippy:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: install Rust stable
@@ -35,7 +35,7 @@ jobs:
         working-directory: src-tauri
 
   svelte-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: setup Node
@@ -50,7 +50,7 @@ jobs:
   alls-green:
     if: always()
     needs: [typos, clippy, svelte-check]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@release/v1
         with:
