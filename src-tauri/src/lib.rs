@@ -1,8 +1,17 @@
 mod mdns;
 
+use clap::Parser;
 use mdns::MdnsBrowser;
 use std::sync::Arc;
 use tauri::{Emitter, State};
+
+#[derive(Parser)]
+#[command(name = "zux", about = "mDNS-SD browser with force-directed graph")]
+struct Cli {
+    /// Keep all IP addresses including non-link-local IPv6
+    #[arg(long)]
+    keep_all_ips: bool,
+}
 
 struct AppState {
     browser: Arc<MdnsBrowser>,
@@ -35,7 +44,8 @@ async fn start_discovery(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let browser = MdnsBrowser::new().expect("failed to create mDNS browser");
+    let cli = Cli::parse();
+    let browser = MdnsBrowser::new(!cli.keep_all_ips).expect("failed to create mDNS browser");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())

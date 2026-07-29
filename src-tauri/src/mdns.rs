@@ -32,11 +32,12 @@ pub struct MdnsBrowser {
     tx: broadcast::Sender<MdnsEvent>,
     active_browses: Arc<Mutex<HashMap<String, bool>>>,
     seen_instances: Arc<Mutex<HashMap<String, ServiceDiscovered>>>,
+    filter_non_link_local: bool,
     started: std::sync::atomic::AtomicBool,
 }
 
 impl MdnsBrowser {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(filter_non_link_local: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let daemon = ServiceDaemon::new()?;
         let (tx, _) = broadcast::channel(512);
         Ok(Self {
@@ -44,6 +45,7 @@ impl MdnsBrowser {
             tx,
             active_browses: Arc::new(Mutex::new(HashMap::new())),
             seen_instances: Arc::new(Mutex::new(HashMap::new())),
+            filter_non_link_local,
             started: std::sync::atomic::AtomicBool::new(false),
         })
     }
@@ -64,6 +66,7 @@ impl MdnsBrowser {
         let daemon = self.daemon.clone();
         let active_browses = self.active_browses.clone();
         let seen_instances = self.seen_instances.clone();
+        let filter_non_link_local = self.filter_non_link_local;
 
         std::thread::spawn(move || {
             while let Ok(event) = enum_rx.recv() {
@@ -107,11 +110,12 @@ impl MdnsBrowser {
                         Ok(type_rx) => {
                             let tx2 = tx.clone();
                             let seen = seen_instances.clone();
+                            let filter = filter_non_link_local;
                             std::thread::spawn(move || {
                                 while let Ok(ev) = type_rx.recv() {
                                     match ev {
                                         ServiceEvent::ServiceResolved(svc) => {
-                                            let discovered = resolved_to_discovered(&svc);
+                                            let discovered = resolved_to_discovered(&svc, filter);
                                             let id = discovered.id.clone();
                                             let mut cache = seen.lock().unwrap();
                                             if let Some(prev) = cache.get(&id) {
@@ -192,7 +196,7 @@ fn extract_service_type_from_found(found: &str) -> Option<String> {
     None
 }
 
-fn resolved_to_discovered(info: &ResolvedService) -> ServiceDiscovered {
+fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -> ServiceDiscovered {
     let fullname = info.get_fullname().to_string();
     let name = fullname
         .splitn(2, '.')
@@ -209,7 +213,7 @@ fn resolved_to_discovered(info: &ResolvedService) -> ServiceDiscovered {
         addresses: info
             .get_addresses()
             .iter()
-            .filter(|s| keep_address(s))
+            .filter(|s| !filter_non_link_local || keep_address(s))
             .map(|s| scoped_ip_to_string(s))
             .collect(),
         txt: info
