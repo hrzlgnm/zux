@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { get } from 'svelte/store';
   import { graphNodes, selectedNodeId } from './store';
   import type { GraphNode } from './types';
 
@@ -7,6 +8,7 @@
   $effect(() => {
     const id = $selectedNodeId;
     if (id) {
+      node = get(graphNodes).get(id) ?? null;
       const unsub = graphNodes.subscribe(nodes => {
         node = nodes.get(id) ?? null;
       });

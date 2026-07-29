@@ -135,8 +135,8 @@
 
 <style>
   .graph-container {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    inset: 0;
     background: #1a1a2e;
   }
   :global(.vis-network) {
