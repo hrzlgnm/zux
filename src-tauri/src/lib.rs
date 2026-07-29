@@ -1,9 +1,23 @@
 mod mdns;
 
 use clap::Parser;
+use log::LevelFilter;
 use mdns::MdnsBrowser;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{Emitter, State};
+use tauri_plugin_log::{Target, TargetKind};
+
+fn parse_log_level(s: &str) -> LevelFilter {
+    match s.to_lowercase().as_str() {
+        "trace" => LevelFilter::Trace,
+        "debug" => LevelFilter::Debug,
+        "info" => LevelFilter::Info,
+        "warn" => LevelFilter::Warn,
+        "error" => LevelFilter::Error,
+        _ => LevelFilter::Info,
+    }
+}
 
 #[derive(Parser)]
 #[command(name = "zux", about = "mDNS-SD browser with force-directed graph")]
@@ -11,6 +25,12 @@ struct Cli {
     /// Keep all IP addresses including non-link-local IPv6
     #[arg(long)]
     keep_all_ips: bool,
+    /// Log level (trace, debug, info, warn, error) [default: info]
+    #[arg(long, default_value = "info")]
+    log_level: String,
+    /// Optional path to a log file
+    #[arg(long)]
+    log_file: Option<String>,
 }
 
 #[tauri::command]
@@ -42,10 +62,24 @@ async fn start_discovery(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let cli = Cli::parse();
+    let level = parse_log_level(&cli.log_level);
+
+    let mut log_builder = tauri_plugin_log::Builder::new()
+        .level(level);
+
+    if let Some(path) = &cli.log_file {
+        log_builder = log_builder.target(
+            Target::new(TargetKind::Folder {
+                path: PathBuf::from(path),
+                file_name: None,
+            }),
+        );
+    }
+
     let browser = MdnsBrowser::new(!cli.keep_all_ips).expect("failed to create mDNS browser");
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(log_builder.build())
         .plugin(tauri_plugin_opener::init())
         .manage(Mutex::new(browser))
         .invoke_handler(tauri::generate_handler![start_discovery])
