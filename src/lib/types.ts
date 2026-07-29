@@ -21,3 +21,14 @@ export interface GraphEdge {
   dashes?: boolean;
   color?: string;
 }
+
+export type Solver = 'forceAtlas2Based' | 'barnesHut' | 'repulsion' | 'hierarchicalRepulsion';
+
+export interface PhysicsConfig {
+  solver: Solver;
+  gravitationalConstant: number;
+  centralGravity: number;
+  springLength: number;
+  springConstant: number;
+  damping: number;
+}

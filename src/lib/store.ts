@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { listen } from '@tauri-apps/api/event';
-import type { GraphNode, GraphEdge } from './types';
+import type { GraphNode, GraphEdge, PhysicsConfig } from './types';
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map());
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map());
@@ -8,6 +8,15 @@ export const selectedNodeId = writable<string | null>(null);
 export const isScanning = writable<boolean>(false);
 export const serviceTypes = writable<Set<string>>(new Set());
 export const serviceTypeFilter = writable<Set<string> | null>(null);
+
+export const physicsConfig = writable<PhysicsConfig>({
+  solver: 'repulsion',
+  gravitationalConstant: -100,
+  centralGravity: 0.005,
+  springLength: 75,
+  springConstant: 0.05,
+  damping: 0.4,
+});
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
   let types = 0, instances = 0, hosts = 0, addresses = 0;

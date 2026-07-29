@@ -3,13 +3,28 @@
   import { Network } from 'vis-network';
   import { DataSet } from 'vis-data';
   import { get } from 'svelte/store';
-  import { graphNodes, graphEdges, selectedNodeId, serviceTypeFilter } from './store';
+  import { graphNodes, graphEdges, selectedNodeId, serviceTypeFilter, physicsConfig } from './store';
   import type { GraphNode, GraphEdge } from './types';
 
   let container: HTMLDivElement;
   let network: Network;
   let visNodes = new DataSet<any>([]);
   let visEdges = new DataSet<any>([]);
+
+  function buildPhysicsOpts(cfg: import('./types').PhysicsConfig) {
+    const isRepulsion = cfg.solver === 'repulsion' || cfg.solver === 'hierarchicalRepulsion';
+    return {
+      solver: cfg.solver,
+      stabilization: { iterations: 200 },
+      [cfg.solver]: {
+        ...(isRepulsion ? { nodeDistance: -cfg.gravitationalConstant } : { gravitationalConstant: cfg.gravitationalConstant }),
+        centralGravity: cfg.centralGravity,
+        springLength: cfg.springLength,
+        springConstant: cfg.springConstant,
+        damping: cfg.damping,
+      },
+    };
+  }
 
   const options: any = {
     nodes: {
@@ -21,17 +36,6 @@
       width: 2,
       font: { size: 10, color: '#b0bec5', align: 'middle' },
       smooth: { enabled: true, type: 'continuous', roundness: 0.5 },
-    },
-    physics: {
-      solver: 'forceAtlas2Based',
-      stabilization: { iterations: 200 },
-      forceAtlas2Based: {
-        gravitationalConstant: -40,
-        centralGravity: 0.005,
-        springLength: 180,
-        springConstant: 0.02,
-        damping: 0.4,
-      },
     },
     groups: {
       'service-type': {
@@ -111,7 +115,14 @@
     visEdges.add(visibleEdges);
   }
 
+  function applyPhysics(cfg: import('./types').PhysicsConfig) {
+    if (!network) return;
+    network.setOptions({ physics: buildPhysicsOpts(cfg) });
+  }
+
   onMount(() => {
+    const initialCfg = get(physicsConfig);
+    options.physics = buildPhysicsOpts(initialCfg);
     network = new Network(container, { nodes: visNodes, edges: visEdges }, options);
 
     network.on('click', (params: any) => {
@@ -129,11 +140,13 @@
     const unsub1 = graphNodes.subscribe(syncFiltered);
     const unsub2 = graphEdges.subscribe(syncFiltered);
     const unsub3 = serviceTypeFilter.subscribe(syncFiltered);
+    const unsub4 = physicsConfig.subscribe(applyPhysics);
 
     onDestroy(() => {
       unsub1();
       unsub2();
       unsub3();
+      unsub4();
       network?.destroy();
     });
   });
