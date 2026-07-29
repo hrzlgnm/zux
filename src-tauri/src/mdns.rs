@@ -80,6 +80,10 @@ impl MdnsBrowser {
                 };
 
                 if let Some(service_type) = result {
+                    if service_type.contains("._sub.") {
+                        eprintln!("[mdns] skipping subtype: {service_type}");
+                        continue;
+                    }
                     eprintln!("[mdns] discovered type: {service_type}");
 
                     let _ = tx.send(MdnsEvent::ServiceTypeAdded {
