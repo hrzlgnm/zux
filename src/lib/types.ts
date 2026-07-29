@@ -10,7 +10,8 @@ export interface GraphNode {
   title?: string;
   shape?: string;
   size?: number;
-  color?: string;
+  color?: string | { background: string; border: string };
+  font?: { color: string };
   serviceType?: string;
   subType?: string;
   hostname?: string;
@@ -19,6 +20,7 @@ export interface GraphNode {
   interfaces?: string[];
   txt?: Record<string, string>;
   urls?: string[];
+  offline?: boolean;
 }
 
 export interface GraphEdge {

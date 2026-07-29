@@ -12,6 +12,7 @@
   let visEdges = new DataSet<any>([]);
   let prevNodeIds = new Set<string>();
   let prevEdgeIds = new Set<string>();
+  let prevNodeData = new Map<string, GraphNode>();
 
   function buildPhysicsOpts(cfg: import('./types').PhysicsConfig) {
     const isRepulsion = cfg.solver === 'repulsion' || cfg.solver === 'hierarchicalRepulsion';
@@ -78,9 +79,21 @@
     const curNodeIds = new Set(nodes.keys());
     for (const id of prevNodeIds) { if (!curNodeIds.has(id)) visNodes.remove(id); }
     const addN: GraphNode[] = [];
-    for (const [id, n] of nodes) { if (!prevNodeIds.has(id)) addN.push(n); }
+    const updateN: GraphNode[] = [];
+    for (const [id, n] of nodes) {
+      if (!prevNodeIds.has(id)) {
+        addN.push(n);
+      } else {
+        const prev = prevNodeData.get(id);
+        if (prev && (prev.offline !== n.offline || prev.label !== n.label)) {
+          updateN.push(n);
+        }
+      }
+    }
     if (addN.length > 0) visNodes.add(addN);
+    if (updateN.length > 0) visNodes.updateOnly(updateN);
     prevNodeIds = curNodeIds;
+    prevNodeData = new Map(nodes);
 
     const curEdgeIds = new Set(edges.keys());
     for (const id of prevEdgeIds) { if (!curEdgeIds.has(id)) visEdges.remove(id); }
