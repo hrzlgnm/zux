@@ -111,7 +111,7 @@
   .type-service-type { background: #0288d1; color: #e1f5fe; }
   .type-instance { background: #388e3c; color: #e8f5e9; }
   .type-host { background: #f57c00; color: #fff3e0; }
-  .type-address { background: #7b1fa2; color: #f3e5f5; }
+  .type-address { background: #ce93d8; color: #1a1a2e; }
   .fields {
     display: flex;
     flex-direction: column;
