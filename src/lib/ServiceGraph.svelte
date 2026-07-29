@@ -100,6 +100,11 @@
     options.physics = buildPhysicsOpts(initialCfg);
     network = new Network(container, { nodes: visNodes, edges: visEdges }, options);
 
+    const ro = new ResizeObserver(() => {
+      network.setSize(container.offsetWidth, container.offsetHeight);
+    });
+    ro.observe(container);
+
     network.on('click', (params: any) => {
       if (params.nodes.length > 0) {
         selectedNodeId.set(params.nodes[0]);
@@ -120,6 +125,7 @@
       unsub1();
       unsub2();
       unsub3();
+      ro.disconnect();
       network?.destroy();
     });
   });
