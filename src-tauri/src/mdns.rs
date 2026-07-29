@@ -220,10 +220,6 @@ fn resolved_to_discovered(info: &ResolvedService) -> ServiceDiscovered {
     }
 }
 
-fn is_unicast_link_local_v6(addr: &std::net::Ipv6Addr) -> bool {
-    (addr.segments()[0] & 0xffc0) == 0xfe80
-}
-
 fn scoped_ip_to_string(ip: &ScopedIp) -> String {
     ip.to_ip_addr().to_string()
 }
@@ -231,7 +227,7 @@ fn scoped_ip_to_string(ip: &ScopedIp) -> String {
 fn keep_address(ip: &ScopedIp) -> bool {
     match ip.to_ip_addr() {
         std::net::IpAddr::V4(_) => true,
-        std::net::IpAddr::V6(v6) => is_unicast_link_local_v6(&v6),
+        std::net::IpAddr::V6(v6) => v6.is_unicast_link_local(),
     }
 }
 
