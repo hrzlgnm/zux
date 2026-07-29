@@ -82,7 +82,7 @@
   }
   h3 {
     margin: 0 0 10px;
-    font-size: 17px;
+    font-size: 20px;
     color: #e0e0e0;
     word-break: break-all;
   }
@@ -91,7 +91,7 @@
     display: inline-block;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
   }
   .type-service-type { background: #0288d1; color: #e1f5fe; }
@@ -100,21 +100,21 @@
   .fields {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
   .field {
-    font-size: 12px;
+    font-size: 14px;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
   }
   .field .label {
     color: #78909c;
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .field span { color: #e0e0e0; word-break: break-all; }
+  .field span { color: #e0e0e0; word-break: break-all; font-size: 14px; }
   .txt-records {
     background: #1a1a2e;
     border-radius: 4px;
@@ -123,7 +123,7 @@
     overflow-y: auto;
   }
   .txt-entry {
-    font-size: 12px;
+    font-size: 13px;
     color: #b0bec5;
     padding: 2px 0;
   }
