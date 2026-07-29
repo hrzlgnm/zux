@@ -1,21 +1,7 @@
 <script lang="ts">
-  import { stats, isScanning, physicsConfig, clearGraph } from './store';
-  import { invoke } from '@tauri-apps/api/core';
+  import { stats, physicsConfig } from './store';
 
   let physicsOpen = $state(false);
-
-  async function startScan() {
-    isScanning.set(true);
-    clearGraph();
-    try {
-      console.log('[zux] invoking start_discovery');
-      await invoke('start_discovery');
-      console.log('[zux] start_discovery completed');
-    } catch (e) {
-      console.error('[zux] invoke error:', e);
-    }
-    isScanning.set(false);
-  }
 </script>
 
 <aside class="sidebar">
@@ -29,10 +15,6 @@
     <div class="stat"><span class="num">{$stats.addresses}</span> addresses</div>
     <div class="stat"><span class="num">{$stats.edges}</span> links</div>
   </div>
-
-  <button onclick={startScan} disabled={$isScanning} class="scan-btn">
-    {$isScanning ? 'Scanning...' : 'Start Discovery'}
-  </button>
 
   <div class="legend">
     <h3>Legend</h3>
@@ -136,20 +118,6 @@
     font-size: 20px;
     font-weight: 700;
     color: #e0e0e0;
-  }
-  .scan-btn {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    background: #4fc3f7;
-    color: #0d1117;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  .scan-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
   .legend {
     margin-top: 4px;

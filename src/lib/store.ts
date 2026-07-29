@@ -5,7 +5,6 @@ import type { GraphNode, GraphEdge, PhysicsConfig } from './types';
 export const graphNodes = writable<Map<string, GraphNode>>(new Map());
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map());
 export const selectedNodeId = writable<string | null>(null);
-export const isScanning = writable<boolean>(false);
 export const serviceTypes = writable<Set<string>>(new Set());
 
 export const physicsConfig = writable<PhysicsConfig>({
