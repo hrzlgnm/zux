@@ -18,6 +18,7 @@ export interface GraphNode {
   addresses?: AddressInfo[];
   interfaces?: string[];
   txt?: Record<string, string>;
+  urls?: string[];
 }
 
 export interface GraphEdge {

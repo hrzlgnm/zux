@@ -2,6 +2,7 @@
   import { get } from 'svelte/store';
   import { graphNodes, selectedNodeId } from './store';
   import type { GraphNode } from './types';
+  import { openUrl } from '@tauri-apps/plugin-opener';
 
   let node = $state<GraphNode | null>(null);
 
@@ -61,6 +62,13 @@
         <div class="txt-records">
           {#each Object.entries(node.txt).sort(([a], [b]) => a.localeCompare(b)) as [k, v]}
             <div class="txt-entry"><em>{k}</em> = {v || '(empty)'}</div>
+          {/each}
+        </div>
+      {/if}
+      {#if node.urls && node.urls.length > 0}
+        <div class="field"><span class="label">URLs</span>
+          {#each node.urls as url}
+            <button class="url-link" onclick={() => openUrl(url)}>{url}</button>
           {/each}
         </div>
       {/if}
@@ -152,5 +160,19 @@
   .txt-entry em {
     color: #80cbc4;
     font-style: normal;
+  }
+  .url-link {
+    background: none;
+    border: none;
+    color: #4fc3f7;
+    font-size: 13px;
+    text-align: left;
+    padding: 2px 0;
+    cursor: pointer;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .url-link:hover {
+    color: #81d4fa;
   }
 </style>

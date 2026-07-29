@@ -20,6 +20,7 @@ pub struct ServiceDiscovered {
     pub port: u16,
     pub addresses: Vec<AddressInfo>,
     pub txt: HashMap<String, String>,
+    pub urls: Vec<String>,
 }
 
 #[derive(Clone, Serialize, Debug)]
@@ -206,6 +207,34 @@ fn extract_service_type_from_found(found: &str) -> Option<String> {
     None
 }
 
+fn clean_hostname(hostname: &str) -> String {
+    hostname.trim_end_matches('.').replace(".local.", ".").trim_end_matches('.').to_string()
+}
+
+fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>) -> Vec<String> {
+    let mut urls = Vec::new();
+    let host = clean_hostname(info.get_hostname());
+    let port = info.get_port();
+    let ty = info.ty_domain.to_lowercase();
+
+    if ty.starts_with("_http._tcp") {
+        urls.push(format!("http://{host}:{port}/"));
+    } else if ty.starts_with("_https._tcp") {
+        urls.push(format!("https://{host}:{port}/"));
+    }
+
+    for (_k, v) in txt {
+        let trimmed = v.trim();
+        if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
+            if !urls.contains(&trimmed.to_string()) {
+                urls.push(trimmed.to_string());
+            }
+        }
+    }
+
+    urls
+}
+
 fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -> ServiceDiscovered {
     let fullname = info.get_fullname();
     let suffix = info.ty_domain.trim_end_matches('.');
@@ -215,6 +244,12 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
         .and_then(|s| s.strip_suffix('.'))
         .unwrap_or("")
         .to_string();
+    let txt: HashMap<String, String> = info
+        .txt_properties
+        .iter()
+        .map(|p| (p.key().to_string(), p.val_str().to_string()))
+        .collect();
+    let urls = derive_urls(info, &txt);
     ServiceDiscovered {
         id: fullname.to_string(),
         name,
@@ -240,11 +275,8 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
                 }
             })
             .collect(),
-        txt: info
-            .txt_properties
-            .iter()
-            .map(|p| (p.key().to_string(), p.val_str().to_string()))
-            .collect(),
+        txt,
+        urls,
     }
 }
 

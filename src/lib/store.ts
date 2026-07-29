@@ -72,7 +72,7 @@ export function setupEventListeners() {
               id: nId, label: d.name || d.id.split('.')[0],
               group: 'instance', shape: 'dot', size: 15, color: '#81c784',
               serviceType: d.service_type, subType: d.sub_type, hostname: d.hostname,
-              port: d.port, addresses: d.addresses, txt: d.txt,
+              port: d.port, addresses: d.addresses, txt: d.txt, urls: d.urls,
             });
           }
           if (!m.has(hId)) {
