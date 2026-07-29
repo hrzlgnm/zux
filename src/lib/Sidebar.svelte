@@ -12,8 +12,8 @@
       console.log('[zux] start_discovery completed');
     } catch (e) {
       console.error('[zux] invoke error:', e);
-      isScanning.set(false);
     }
+    isScanning.set(false);
   }
 </script>
 

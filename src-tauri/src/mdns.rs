@@ -39,7 +39,6 @@ pub struct MdnsBrowser {
     active_browses: Arc<Mutex<HashMap<String, bool>>>,
     seen_instances: Arc<Mutex<HashMap<String, ServiceDiscovered>>>,
     filter_non_link_local: bool,
-    started: std::sync::atomic::AtomicBool,
 }
 
 impl MdnsBrowser {
@@ -52,7 +51,6 @@ impl MdnsBrowser {
             active_browses: Arc::new(Mutex::new(HashMap::new())),
             seen_instances: Arc::new(Mutex::new(HashMap::new())),
             filter_non_link_local,
-            started: std::sync::atomic::AtomicBool::new(false),
         })
     }
 
@@ -61,10 +59,6 @@ impl MdnsBrowser {
     }
 
     pub fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
-        if self.started.swap(true, std::sync::atomic::Ordering::SeqCst) {
-            eprintln!("[mdns] already started, ignoring duplicate call");
-            return Ok(());
-        }
         eprintln!("[mdns] starting discovery...");
         let enum_rx = self.daemon.browse("_services._dns-sd._udp.local.")?;
         eprintln!("[mdns] enumeration receiver obtained");
