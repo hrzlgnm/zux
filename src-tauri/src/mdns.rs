@@ -9,6 +9,7 @@ pub struct ServiceDiscovered {
     pub id: String,
     pub name: String,
     pub service_type: String,
+    pub sub_type: Option<String>,
     pub hostname: String,
     pub port: u16,
     pub addresses: Vec<String>,
@@ -202,6 +203,7 @@ fn resolved_to_discovered(info: &ResolvedService) -> ServiceDiscovered {
         id: fullname,
         name,
         service_type: info.ty_domain.to_string(),
+        sub_type: info.get_subtype().clone(),
         hostname: info.get_hostname().to_string(),
         port: info.get_port(),
         addresses: info
