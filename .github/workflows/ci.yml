@@ -9,16 +9,9 @@ concurrency:
 
 jobs:
   typos:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/cache@v6
-        with:
-          path: ~/.cache/typos
-          key: typos-${{ hashFiles('**/*.rs', '**/*.ts', '**/*.svelte', '**/*.json', '**/*.md', '**/_typos.toml', '**/.ignore') }}
-      - name: install typos
-        run: cargo install typos-cli
-      - run: typos .
+    name: 📝 Check typos
+    if: always()
+    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@8c6f0744eb0550008dfe4d671445d44a9ab72fd0 # v2.5.4
 
   clippy:
     runs-on: ubuntu-24.04
