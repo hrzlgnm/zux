@@ -67,15 +67,18 @@ jobs:
             jq \
             libappindicator-gtk3 \
             librsvg \
+            libsoup3 \
             namcap \
+            nodejs \
+            npm \
             openssh \
+            patchelf \
             rust \
             rust-wasm \
-            webkit2gtk-4.1 \
             sudo \
             trunk \
-            wget \
-            libsoup3
+            webkit2gtk-4.1 \
+            wget
           useradd -m -G wheel -s /bin/bash runner
           echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
           chown -R runner:runner .
