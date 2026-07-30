@@ -58,11 +58,13 @@ jobs:
 
       - name: sync version in Cargo.toml and tauri.conf.json
         shell: bash
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          jq '.version = "${{ steps.get_version.outputs.version }}"' src-tauri/tauri.conf.json > tmp.json
+          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
           mv tmp.json src-tauri/tauri.conf.json
           cd src-tauri
-          cargo set-version "${{ steps.get_version.outputs.version }}"
+          cargo set-version "$VERSION"
 
       - name: build and publish plain binary
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
