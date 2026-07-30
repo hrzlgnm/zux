@@ -1,7 +1,22 @@
 <script lang="ts">
-  import { stats, physicsConfig, filterQuery } from './store';
+  import { stats, physicsConfig, filterQuery, disabledGroups } from './store';
 
   let physicsOpen = $state(false);
+
+  const legendItems = [
+    { key: 'service-type', label: 'Service Type', dotClass: 'type' },
+    { key: 'instance', label: 'Instance', dotClass: 'inst' },
+    { key: 'host', label: 'Host', dotClass: 'host' },
+    { key: 'address', label: 'Address', dotClass: 'addr' },
+  ];
+
+  function toggleGroup(key: string) {
+    disabledGroups.update(s => {
+      if (s.has(key)) s.delete(key);
+      else s.add(key);
+      return s;
+    });
+  }
 </script>
 
 <aside class="sidebar">
@@ -17,11 +32,12 @@
   </div>
 
   <div class="legend">
-    <h3>Legend</h3>
-    <div class="legend-item"><span class="dot type"></span> Service Type</div>
-    <div class="legend-item"><span class="dot inst"></span> Instance</div>
-    <div class="legend-item"><span class="dot host"></span> Host</div>
-    <div class="legend-item"><span class="dot addr"></span> Address</div>
+    {#each legendItems as { key, label, dotClass }}
+      <label class="legend-item">
+        <input type="checkbox" checked={!$disabledGroups.has(key)} onchange={() => toggleGroup(key)} />
+        <span class="dot {dotClass}"></span> {label}
+      </label>
+    {/each}
   </div>
 
   <div class="section">
@@ -135,6 +151,11 @@
     align-items: center;
     gap: 8px;
     margin: 4px 0;
+    cursor: pointer;
+  }
+  .legend-item input[type="checkbox"] {
+    accent-color: #4fc3f7;
+    cursor: pointer;
   }
   .dot {
     width: 10px;

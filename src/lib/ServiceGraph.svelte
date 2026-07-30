@@ -3,7 +3,7 @@
   import { Network } from 'vis-network';
   import { DataSet } from 'vis-data';
   import { get } from 'svelte/store';
-  import { graphNodes, graphEdges, selectedNodeId, physicsConfig, filterQuery } from './store';
+  import { graphNodes, graphEdges, selectedNodeId, physicsConfig, filterQuery, disabledGroups } from './store';
   import type { GraphNode, GraphEdge } from './types';
 
   let container: HTMLDivElement;
@@ -101,6 +101,7 @@
     for (const [id, e] of edges) { if (!prevEdgeIds.has(id)) addE.push(e); }
     if (addE.length > 0) visEdges.add(addE);
     prevEdgeIds = curEdgeIds;
+    applyVisibility();
   }
 
   function applyPhysics(cfg: import('./types').PhysicsConfig) {
@@ -122,9 +123,12 @@
     return false;
   }
 
-  function applyFilter(q: string) {
+  function applyVisibility() {
+    const disabled = get(disabledGroups);
+    const q = get(filterQuery);
     const allNodes = get(graphNodes);
-    if (q.length === 0) {
+
+    if (disabled.size === 0 && q.length === 0) {
       const updates: any[] = [];
       for (const n of allNodes.values()) updates.push({ id: n.id, hidden: false });
       if (updates.length > 0) visNodes.updateOnly(updates);
@@ -132,20 +136,29 @@
     }
 
     const matchingIds = new Set<string>();
-    for (const n of allNodes.values()) {
-      if (nodeMatchesQuery(n, q)) matchingIds.add(n.id);
+    if (q.length > 0) {
+      for (const n of allNodes.values()) {
+        if (nodeMatchesQuery(n, q)) matchingIds.add(n.id);
+      }
     }
 
-    const allEdges = get(graphEdges);
     const neighborIds = new Set<string>(matchingIds);
-    for (const e of allEdges.values()) {
-      if (matchingIds.has(e.from) && !matchingIds.has(e.to)) neighborIds.add(e.to);
-      if (matchingIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from);
+    if (q.length > 0) {
+      const allEdges = get(graphEdges);
+      for (const e of allEdges.values()) {
+        if (matchingIds.has(e.from) && !matchingIds.has(e.to)) neighborIds.add(e.to);
+        if (matchingIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from);
+      }
     }
 
     const updates: any[] = [];
     for (const n of allNodes.values()) {
-      updates.push({ id: n.id, hidden: !neighborIds.has(n.id) });
+      const hiddenByGroup = disabled.has(n.group);
+      let hidden = hiddenByGroup;
+      if (!hiddenByGroup && q.length > 0) {
+        hidden = !neighborIds.has(n.id);
+      }
+      updates.push({ id: n.id, hidden });
     }
     if (updates.length > 0) visNodes.updateOnly(updates);
   }
@@ -175,13 +188,15 @@
     const unsub1 = graphNodes.subscribe(syncGraph);
     const unsub2 = graphEdges.subscribe(syncGraph);
     const unsub3 = physicsConfig.subscribe(applyPhysics);
-    const unsub4 = filterQuery.subscribe(applyFilter);
+    const unsub4 = filterQuery.subscribe(applyVisibility);
+    const unsub5 = disabledGroups.subscribe(applyVisibility);
 
     onDestroy(() => {
       unsub1();
       unsub2();
       unsub3();
       unsub4();
+      unsub5();
       ro.disconnect();
       network?.destroy();
     });

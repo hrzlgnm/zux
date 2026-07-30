@@ -7,6 +7,7 @@ export const graphEdges = writable<Map<string, GraphEdge>>(new Map());
 export const selectedNodeId = writable<string | null>(null);
 export const serviceTypes = writable<Set<string>>(new Set());
 export const filterQuery = writable<string>('');
+export const disabledGroups = writable<Set<string>>(new Set(['service-type']));
 
 export const physicsConfig = writable<PhysicsConfig>({
   solver: 'repulsion',
