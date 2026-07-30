@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { setupEventListeners, clearGraph } from '$lib/store';
   import { invoke } from '@tauri-apps/api/core';
+  import { check } from '@tauri-apps/plugin-updater';
   import ServiceGraph from '$lib/ServiceGraph.svelte';
   import Sidebar from '$lib/Sidebar.svelte';
   import NodeDetail from '$lib/NodeDetail.svelte';
@@ -10,6 +11,7 @@
     setupEventListeners();
     clearGraph();
     invoke('start_discovery').catch(() => {});
+    check().catch(() => {});
   });
 </script>
 
