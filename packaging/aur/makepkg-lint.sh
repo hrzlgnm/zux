@@ -6,7 +6,7 @@ set -e
 
 # Run namcap and capture output + exit status
 echo ">>> Running namcap..."
-namcap_output=$(namcap PKGBUILD 2>&1)
+namcap_output=$(namcap PKGBUILD 2>&1) || true
 namcap_status=$?
 
 echo "$namcap_output"

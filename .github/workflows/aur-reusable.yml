@@ -163,7 +163,11 @@ jobs:
             set -o errexit
             cd ~/aur
             if [[ -f PKGBUILD ]]; then
-              CURRENT_VERSION=\$(source PKGBUILD && echo \$pkgver)
+              CURRENT_VERSION=\$(grep -Po '^pkgver=\K.*' PKGBUILD)
+              if [[ -z \"\$CURRENT_VERSION\" ]]; then
+                echo 'Could not determine current version from PKGBUILD. Exiting.'
+                exit 1
+              fi
               if [[ \"\$(printf \"%s\n%s\" \"\$CURRENT_VERSION\" \"$VERSION\" | sort -V | head -n1)\" != \"\$CURRENT_VERSION\" ]] || [[ \"\$CURRENT_VERSION\" == \"$VERSION\" ]]; then
                 echo \"New version ($VERSION) is not higher than the current version (\$CURRENT_VERSION). Exiting.\"
                 exit 1

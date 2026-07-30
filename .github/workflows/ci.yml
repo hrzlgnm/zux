@@ -51,6 +51,9 @@ jobs:
   aur:
     needs: [changes]
     if: needs.changes.outputs.aur == 'true'
+    permissions:
+      contents: read
+      packages: read
     uses: ./.github/workflows/aur-reusable.yml
 
   typos:
