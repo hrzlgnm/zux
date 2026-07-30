@@ -35,8 +35,10 @@ jobs:
               - 'src/**'
       - name: Output branch name
         id: branch
+        env:
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
         run: |
-          echo "branch=${{ github.head_ref || github.ref_name }}" >> "$GITHUB_OUTPUT"
+          echo "branch=$HEAD_REF" >> "$GITHUB_OUTPUT"
 
   typos:
     name: 📝 Check typos
