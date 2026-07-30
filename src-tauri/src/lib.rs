@@ -19,7 +19,11 @@ fn parse_log_level(s: &str) -> LevelFilter {
 }
 
 #[derive(Parser)]
-#[command(name = "zux", about = "mDNS-SD browser with force-directed graph", version)]
+#[command(
+    name = "zux",
+    about = "mDNS-SD browser with force-directed graph",
+    version
+)]
 struct Cli {
     /// Keep all IP addresses including non-link-local IPv6
     #[arg(long)]
@@ -38,8 +42,14 @@ async fn start_discovery(
     state: State<'_, Mutex<MdnsBrowser>>,
 ) -> Result<(), String> {
     log::debug!("[tauri] start_discovery called");
-    let mut browser = state.lock().map_err(|e| { log::error!("[tauri] lock error: {e}"); e.to_string() })?;
-    browser.reset().map_err(|e| { log::error!("[tauri] reset error: {e}"); e.to_string() })?;
+    let mut browser = state.lock().map_err(|e| {
+        log::error!("[tauri] lock error: {e}");
+        e.to_string()
+    })?;
+    browser.reset().map_err(|e| {
+        log::error!("[tauri] reset error: {e}");
+        e.to_string()
+    })?;
     let mut rx = browser.subscribe();
     let app_clone = app.clone();
 
@@ -54,7 +64,10 @@ async fn start_discovery(
         log::debug!("[tauri] event listener ended");
     });
 
-    browser.start().map_err(|e| { log::error!("[tauri] start error: {e}"); e.to_string() })?;
+    browser.start().map_err(|e| {
+        log::error!("[tauri] start error: {e}");
+        e.to_string()
+    })?;
     Ok(())
 }
 
