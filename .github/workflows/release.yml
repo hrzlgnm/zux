@@ -63,6 +63,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "zux ${{ github.ref_name }}"
-          releaseBody: "See the assets below to download and install this release."
           releaseDraft: true
           prerelease: false
+          generateReleaseNotes: true
+          uploadPlainBinary: true
