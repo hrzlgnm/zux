@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT-0
+
+version=$1
+sha256sum_deb=$2
+sha256sum_exe=$3
+
+if [[ -z "$version" || -z "$sha256sum_deb" || -z "$sha256sum_exe" ]]; then
+    echo "Usage: $0 <version> <sha256sum_deb> <sha256sum_exe>" >&2
+    exit 1
+fi
+
+cat <<EOF
+# Maintainer: Valentin Batz <valentin.batz+archlinux@posteo.de>
+
+pkgname=zux-bin
+pkgver=$version
+pkgrel=1
+pkgdesc="mDNS-SD Visualizer - A cross platform mDNS browsing visualizer written in Rust using tauri and svelte"
+arch=('x86_64')
+url="https://github.com/hrzlgnm/zux"
+license=('MIT')
+depends=('cairo' 'desktop-file-utils' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libsoup3' 'pango' 'webkit2gtk-4.1')
+options=('!strip' '!emptydirs')
+conflicts=('zux')
+source_x86_64=("https://github.com/hrzlgnm/zux/releases/download/v\$pkgver/zux_\${pkgver}_amd64.deb" "https://github.com/hrzlgnm/zux/releases/download/v\$pkgver/zux_linux_x64")
+sha256sums_x86_64=('$sha256sum_deb' '$sha256sum_exe')
+package() {
+    tar -xz -f data.tar.gz -C "\${pkgdir}"
+    install -Dm755 zux_linux_x64 "\${pkgdir}/usr/bin/zux"
+}
+EOF
