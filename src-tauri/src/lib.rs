@@ -19,7 +19,7 @@ fn parse_log_level(s: &str) -> LevelFilter {
 }
 
 #[derive(Parser)]
-#[command(name = "zux", about = "mDNS-SD browser with force-directed graph")]
+#[command(name = "zux", about = "mDNS-SD browser with force-directed graph", version)]
 struct Cli {
     /// Keep all IP addresses including non-link-local IPv6
     #[arg(long)]
