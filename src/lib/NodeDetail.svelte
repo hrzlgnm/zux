@@ -61,7 +61,7 @@
         <div class="field"><span class="label">TXT Records</span></div>
         <div class="txt-records">
           {#each Object.entries(node.txt).sort(([a], [b]) => a.localeCompare(b)) as [k, v]}
-            <div class="txt-entry"><em>{k}</em> = {v || '(empty)'}</div>
+            <div class="txt-entry"><em>{k}</em>{v ? ` = ${v}` : ''}</div>
           {/each}
         </div>
       {/if}
