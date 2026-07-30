@@ -30,7 +30,7 @@ jobs:
       - release-info
     runs-on: ubuntu-24.04
     container:
-      image: archlinux:base-devel@sha256:65f340cde2e201dbbe3e80f62c98c22983cabf5fb56c35ce4e6f9b09c82371db
+      image: archlinux:base-devel@sha256:40d14ac9db5af04f695eacd82a53181ad685fecc2534a66e05a51182a077cbd5
     strategy:
       fail-fast: false
       matrix:
