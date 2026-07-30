@@ -14,6 +14,7 @@ jobs:
     outputs:
       branch: ${{ steps.branch.outputs.branch }}
       code: ${{ steps.filter.outputs.code }}
+      fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
       tests: ${{ steps.filter.outputs.tests }}
     steps:
@@ -27,6 +28,8 @@ jobs:
               - 'src-tauri/**'
               - 'package.json'
               - 'package-lock.json'
+            fmt:
+              - 'src-tauri/**'
             lint:
               - '.github/workflows/ci.yml'
               - '_typos.toml'
@@ -70,6 +73,20 @@ jobs:
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
 
+  fmt:
+    needs: [changes]
+    if: needs.changes.outputs.fmt == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          components: rustfmt
+      - name: check formatting
+        run: cargo fmt --check
+        working-directory: src-tauri
+
   svelte-check:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
@@ -105,13 +122,14 @@ jobs:
 
   alls-green:
     if: always()
-    needs: [changes, actionlint, typos, clippy, svelte-check, signer-check]
+    needs: [changes, actionlint, typos, clippy, fmt, svelte-check, signer-check]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
         with:
           allowed-skips: >-
             clippy,
+            fmt,
             svelte-check,
             signer-check,
           jobs: ${{ toJSON(needs) }}

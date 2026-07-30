@@ -5,7 +5,8 @@
 - Never use `${{ }}` expressions inside `run:` blocks. Pass them through `env:` instead and reference via shell variables.
 - Pin actions to commit SHAs with a `# vN` comment (e.g., `@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`).
 - Run `actionlint` after editing workflow files.
-- After making changes, run all CI checks locally: `cargo clippy -- -D warnings` (in `src-tauri/`) and `npm run check`.
+- After making changes, run all CI checks locally: `cargo fmt` then `cargo clippy -- -D warnings` (in `src-tauri/`) and `npm run check`.
+- Run `cargo fmt` in `src-tauri/` before committing.
 
 ## Rust
 
