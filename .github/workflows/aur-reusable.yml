@@ -86,6 +86,15 @@ jobs:
             echo "sha256=$SUM" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Sync version in Cargo.toml and tauri.conf.json
+        if: matrix.package.name == 'zux'
+        env:
+          VERSION: ${{ needs.release-info.outputs.version }}
+        run: |
+          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
+          mv tmp.json src-tauri/tauri.conf.json
+          sed -i "s/^version = .*/version = \"$VERSION\"/" src-tauri/Cargo.toml
+
       - name: Lint generated PKGBUILD
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
