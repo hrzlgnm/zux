@@ -47,7 +47,7 @@ impl MdnsBrowser {
     fn configure_daemon(daemon: &ServiceDaemon) -> Result<(), Box<dyn std::error::Error>> {
         daemon.set_ip_check_interval(1)?;
         daemon.disable_interface(IfKind::LoopbackV4)?;
-        daemon.disable_interface(IfKind::LoopbackV4)?;
+        daemon.disable_interface(IfKind::LoopbackV6)?;
         Ok(())
     }
 
@@ -70,14 +70,28 @@ impl MdnsBrowser {
 
     pub fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         log::debug!("[mdns] resetting...");
+        let mut attempts = 0;
+        let max_attempts = 5;
         loop {
             match self.daemon.shutdown() {
-                Err(mdns_sd::Error::Again) => {
-                    log::debug!("[mdns] shutdown busy, retrying...");
+                Err(mdns_sd::Error::Again) if attempts < max_attempts => {
+                    attempts += 1;
+                    log::debug!("[mdns] shutdown busy, retrying ({attempts}/{max_attempts})...");
                     std::thread::sleep(std::time::Duration::from_millis(100));
                 }
-                result => {
-                    result?;
+                Ok(status_rx) => {
+                    log::debug!("[mdns] waiting for shutdown completion...");
+                    let _ = status_rx.recv();
+                    break;
+                }
+                Err(mdns_sd::Error::Again) => {
+                    log::debug!(
+                        "[mdns] shutdown still busy after {max_attempts} attempts, proceeding"
+                    );
+                    break;
+                }
+                Err(e) => {
+                    log::debug!("[mdns] shutdown error (proceeding): {e}");
                     break;
                 }
             }
@@ -233,7 +247,6 @@ fn extract_service_type_from_found(found: &str) -> Option<String> {
 
 fn clean_hostname(hostname: &str) -> String {
     hostname
-        .trim_end_matches('.')
         .replace(".local.", ".")
         .trim_end_matches('.')
         .to_string()
@@ -293,6 +306,7 @@ fn derive_urls(
         }
     }
 
+    urls.sort();
     urls
 }
 
