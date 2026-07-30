@@ -1,4 +1,4 @@
-use mdns_sd::{ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
+use mdns_sd::{IfKind, ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -44,8 +44,16 @@ pub struct MdnsBrowser {
 }
 
 impl MdnsBrowser {
+    fn configure_daemon(daemon: &ServiceDaemon) -> Result<(), Box<dyn std::error::Error>> {
+        daemon.set_ip_check_interval(1)?;
+        daemon.disable_interface(IfKind::LoopbackV4)?;
+        daemon.disable_interface(IfKind::LoopbackV4)?;
+        Ok(())
+    }
+
     pub fn new(filter_non_link_local: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let daemon = ServiceDaemon::new()?;
+        Self::configure_daemon(&daemon)?;
         let (tx, _) = broadcast::channel(512);
         Ok(Self {
             daemon,
@@ -62,7 +70,20 @@ impl MdnsBrowser {
 
     pub fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         log::debug!("[mdns] resetting...");
+        loop {
+            match self.daemon.shutdown() {
+                Err(mdns_sd::Error::Again) => {
+                    log::debug!("[mdns] shutdown busy, retrying...");
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                }
+                result => {
+                    result?;
+                    break;
+                }
+            }
+        }
         self.daemon = ServiceDaemon::new()?;
+        Self::configure_daemon(&self.daemon)?;
         let (tx, _) = broadcast::channel(512);
         self.tx = tx;
         self.active_browses.lock().unwrap().clear();
@@ -131,15 +152,18 @@ impl MdnsBrowser {
                                             let id = discovered.id.clone();
                                             let mut cache = seen.lock().unwrap();
                                             if let Some(prev) = cache.get(&id)
-                                                && *prev == discovered {
-                                                    log::debug!("[mdns] unchanged: {}", discovered.name);
-                                                    continue;
-                                                }
-                                             log::debug!("[mdns] resolved: {}", discovered.name);
+                                                && *prev == discovered
+                                            {
+                                                log::debug!(
+                                                    "[mdns] unchanged: {}",
+                                                    discovered.name
+                                                );
+                                                continue;
+                                            }
+                                            log::debug!("[mdns] resolved: {}", discovered.name);
                                             cache.insert(id, discovered.clone());
                                             drop(cache);
-                                            let _ = tx2
-                                                .send(MdnsEvent::Added(discovered));
+                                            let _ = tx2.send(MdnsEvent::Added(discovered));
                                         }
                                         ServiceEvent::ServiceRemoved(st, fullname) => {
                                             log::debug!("[mdns] removed: {fullname}");
@@ -208,21 +232,37 @@ fn extract_service_type_from_found(found: &str) -> Option<String> {
 }
 
 fn clean_hostname(hostname: &str) -> String {
-    hostname.trim_end_matches('.').replace(".local.", ".").trim_end_matches('.').to_string()
+    hostname
+        .trim_end_matches('.')
+        .replace(".local.", ".")
+        .trim_end_matches('.')
+        .to_string()
 }
 
-fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>, addresses: &[AddressInfo]) -> Vec<String> {
+fn derive_urls(
+    info: &ResolvedService,
+    txt: &HashMap<String, String>,
+    addresses: &[AddressInfo],
+) -> Vec<String> {
     let mut urls = Vec::new();
     let port = info.get_port();
     let ty = info.ty_domain.to_lowercase();
     let path = txt.get("path").map(|p| {
         let p = p.trim();
-        if p.starts_with('/') { p.to_string() } else { format!("/{p}") }
+        if p.starts_with('/') {
+            p.to_string()
+        } else {
+            format!("/{p}")
+        }
     });
     let path = path.as_deref().unwrap_or("/");
 
     if ty.starts_with("_http._tcp") || ty.starts_with("_https._tcp") {
-        let scheme = if ty.starts_with("_https._tcp") { "https" } else { "http" };
+        let scheme = if ty.starts_with("_https._tcp") {
+            "https"
+        } else {
+            "http"
+        };
         let host = clean_hostname(info.get_hostname());
         urls.push(format!("{scheme}://{host}:{port}{path}"));
         for a in addresses {
@@ -244,18 +284,22 @@ fn derive_urls(info: &ResolvedService, txt: &HashMap<String, String>, addresses:
 
     for v in txt.values() {
         if let Ok(parsed) = Url::parse(v.trim())
-            && (parsed.scheme() == "http" || parsed.scheme() == "https") {
-                let s = parsed.to_string();
-                if !urls.contains(&s) {
-                    urls.push(s);
-                }
+            && (parsed.scheme() == "http" || parsed.scheme() == "https")
+        {
+            let s = parsed.to_string();
+            if !urls.contains(&s) {
+                urls.push(s);
             }
+        }
     }
 
     urls
 }
 
-fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -> ServiceDiscovered {
+fn resolved_to_discovered(
+    info: &ResolvedService,
+    filter_non_link_local: bool,
+) -> ServiceDiscovered {
     let fullname = info.get_fullname();
     let suffix = info.ty_domain.trim_end_matches('.');
     let name = fullname
@@ -275,9 +319,11 @@ fn resolved_to_discovered(info: &ResolvedService, filter_non_link_local: bool) -
         .filter(|s| !filter_non_link_local || keep_address(s))
         .map(|s| {
             let interfaces: Vec<String> = match s {
-                ScopedIp::V4(v4) => {
-                    v4.interface_ids().iter().map(|id| id.name.clone()).collect()
-                }
+                ScopedIp::V4(v4) => v4
+                    .interface_ids()
+                    .iter()
+                    .map(|id| id.name.clone())
+                    .collect(),
                 ScopedIp::V6(v6) => vec![v6.scope_id().name.clone()],
                 _ => vec![],
             };
