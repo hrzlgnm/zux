@@ -55,15 +55,27 @@ jobs:
       - name: Setup build environment
         run: |
           pacman -Syu --noconfirm --needed \
+            appmenu-gtk-module \
+            cargo \
+            cargo-auditable \
+            coreutils \
+            desktop-file-utils \
+            gdk-pixbuf2 \
             git \
+            glib2 \
+            gtk3 \
             jq \
+            libappindicator-gtk3 \
+            librsvg \
             namcap \
-            npm \
             openssh \
-            patchelf \
-            sudo \
+            rust \
+            rust-wasm \
             webkit2gtk-4.1 \
-            librsvg
+            sudo \
+            trunk \
+            wget \
+            libsoup3
           useradd -m -G wheel -s /bin/bash runner
           echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
           chown -R runner:runner .
