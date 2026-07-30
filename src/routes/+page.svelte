@@ -7,11 +7,12 @@
   import Sidebar from '$lib/Sidebar.svelte';
   import NodeDetail from '$lib/NodeDetail.svelte';
 
-  onMount(() => {
+  onMount(async () => {
     setupEventListeners();
     clearGraph();
     invoke('start_discovery').catch(() => {});
-    check().catch(() => {});
+    const canUpdate = await invoke<boolean>('can_auto_update');
+    if (canUpdate) check().catch(() => {});
   });
 </script>
 

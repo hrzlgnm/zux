@@ -4,6 +4,7 @@ use clap::Parser;
 use log::LevelFilter;
 use mdns::MdnsBrowser;
 use std::sync::Mutex;
+use tauri::utils::platform::bundle_type;
 use tauri::{Emitter, State};
 use tauri_plugin_log::{Target, TargetKind};
 
@@ -34,6 +35,16 @@ struct Cli {
     /// Log to file in the OS-specific log directory
     #[arg(long)]
     log_to_file: bool,
+}
+
+#[tauri::command]
+fn can_auto_update() -> bool {
+    let current_bundle_type = bundle_type();
+    if current_bundle_type.is_none() {
+        log::debug!("[updater] non-bundled version, auto-update disabled");
+        return false;
+    }
+    true
 }
 
 #[tauri::command]
@@ -92,7 +103,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(Mutex::new(browser))
-        .invoke_handler(tauri::generate_handler![start_discovery])
+        .invoke_handler(tauri::generate_handler![start_discovery, can_auto_update])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
