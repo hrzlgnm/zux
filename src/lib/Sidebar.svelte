@@ -140,11 +140,6 @@
   .legend {
     margin-top: 4px;
   }
-  .legend h3 {
-    font-size: 13px;
-    margin: 0 0 6px;
-    color: #90a4ae;
-  }
   .legend-item {
     font-size: 12px;
     display: flex;

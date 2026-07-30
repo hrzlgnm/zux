@@ -149,6 +149,10 @@
         if (matchingIds.has(e.from) && !matchingIds.has(e.to)) neighborIds.add(e.to);
         if (matchingIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from);
       }
+      for (const e of allEdges.values()) {
+        if (neighborIds.has(e.from) && !matchingIds.has(e.to)) neighborIds.add(e.to);
+        if (neighborIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from);
+      }
     }
 
     const updates: any[] = [];
