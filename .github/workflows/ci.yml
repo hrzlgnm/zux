@@ -14,6 +14,7 @@ jobs:
     outputs:
       branch: ${{ steps.branch.outputs.branch }}
       code: ${{ steps.filter.outputs.code }}
+      aur: ${{ steps.filter.outputs.aur }}
       fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
       tests: ${{ steps.filter.outputs.tests }}
@@ -23,6 +24,10 @@ jobs:
         id: filter
         with:
           filters: |
+            aur:
+              - '.github/workflows/aur-reusable.yml'
+              - '.github/actions/latest-release-info/action.yml'
+              - 'packaging/aur/**'
             code:
               - 'src/**'
               - 'src-tauri/**'
@@ -42,6 +47,11 @@ jobs:
           HEAD_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           echo "branch=$HEAD_REF" >> "$GITHUB_OUTPUT"
+
+  aur:
+    needs: [changes]
+    if: needs.changes.outputs.aur == 'true'
+    uses: ./.github/workflows/aur-reusable.yml
 
   typos:
     name: 📝 Check typos
@@ -124,12 +134,13 @@ jobs:
 
   alls-green:
     if: always()
-    needs: [changes, actionlint, typos, clippy, fmt, svelte-check, signer-check]
+    needs: [changes, actionlint, aur, typos, clippy, fmt, svelte-check, signer-check]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
         with:
           allowed-skips: >-
+            aur,
             clippy,
             fmt,
             svelte-check,

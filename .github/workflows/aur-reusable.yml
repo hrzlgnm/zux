@@ -1,0 +1,196 @@
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT-0
+
+name: Arch Linux AUR
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+jobs:
+  release-info:
+    permissions:
+      packages: read
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tagName: ${{ steps.version.outputs.tagName }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+      - name: Get version info
+        id: version
+        uses: ./.github/actions/latest-release-info
+
+  update-aur:
+    needs:
+      - release-info
+    runs-on: ubuntu-24.04
+    container:
+      image: archlinux:base-devel@sha256:65f340cde2e201dbbe3e80f62c98c22983cabf5fb56c35ce4e6f9b09c82371db
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - name: zux-bin
+            checksum_url: ""
+            checksum_url_deb: "https://github.com/hrzlgnm/zux/releases/download/v${{ needs.release-info.outputs.version }}/zux_${{ needs.release-info.outputs.version }}_amd64.deb"
+            checksum_url_exe: "https://github.com/hrzlgnm/zux/releases/download/v${{ needs.release-info.outputs.version }}/zux_linux_x64"
+            generate_script: "./packaging/aur/generate-zux-bin.sh"
+            needs_exe: "true"
+          - name: zux
+            checksum_url: "https://github.com/hrzlgnm/zux/archive/refs/tags/v${{ needs.release-info.outputs.version }}.tar.gz"
+            checksum_url_deb: ""
+            checksum_url_exe: ""
+            generate_script: "./packaging/aur/generate-zux.sh"
+            needs_exe: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+
+      - name: Setup build environment
+        run: |
+          pacman -Syu --noconfirm --needed \
+            git \
+            jq \
+            namcap \
+            npm \
+            openssh \
+            patchelf \
+            sudo \
+            webkit2gtk-4.1 \
+            librsvg
+          useradd -m -G wheel -s /bin/bash runner
+          echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+          chown -R runner:runner .
+
+      - name: Compute SHA256 sums
+        id: sha256sums
+        env:
+          URL: ${{ matrix.package.checksum_url }}
+          URL_DEB: ${{ matrix.package.checksum_url_deb }}
+          URL_EXE: ${{ matrix.package.checksum_url_exe }}
+          NEEDS_EXE: ${{ matrix.package.needs_exe }}
+        run: |
+          if [[ "$NEEDS_EXE" == "true" ]]; then
+            SUM_DEB=$(curl -LfsS "$URL_DEB" | sha256sum | cut -f1 -d ' ')
+            SUM_EXE=$(curl -LfsS "$URL_EXE" | sha256sum | cut -f1 -d ' ')
+            echo "sha256_deb=$SUM_DEB" >> "$GITHUB_OUTPUT"
+            echo "sha256_exe=$SUM_EXE" >> "$GITHUB_OUTPUT"
+          else
+            SUM=$(curl -LfsS "$URL" | sha256sum | cut -f1 -d ' ')
+            echo "sha256=$SUM" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Lint generated PKGBUILD
+        env:
+          SCRIPT: ${{ matrix.package.generate_script }}
+          VERSION: ${{ needs.release-info.outputs.version }}
+          SHA256: ${{ steps.sha256sums.outputs.sha256 }}
+          SHA256_DEB: ${{ steps.sha256sums.outputs.sha256_deb }}
+          SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
+          NEEDS_EXE: ${{ matrix.package.needs_exe }}
+        run: |
+          su runner -c "
+            set -o errexit
+            mkdir -p ~/lint
+            o=\$(pwd)
+            if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
+              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/lint/PKGBUILD
+            else
+              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/lint/PKGBUILD
+            fi
+            cd ~/lint
+            \"\$o/packaging/aur/makepkg-lint.sh\"
+          "
+
+      - name: Verify AUR deploy key secret is configured
+        if: github.event.release.tag_name
+        env:
+          AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
+        run: |
+          if [ -z "$AUR_DEPLOY_KEY" ]; then
+            echo "Error: AUR_DEPLOY_KEY secret is not set. Please configure the AUR SSH deploy key in repository settings."
+            exit 1
+          fi
+
+      - name: Setup deployment keys
+        if: github.event.release.tag_name
+        env:
+          AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
+        run: |
+          chown -R runner:runner .
+          su runner -c "
+            set -o errexit
+            mkdir -p ~/.ssh
+            printf '%s\n' \"\$AUR_DEPLOY_KEY\" > ~/.ssh/aur
+            chmod 600 ~/.ssh/aur
+            echo 'Host aur.archlinux.org' >> ~/.ssh/config
+            echo '  IdentityFile ~/.ssh/aur' >> ~/.ssh/config
+            echo '  User aur' >> ~/.ssh/config
+            ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
+          "
+
+      - name: Clone AUR repo
+        if: github.event.release.tag_name
+        env:
+          PKGNAME: ${{ matrix.package.name }}
+        run: |
+          su runner -c "
+            set -o errexit
+            git clone --depth=1 \"ssh://aur@aur.archlinux.org/$PKGNAME.git\" ~/aur
+          "
+
+      - name: Check version
+        if: github.event.release.tag_name
+        env:
+          VERSION: ${{ needs.release-info.outputs.version }}
+        run: |
+          su runner -c "
+            set -o errexit
+            cd ~/aur
+            if [[ -f PKGBUILD ]]; then
+              CURRENT_VERSION=\$(source PKGBUILD && echo \$pkgver)
+              if [[ \"\$(printf \"%s\n%s\" \"\$CURRENT_VERSION\" \"$VERSION\" | sort -V | head -n1)\" != \"\$CURRENT_VERSION\" ]] || [[ \"\$CURRENT_VERSION\" == \"$VERSION\" ]]; then
+                echo \"New version ($VERSION) is not higher than the current version (\$CURRENT_VERSION). Exiting.\"
+                exit 1
+              fi
+            fi
+          "
+
+      - name: Generate PKGBUILD update and publish
+        if: github.event.release.tag_name
+        env:
+          SCRIPT: ${{ matrix.package.generate_script }}
+          VERSION: ${{ needs.release-info.outputs.version }}
+          SHA256: ${{ steps.sha256sums.outputs.sha256 }}
+          SHA256_DEB: ${{ steps.sha256sums.outputs.sha256_deb }}
+          SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
+          NEEDS_EXE: ${{ matrix.package.needs_exe }}
+        run: |
+          su runner -c "
+            set -o errexit
+            o=\$(pwd)
+            if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
+              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/aur/PKGBUILD
+            else
+              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/aur/PKGBUILD
+            fi
+            cd ~/aur
+            if [[ -z \$(git status --porcelain) ]]; then
+              echo 'No changes'
+              exit 0
+            fi
+            makepkg --printsrcinfo > .SRCINFO
+            makepkg
+            makepkg --install --noconfirm
+            git config user.name 'hrzlgnm'
+            git config user.email 'hrzlgnm@users.noreply.github.com'
+            git add PKGBUILD .SRCINFO
+            git commit -m 'New upstream release $VERSION'
+            git push origin master
+          "
