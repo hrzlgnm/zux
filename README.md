@@ -1,3 +1,3 @@
 # zux
 
-mDNS-SD Visualizer with force-directed graph visualization.
+mDNS-SD visualizer with force-directed graph visualization.
