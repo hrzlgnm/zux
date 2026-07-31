@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
-      - name: Get version info
+      - name: 🏷️ Get version info
         id: version
         uses: ./.github/actions/latest-release-info
 
@@ -52,7 +52,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup build environment
+      - name: 🧰 Setup build environment
         run: |
           pacman -Syu --noconfirm --needed \
             appmenu-gtk-module \
@@ -84,7 +84,7 @@ jobs:
           echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
           chown -R runner:runner .
 
-      - name: Compute SHA256 sums
+      - name: 🧮 Compute SHA256 sums
         id: sha256sums
         env:
           URL: ${{ matrix.package.checksum_url }}
@@ -102,7 +102,7 @@ jobs:
             echo "sha256=$SUM" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Sync version in Cargo.toml and tauri.conf.json
+      - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         if: matrix.package.name == 'zux'
         env:
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -111,7 +111,7 @@ jobs:
           mv tmp.json src-tauri/tauri.conf.json
           sed -i "s/^version = .*/version = \"$VERSION\"/" src-tauri/Cargo.toml
 
-      - name: Lint generated PKGBUILD
+      - name: 🧹 Lint generated PKGBUILD
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -133,7 +133,7 @@ jobs:
             \"\$o/packaging/aur/makepkg-lint.sh\"
           "
 
-      - name: Verify AUR deploy key secret is configured
+      - name: 🔒 Verify AUR deploy key secret is configured
         if: github.event.release.tag_name
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
@@ -143,7 +143,7 @@ jobs:
             exit 1
           fi
 
-      - name: Setup deployment keys
+      - name: 🔑 Setup deployment keys
         if: github.event.release.tag_name
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
@@ -160,7 +160,7 @@ jobs:
             ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
           "
 
-      - name: Clone AUR repo
+      - name: 📥 Clone AUR repo
         if: github.event.release.tag_name
         env:
           PKGNAME: ${{ matrix.package.name }}
@@ -170,7 +170,7 @@ jobs:
             git clone --depth=1 \"ssh://aur@aur.archlinux.org/$PKGNAME.git\" ~/aur
           "
 
-      - name: Check version
+      - name: 🔍 Check version
         if: github.event.release.tag_name
         env:
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -191,7 +191,7 @@ jobs:
             fi
           "
 
-      - name: Generate PKGBUILD update and publish
+      - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name
         env:
           SCRIPT: ${{ matrix.package.generate_script }}

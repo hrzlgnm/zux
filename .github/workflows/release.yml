@@ -27,26 +27,26 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup Node
+      - name: ⚡ Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
-      - name: install Rust stable
+      - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: install dependencies (ubuntu)
+      - name: 🧰 Install dependencies (ubuntu)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: install frontend dependencies
+      - name: 📦 Install frontend dependencies
         run: npm ci
 
-      - name: get version from tag
+      - name: 🏷️ Get version from tag
         shell: bash
         id: get_version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -58,7 +58,7 @@ jobs:
           version: 0.13.13
           locked: true
 
-      - name: sync version in Cargo.toml and tauri.conf.json
+      - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         shell: bash
         env:
           VERSION: ${{ steps.get_version.outputs.version }}
@@ -68,7 +68,7 @@ jobs:
           cd src-tauri
           cargo set-version "$VERSION"
 
-      - name: build and publish plain binary
+      - name: 🏗️ Build and publish plain binary
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
           uploadPlainBinary: true
           args: --no-bundle
 
-      - name: build and publish bundles
+      - name: 📦 Build and publish bundles
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: verify Android signing secrets
+      - name: 🔒 Verify Android signing secrets
         shell: bash
         env:
           ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
@@ -124,37 +124,37 @@ jobs:
           fi
           echo "Android signing secrets are configured"
 
-      - name: setup Node
+      - name: ⚡ Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
-      - name: install Rust stable
+      - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
-      - name: setup Java
+      - name: ☕ Setup Java
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
         with:
           distribution: zulu
           java-version: "17"
 
-      - name: setup Android SDK
+      - name: 🤖 Setup Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
 
-      - name: install NDK
+      - name: ⚙️ Install NDK
         shell: bash
         run: sdkmanager "ndk;27.0.11902837"
 
-      - name: set NDK_HOME
+      - name: 🛠️ Set NDK_HOME
         shell: bash
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.11902837" >> "$GITHUB_ENV"
 
-      - name: install frontend dependencies
+      - name: 📦 Install frontend dependencies
         run: npm ci
 
-      - name: get version from tag
+      - name: 🏷️ Get version from tag
         shell: bash
         id: get_version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -166,7 +166,7 @@ jobs:
           version: 0.13.13
           locked: true
 
-      - name: sync version in Cargo.toml and tauri.conf.json
+      - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         shell: bash
         env:
           VERSION: ${{ steps.get_version.outputs.version }}
@@ -176,13 +176,13 @@ jobs:
           cd src-tauri
           cargo set-version "$VERSION"
 
-      - name: build Android app bundle
+      - name: 🏗️ Build Android app bundle
         shell: bash
         run: |
           npm run tauri android init
           npm run tauri android build
 
-      - name: extract Android signing keystore
+      - name: 🔑 Extract Android signing keystore
         shell: bash
         env:
           ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
@@ -190,7 +190,7 @@ jobs:
           echo "$ANDROID_RELEASE_KEYSTORE" > src-tauri/gen/android/release.jks.base64
           base64 -d src-tauri/gen/android/release.jks.base64 > src-tauri/gen/android/release.jks
 
-      - name: sign APK
+      - name: ✍️ Sign APK
         shell: bash
         env:
           VERSION: ${{ steps.get_version.outputs.version }}
@@ -205,7 +205,7 @@ jobs:
             --out "src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk" \
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
-      - name: publish APK to release
+      - name: 🚀 Publish APK to release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
