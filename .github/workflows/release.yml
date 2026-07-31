@@ -8,7 +8,34 @@ permissions:
   contents: write
 
 jobs:
+  draft-release:
+    name: "🚀 Draft a new release"
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: 🏷️ Get version from tag
+        shell: bash
+        id: get_version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: 🚀 Ensure draft release exists
+        shell: bash
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          TITLE="zux ${GITHUB_REF_NAME}"
+          if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --title "$TITLE" --notes "" \
+              || echo "Release may have been created by parallel job, continuing..."
+          fi
+
   release:
+    needs: [draft-release]
     name: "🚀 Release"
     strategy:
       fail-fast: false
@@ -47,11 +74,6 @@ jobs:
       - name: 📦 Install frontend dependencies
         run: npm ci
 
-      - name: 🏷️ Get version from tag
-        shell: bash
-        id: get_version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
       - name: 🔧 Install cargo-edit
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
@@ -62,7 +84,7 @@ jobs:
       - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
+          VERSION: ${{ needs.draft-release.outputs.version }}
         run: |
           jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
           mv tmp.json src-tauri/tauri.conf.json
@@ -98,6 +120,7 @@ jobs:
           generateReleaseNotes: true
 
   android-release:
+    needs: [draft-release]
     name: "🤖 Android release"
     runs-on: ubuntu-24.04
     env:
@@ -155,11 +178,6 @@ jobs:
       - name: 📦 Install frontend dependencies
         run: npm ci
 
-      - name: 🏷️ Get version from tag
-        shell: bash
-        id: get_version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
       - name: 🔧 Install cargo-edit
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
@@ -170,7 +188,7 @@ jobs:
       - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
+          VERSION: ${{ needs.draft-release.outputs.version }}
         run: |
           jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
           mv tmp.json src-tauri/tauri.conf.json
@@ -194,7 +212,7 @@ jobs:
       - name: ✍️ Sign APK
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
+          VERSION: ${{ needs.draft-release.outputs.version }}
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
@@ -205,17 +223,12 @@ jobs:
             --out "src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk" \
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
-      - name: 🚀 Ensure release exists and publish APK
+      - name: 🚀 Publish APK
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
+          VERSION: ${{ needs.draft-release.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          TITLE="zux ${GITHUB_REF_NAME}"
           APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
-          if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --title "$TITLE" --notes "" \
-              || echo "Release may have been created by parallel job, continuing..."
-          fi
           gh release upload "$TAG" "$APK" --clobber
