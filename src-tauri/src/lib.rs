@@ -66,13 +66,23 @@ async fn start_discovery(
 
     tokio::spawn(async move {
         log::debug!("[tauri] event listener started");
-        while let Ok(event) = rx.recv().await {
-            log::debug!("[tauri] forwarding event to frontend");
-            if let Err(e) = app_clone.emit("mdns-event", &event) {
-                log::error!("[tauri] emit error: {e}");
+        loop {
+            match rx.recv().await {
+                Ok(event) => {
+                    log::debug!("[tauri] forwarding event to frontend");
+                    if let Err(e) = app_clone.emit("mdns-event", &event) {
+                        log::error!("[tauri] emit error: {e}");
+                    }
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                    log::warn!("[tauri] lagged behind {n} events, continuing");
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    log::debug!("[tauri] event listener ended");
+                    break;
+                }
             }
         }
-        log::debug!("[tauri] event listener ended");
     });
 
     browser.start().map_err(|e| {

@@ -5,6 +5,8 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
 use url::Url;
 
+const EVENT_CHANNEL_CAPACITY: usize = 8192;
+
 #[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct AddressInfo {
     pub ip: String,
@@ -54,7 +56,7 @@ impl MdnsBrowser {
     pub fn new(filter_non_link_local: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let daemon = ServiceDaemon::new()?;
         Self::configure_daemon(&daemon)?;
-        let (tx, _) = broadcast::channel(512);
+        let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         Ok(Self {
             daemon,
             tx,
@@ -98,7 +100,7 @@ impl MdnsBrowser {
         }
         self.daemon = ServiceDaemon::new()?;
         Self::configure_daemon(&self.daemon)?;
-        let (tx, _) = broadcast::channel(512);
+        let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         self.tx = tx;
         self.active_browses.lock().unwrap().clear();
         self.seen_instances.lock().unwrap().clear();
