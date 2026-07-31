@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: install Rust stable
+      - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
       # Ensure tools used in release workflow are in the cache
