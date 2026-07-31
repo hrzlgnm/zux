@@ -77,7 +77,9 @@ impl MdnsBrowser {
                 match daemon.shutdown() {
                     Err(mdns_sd::Error::Again) if attempts < max_attempts => {
                         attempts += 1;
-                        log::debug!("[mdns] shutdown busy, retrying ({attempts}/{max_attempts})...");
+                        log::debug!(
+                            "[mdns] shutdown busy, retrying ({attempts}/{max_attempts})..."
+                        );
                         std::thread::sleep(std::time::Duration::from_millis(100));
                     }
                     Ok(status_rx) => {
