@@ -3,11 +3,11 @@
 
   let physicsOpen = $state(false);
 
-  const legendItems = [
-    { key: 'service-type', label: 'Service Type', dotClass: 'type' },
-    { key: 'instance', label: 'Instance', dotClass: 'inst' },
-    { key: 'host', label: 'Host', dotClass: 'host' },
-    { key: 'address', label: 'Address', dotClass: 'addr' },
+  const legendItems: { key: string; label: string; dotClass: string; countKey: 'types' | 'instances' | 'hosts' | 'addresses' }[] = [
+    { key: 'service-type', label: 'Service Type', dotClass: 'type', countKey: 'types' },
+    { key: 'instance', label: 'Instance', dotClass: 'inst', countKey: 'instances' },
+    { key: 'host', label: 'Host', dotClass: 'host', countKey: 'hosts' },
+    { key: 'address', label: 'Address', dotClass: 'addr', countKey: 'addresses' },
   ];
 
   function toggleGroup(key: string) {
@@ -32,12 +32,17 @@
   </div>
 
   <div class="legend">
-    {#each legendItems as { key, label, dotClass }}
+    {#each legendItems as { key, label, dotClass, countKey }}
       <label class="legend-item">
         <input type="checkbox" checked={!$disabledGroups.has(key)} onchange={() => toggleGroup(key)} />
         <span class="dot {dotClass}"></span> {label}
+        <span class="legend-count">{$stats[countKey]}</span>
       </label>
     {/each}
+    <div class="legend-item links-row">
+      <span class="dot link-dot"></span> Links
+      <span class="legend-count">{$stats.edges}</span>
+    </div>
   </div>
 
   <div class="section">
@@ -152,6 +157,20 @@
     accent-color: #4fc3f7;
     cursor: pointer;
   }
+  .legend-count {
+    display: none;
+    margin-left: auto;
+    color: #4fc3f7;
+    font-weight: 700;
+  }
+  .links-row {
+    display: none;
+  }
+  .dot.link-dot {
+    background: #90a4ae;
+    border-radius: 2px;
+    transform: none;
+  }
   .dot {
     width: 10px;
     height: 10px;
@@ -232,5 +251,21 @@
   }
   .filter-input:focus {
     border-color: #4fc3f7;
+  }
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      height: auto;
+      max-height: 40vh;
+      border-right: none;
+      border-bottom: 1px solid #0f3460;
+    }
+    .stats {
+      display: none;
+    }
+    .legend-count,
+    .links-row {
+      display: flex;
+    }
   }
 </style>

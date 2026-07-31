@@ -175,4 +175,14 @@
   .url-link:hover {
     color: #81d4fa;
   }
+  @media (max-width: 768px) {
+    .panel {
+      top: auto;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      width: auto;
+      max-height: 50vh;
+    }
+  }
 </style>

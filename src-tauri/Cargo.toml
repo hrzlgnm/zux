@@ -32,12 +32,14 @@ tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-log = "2"
 tauri-plugin-opener = "2"
-tauri-plugin-process = "2"
-tauri-plugin-updater = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 mdns-sd = "0.20"
 tokio = { version = "1", features = ["sync"] }
-clap = { version = "4", features = ["derive"] }
 url = "2"
 log = "0.4"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+clap = { version = "4", features = ["derive"] }
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"

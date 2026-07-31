@@ -1,5 +1,6 @@
 mod mdns;
 
+#[cfg(desktop)]
 use clap::Parser;
 use log::LevelFilter;
 use mdns::MdnsBrowser;
@@ -8,6 +9,7 @@ use tauri::utils::platform::bundle_type;
 use tauri::{Emitter, State};
 use tauri_plugin_log::{Target, TargetKind};
 
+#[cfg(desktop)]
 fn parse_log_level(s: &str) -> LevelFilter {
     match s.to_lowercase().as_str() {
         "trace" => LevelFilter::Trace,
@@ -19,6 +21,7 @@ fn parse_log_level(s: &str) -> LevelFilter {
     }
 }
 
+#[cfg(desktop)]
 #[derive(Parser)]
 #[command(
     name = "zux",
@@ -92,7 +95,7 @@ async fn start_discovery(
     Ok(())
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[cfg(desktop)]
 pub fn run() {
     let cli = Cli::parse();
     let level = parse_log_level(&cli.log_level);
@@ -114,6 +117,27 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(Mutex::new(browser))
+        .invoke_handler(tauri::generate_handler![start_discovery, can_auto_update])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
+#[cfg(mobile)]
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run_mobile() {
+    let browser = MdnsBrowser::new(true).expect("failed to create mDNS browser");
+
+    tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(LevelFilter::Info)
+                .clear_targets()
+                .target(Target::new(TargetKind::Stdout))
+                .build(),
+        )
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(Mutex::new(browser))
         .invoke_handler(tauri::generate_handler![start_discovery, can_auto_update])
         .run(tauri::generate_context!())
