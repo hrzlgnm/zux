@@ -104,12 +104,9 @@ function cascadeOffline() {
   });
 }
 
-export function setupEventListeners() {
-  console.log('[zux] setting up event listeners');
-  listen<any>('mdns-event', (event) => {
-    const p = event.payload;
-    console.log('[zux] event:', JSON.stringify(p).slice(0, 200));
-    switch (p.type) {
+function handleMdnsEvent(p: any) {
+  console.log('[zux] event:', JSON.stringify(p).slice(0, 200));
+  switch (p.type) {
       case 'service-type-added': {
         const st = p.data.service_type;
         serviceTypes.update(s => { s.add(st); return s; });
@@ -211,5 +208,133 @@ export function setupEventListeners() {
         break;
       }
     }
+}
+
+export function setupEventListeners() {
+  console.log('[zux] setting up event listeners');
+  listen<any>('mdns-event', (event) => {
+    handleMdnsEvent(event.payload);
   });
+}
+
+const PREVIEW_SERVICE_TYPES = [
+  '_http._tcp.local.',
+  '_mqtt._tcp.local.',
+  '_hap._tcp.local.',
+  '_ssh._tcp.local.',
+  '_airplay._tcp.local.',
+  '_printer._tcp.local.',
+]
+
+interface PreviewService {
+  id: string
+  name: string
+  service_type: string
+  sub_type: string | null
+  hostname: string
+  port: number
+  addresses: { ip: string; interfaces: string[] }[]
+  txt: Record<string, string>
+  urls: string[]
+}
+
+const PREVIEW_SERVICES: PreviewService[] = [
+  {
+    id: 'Frontend._http._tcp.local.',
+    name: 'Frontend',
+    service_type: '_http._tcp.local.',
+    sub_type: null,
+    hostname: 'pi-web.local.',
+    port: 8080,
+    addresses: [{ ip: '192.168.1.10', interfaces: ['eth0'] }],
+    txt: { path: '/app', version: '2.3.1' },
+    urls: ['http://pi-web.local:8080/app'],
+  },
+  {
+    id: 'Home Assistant._http._tcp.local.',
+    name: 'Home Assistant',
+    service_type: '_http._tcp.local.',
+    sub_type: null,
+    hostname: 'pi-web.local.',
+    port: 8123,
+    addresses: [{ ip: '192.168.1.10', interfaces: ['eth0'] }],
+    txt: { path: '/', api: 'ha' },
+    urls: ['http://pi-web.local:8123/'],
+  },
+  {
+    id: 'API Server._http._tcp.local.',
+    name: 'API Server',
+    service_type: '_http._tcp.local.',
+    sub_type: null,
+    hostname: 'dev-laptop.local.',
+    port: 3000,
+    addresses: [{ ip: '192.168.1.23', interfaces: ['wlp2s0'] }],
+    txt: {},
+    urls: ['http://dev-laptop.local:3000/'],
+  },
+  {
+    id: 'MQTT Broker._mqtt._tcp.local.',
+    name: 'MQTT Broker',
+    service_type: '_mqtt._tcp.local.',
+    sub_type: null,
+    hostname: 'nas.local.',
+    port: 1883,
+    addresses: [{ ip: '192.168.1.5', interfaces: ['eth0'] }],
+    txt: {},
+    urls: [],
+  },
+  {
+    id: 'Living Room TV._airplay._tcp.local.',
+    name: 'Living Room TV',
+    service_type: '_airplay._tcp.local.',
+    sub_type: null,
+    hostname: 'living-room-tv.local.',
+    port: 7000,
+    addresses: [{ ip: '192.168.1.42', interfaces: ['en0'] }],
+    txt: { model: 'TV', deviceid: 'AA:BB:CC:DD:EE:FF' },
+    urls: [],
+  },
+  {
+    id: 'Front Door Cam._hap._tcp.local.',
+    name: 'Front Door Cam',
+    service_type: '_hap._tcp.local.',
+    sub_type: null,
+    hostname: 'doorbell.local.',
+    port: 51827,
+    addresses: [{ ip: '192.168.1.44', interfaces: ['wlan0'] }],
+    txt: { sf: '0', id: '12:34:56:78:90:AB' },
+    urls: [],
+  },
+  {
+    id: 'Raspberry Pi SSH._ssh._tcp.local.',
+    name: 'Raspberry Pi SSH',
+    service_type: '_ssh._tcp.local.',
+    sub_type: null,
+    hostname: 'pi-web.local.',
+    port: 22,
+    addresses: [{ ip: '192.168.1.10', interfaces: ['eth0'] }],
+    txt: {},
+    urls: [],
+  },
+  {
+    id: 'Laser Printer._printer._tcp.local.',
+    name: 'Laser Printer',
+    service_type: '_printer._tcp.local.',
+    sub_type: null,
+    hostname: 'printer.local.',
+    port: 631,
+    addresses: [{ ip: '192.168.1.60', interfaces: ['eth0'] }],
+    txt: { product: 'LaserJet', rp: 'ipp/print' },
+    urls: [],
+  },
+]
+
+export function seedPreviewData() {
+  console.log('[zux] seeding preview data');
+  for (const st of PREVIEW_SERVICE_TYPES) {
+    handleMdnsEvent({ type: 'service-type-added', data: { service_type: st } });
+  }
+  for (const s of PREVIEW_SERVICES) {
+    handleMdnsEvent({ type: 'service-added', data: s });
+  }
 }

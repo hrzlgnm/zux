@@ -1,18 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { invoke } from '@tauri-apps/api/core'
+  import { isTauri, invoke } from '@tauri-apps/api/core'
   import { confirm } from '@tauri-apps/plugin-dialog'
   import { relaunch } from '@tauri-apps/plugin-process'
   import { check } from '@tauri-apps/plugin-updater'
-  import { setupEventListeners, clearGraph } from '$lib/store'
+  import { setupEventListeners, clearGraph, seedPreviewData } from '$lib/store'
   import ServiceGraph from '$lib/ServiceGraph.svelte'
   import Sidebar from '$lib/Sidebar.svelte'
   import NodeDetail from '$lib/NodeDetail.svelte'
 
   onMount(() => {
-    setupEventListeners()
-    clearGraph()
-    invoke('start_discovery').catch(() => {})
+    if (isTauri()) {
+      setupEventListeners()
+      clearGraph()
+      invoke('start_discovery').catch(() => {})
+    } else {
+      seedPreviewData()
+    }
   })
 
   async function checkForUpdates() {
