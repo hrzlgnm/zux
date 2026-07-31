@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { setupEventListeners, clearGraph } from '$lib/store';
   import { invoke } from '@tauri-apps/api/core';
+  import { confirm } from '@tauri-apps/plugin-dialog';
+  import { relaunch } from '@tauri-apps/plugin-process';
   import { check } from '@tauri-apps/plugin-updater';
   import ServiceGraph from '$lib/ServiceGraph.svelte';
   import Sidebar from '$lib/Sidebar.svelte';
@@ -12,7 +14,18 @@
     clearGraph();
     invoke('start_discovery').catch(() => {});
     const canUpdate = await invoke<boolean>('can_auto_update');
-    if (canUpdate) check().catch(() => {});
+    if (canUpdate) {
+      const update = await check().catch(() => null);
+      if (!update) return;
+      const confirmed = await confirm(
+        `A new version of zux (${update.version}) is available. Update now?`,
+        { title: 'Update available', kind: 'info' }
+      ).catch(() => false);
+      if (confirmed) {
+        await update.downloadAndInstall();
+        await relaunch();
+      }
+    }
   });
 </script>
 
