@@ -7,8 +7,6 @@
     "core:default",
     "opener:default",
     "core:event:default",
-    "updater:default",
-    "dialog:allow-confirm",
-    "process:allow-restart"
+    "dialog:allow-confirm"
   ]
 }
