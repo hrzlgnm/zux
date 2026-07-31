@@ -2,11 +2,11 @@ import type { Network } from 'vis-network'
 import { isTauri, invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
 
-const GROUP_COLORS: Record<string, { background: string; border: string }> = {
-  'service-type': { background: '#4fc3f7', border: '#0288d1' },
-  instance: { background: '#81c784', border: '#388e3c' },
-  host: { background: '#ffb74d', border: '#f57c00' },
-  address: { background: '#ce93d8', border: '#7b1fa2' },
+const GROUP_COLORS: Record<string, string> = {
+  'service-type': '#4fc3f7',
+  instance: '#81c784',
+  host: '#ffb74d',
+  address: '#ce93d8',
 }
 
 const GROUP_FONTS: Record<string, { color: string; size: number }> = {
@@ -20,10 +20,49 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-function nodeColor(n: any): { background: string; border: string } {
+function rgbToHsv(r: number, g: number, b: number): [number, number, number] {
+  r /= 255
+  g /= 255
+  b /= 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const d = max - min
+  let h = 0
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6
+    else if (max === g) h = (b - r) / d + 2
+    else h = (r - g) / d + 4
+    h *= 60
+    if (h < 0) h += 360
+  }
+  return [h, max === 0 ? 0 : d / max, max]
+}
+
+function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
+  const c = v * s
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+  const m = v - c
+  let r = 0, g = 0, b = 0
+  if (h < 60) [r, g, b] = [c, x, 0]
+  else if (h < 120) [r, g, b] = [x, c, 0]
+  else if (h < 180) [r, g, b] = [0, c, x]
+  else if (h < 240) [r, g, b] = [0, x, c]
+  else if (h < 300) [r, g, b] = [x, 0, c]
+  else [r, g, b] = [c, 0, x]
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)]
+}
+
+function darken(hex: string): string {
+  const [h, s, v] = rgbToHsv(parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16))
+  const [r, g, b] = hsvToRgb(h, Math.min(1, s * 1.25), v * 0.8)
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
+}
+
+function nodeColors(n: any): { background: string; border: string } {
   const c = n.color
-  if (c && typeof c === 'object' && c.background) return { background: c.background, border: c.border ?? c.background }
-  return GROUP_COLORS[n.group] ?? { background: '#e0e0e0', border: '#90a4ae' }
+  if (c && typeof c === 'object' && c.background) return { background: c.background, border: c.border ?? darken(c.background) }
+  const bg = GROUP_COLORS[n.group] ?? '#e0e0e0'
+  return { background: bg, border: darken(bg) }
 }
 
 function nodeFontInfo(n: any): { color: string; size: number } {
@@ -33,25 +72,49 @@ function nodeFontInfo(n: any): { color: string; size: number } {
 
 function shapeEl(n: any, x: number, y: number): string {
   const r = n.size ?? 15
-  const c = nodeColor(n)
-  const stroke = ` stroke="${c.border}" stroke-width="${n.borderWidth ?? 2}" fill="${c.background}"`
+  const c = nodeColors(n)
+  const fill = ` fill="${c.background}"`
+  const stroke = ` stroke="${c.border}" stroke-width="${n.borderWidth ?? 2}"`
   const shadow = ' filter="url(#zux-shadow)"'
   switch (n.shape) {
     case 'diamond':
-      return `<path d="M ${x} ${y - r} L ${x + r} ${y} L ${x} ${y + r} L ${x - r} ${y} Z"${stroke}${shadow}/>`
+      return `<path d="M ${x} ${y - r} L ${x + r} ${y} L ${x} ${y + r} L ${x - r} ${y} Z"${fill}${stroke}${shadow}/>`
     case 'square':
-      return `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}"${stroke}${shadow}/>`
+      return `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}"${fill}${stroke}${shadow}/>`
     case 'triangle':
-      return `<path d="M ${x} ${y - r} L ${x + 1.15 * r} ${y + r} L ${x - 1.15 * r} ${y + r} Z"${stroke}${shadow}/>`
+      return `<path d="M ${x} ${y - r} L ${x + 1.15 * r} ${y + r} L ${x - 1.15 * r} ${y + r} Z"${fill}${stroke}${shadow}/>`
     default:
-      return `<circle cx="${x}" cy="${y}" r="${r}"${stroke}${shadow}/>`
+      return `<circle cx="${x}" cy="${y}" r="${r}"${fill}${stroke}${shadow}/>`
   }
+}
+
+const LABEL_GAP = 6
+
+const ascentCache = new Map<number, number>()
+
+function fontAscent(size: number): number {
+  const cached = ascentCache.get(size)
+  if (cached !== undefined) return cached
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.style.position = 'absolute'
+  svg.style.width = '0'
+  svg.style.height = '0'
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+  t.setAttribute('font-family', 'Arial, sans-serif')
+  t.setAttribute('font-size', String(size))
+  t.textContent = 'Ag'
+  svg.appendChild(t)
+  document.body.appendChild(svg)
+  const ascent = -t.getBBox().y
+  svg.remove()
+  ascentCache.set(size, ascent)
+  return ascent
 }
 
 function labelEl(n: any, x: number, y: number): string {
   const f = nodeFontInfo(n)
-  const yLabel = y + (n.size ?? 15) + f.size * 0.5
-  return `<text x="${x}" y="${yLabel}" text-anchor="middle" dominant-baseline="hanging" font-family="Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label)}</text>`
+  const yBaseline = y + (n.size ?? 15) + LABEL_GAP + fontAscent(f.size)
+  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label)}</text>`
 }
 
 export async function exportGraphSvg(network: Network) {
