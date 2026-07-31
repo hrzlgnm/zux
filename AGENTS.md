@@ -36,4 +36,4 @@
 
 ## Logging
 
-- Rust: `log::debug!("[subsystem] message")`. Frontend: `console.log('[zux] ...')`.
+- Rust: `log::debug!("message")`. Frontend: `console.log('[zux] ...')`.

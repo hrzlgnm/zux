@@ -2,6 +2,7 @@ use mdns_sd::{IfKind, ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use tauri::async_runtime::spawn;
 use tokio::sync::broadcast;
 use url::Url;
 
@@ -69,36 +70,11 @@ impl MdnsBrowser {
     }
 
     pub fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        log::debug!("[mdns] resetting...");
-        if let Some(daemon) = self.daemon.take() {
-            let mut attempts = 0;
-            let max_attempts = 5;
-            loop {
-                match daemon.shutdown() {
-                    Err(mdns_sd::Error::Again) if attempts < max_attempts => {
-                        attempts += 1;
-                        log::debug!(
-                            "[mdns] shutdown busy, retrying ({attempts}/{max_attempts})..."
-                        );
-                        std::thread::sleep(std::time::Duration::from_millis(100));
-                    }
-                    Ok(status_rx) => {
-                        log::debug!("[mdns] waiting for shutdown completion...");
-                        let _ = status_rx.recv();
-                        break;
-                    }
-                    Err(mdns_sd::Error::Again) => {
-                        log::debug!(
-                            "[mdns] shutdown still busy after {max_attempts} attempts, proceeding"
-                        );
-                        break;
-                    }
-                    Err(e) => {
-                        log::debug!("[mdns] shutdown error (proceeding): {e}");
-                        break;
-                    }
-                }
-            }
+        log::debug!("resetting...");
+        if let Some(daemon) = self.daemon.take()
+            && let Err(_e) = daemon.shutdown()
+        {
+            log::error!("Failed to shutdown daemon, ignoring");
         }
         let daemon = ServiceDaemon::new()?;
         Self::configure_daemon(&daemon)?;
@@ -111,24 +87,27 @@ impl MdnsBrowser {
     }
 
     pub fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
-        log::debug!("[mdns] starting discovery...");
+        log::debug!("starting discovery...");
         let daemon = self.daemon.as_ref().ok_or("daemon not initialized")?;
         let enum_rx = daemon.browse("_services._dns-sd._udp.local.")?;
-        log::debug!("[mdns] enumeration receiver obtained");
+        log::debug!("enumeration receiver obtained");
         let tx = self.tx.clone();
-        let daemon = self.daemon.as_ref().unwrap().clone();
+        let daemon = daemon.clone();
         let active_browses = self.active_browses.clone();
         let seen_instances = self.seen_instances.clone();
         let filter_non_link_local = self.filter_non_link_local;
 
-        std::thread::spawn(move || {
-            while let Ok(event) = enum_rx.recv() {
+        spawn(async move {
+            while let Ok(event) = enum_rx.recv_async().await {
                 let (fullname, is_resolved) = match &event {
                     ServiceEvent::ServiceResolved(r) => (r.get_fullname().to_string(), true),
                     ServiceEvent::ServiceFound(_, f) => (f.to_string(), false),
                     ServiceEvent::SearchStarted(st) => {
-                        log::debug!("[mdns] search started: {st}");
+                        log::debug!("search started: {st}");
                         continue;
+                    }
+                    ServiceEvent::SearchStopped(_) => {
+                        break;
                     }
                     _ => continue,
                 };
@@ -141,10 +120,10 @@ impl MdnsBrowser {
 
                 if let Some(service_type) = result {
                     if service_type.contains("._sub.") {
-                        log::debug!("[mdns] skipping subtype: {service_type}");
+                        log::debug!("skipping subtype: {service_type}");
                         continue;
                     }
-                    log::debug!("[mdns] discovered type: {service_type}");
+                    log::debug!("discovered type: {service_type}");
 
                     let _ = tx.send(MdnsEvent::TypeAdded {
                         service_type: service_type.clone(),
@@ -164,8 +143,8 @@ impl MdnsBrowser {
                             let tx2 = tx.clone();
                             let seen = seen_instances.clone();
                             let filter = filter_non_link_local;
-                            std::thread::spawn(move || {
-                                while let Ok(ev) = type_rx.recv() {
+                            spawn(async move {
+                                while let Ok(ev) = type_rx.recv_async().await {
                                     match ev {
                                         ServiceEvent::ServiceResolved(svc) => {
                                             let discovered = resolved_to_discovered(&svc, filter);
@@ -174,19 +153,16 @@ impl MdnsBrowser {
                                             if let Some(prev) = cache.get(&id)
                                                 && *prev == discovered
                                             {
-                                                log::debug!(
-                                                    "[mdns] unchanged: {}",
-                                                    discovered.name
-                                                );
+                                                log::debug!("unchanged: {}", discovered.name);
                                                 continue;
                                             }
-                                            log::debug!("[mdns] resolved: {}", discovered.name);
+                                            log::debug!("resolved: {}", discovered.name);
                                             cache.insert(id, discovered.clone());
                                             drop(cache);
                                             let _ = tx2.send(MdnsEvent::Added(discovered));
                                         }
                                         ServiceEvent::ServiceRemoved(st, fullname) => {
-                                            log::debug!("[mdns] removed: {fullname}");
+                                            log::debug!("removed: {fullname}");
                                             let id = extract_instance_id(&fullname);
                                             if let Some(ref instid) = id {
                                                 seen.lock().unwrap().remove(instid);
@@ -196,17 +172,22 @@ impl MdnsBrowser {
                                                 service_type: st,
                                             });
                                         }
+                                        ServiceEvent::SearchStopped(_) => {
+                                            break;
+                                        }
                                         _ => {}
                                     }
                                 }
+                                log::debug!("browse task for {service_type} ended");
                             });
                         }
                         Err(e) => {
-                            log::error!("[mdns] browse error for {}: {}", service_type, e);
+                            log::error!("browse error for {}: {}", service_type, e);
                         }
                     }
                 }
             }
+            log::debug!("enum service types task ended");
         });
 
         Ok(())
