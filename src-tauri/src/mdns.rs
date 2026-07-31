@@ -38,7 +38,7 @@ pub enum MdnsEvent {
 }
 
 pub struct MdnsBrowser {
-    daemon: ServiceDaemon,
+    daemon: Option<ServiceDaemon>,
     tx: broadcast::Sender<MdnsEvent>,
     active_browses: Arc<Mutex<HashMap<String, bool>>>,
     seen_instances: Arc<Mutex<HashMap<String, ServiceDiscovered>>>,
@@ -54,11 +54,9 @@ impl MdnsBrowser {
     }
 
     pub fn new(filter_non_link_local: bool) -> Result<Self, Box<dyn std::error::Error>> {
-        let daemon = ServiceDaemon::new()?;
-        Self::configure_daemon(&daemon)?;
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         Ok(Self {
-            daemon,
+            daemon: None,
             tx,
             active_browses: Arc::new(Mutex::new(HashMap::new())),
             seen_instances: Arc::new(Mutex::new(HashMap::new())),
@@ -72,34 +70,39 @@ impl MdnsBrowser {
 
     pub fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         log::debug!("[mdns] resetting...");
-        let mut attempts = 0;
-        let max_attempts = 5;
-        loop {
-            match self.daemon.shutdown() {
-                Err(mdns_sd::Error::Again) if attempts < max_attempts => {
-                    attempts += 1;
-                    log::debug!("[mdns] shutdown busy, retrying ({attempts}/{max_attempts})...");
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                }
-                Ok(status_rx) => {
-                    log::debug!("[mdns] waiting for shutdown completion...");
-                    let _ = status_rx.recv();
-                    break;
-                }
-                Err(mdns_sd::Error::Again) => {
-                    log::debug!(
-                        "[mdns] shutdown still busy after {max_attempts} attempts, proceeding"
-                    );
-                    break;
-                }
-                Err(e) => {
-                    log::debug!("[mdns] shutdown error (proceeding): {e}");
-                    break;
+        if let Some(daemon) = self.daemon.take() {
+            let mut attempts = 0;
+            let max_attempts = 5;
+            loop {
+                match daemon.shutdown() {
+                    Err(mdns_sd::Error::Again) if attempts < max_attempts => {
+                        attempts += 1;
+                        log::debug!(
+                            "[mdns] shutdown busy, retrying ({attempts}/{max_attempts})..."
+                        );
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    }
+                    Ok(status_rx) => {
+                        log::debug!("[mdns] waiting for shutdown completion...");
+                        let _ = status_rx.recv();
+                        break;
+                    }
+                    Err(mdns_sd::Error::Again) => {
+                        log::debug!(
+                            "[mdns] shutdown still busy after {max_attempts} attempts, proceeding"
+                        );
+                        break;
+                    }
+                    Err(e) => {
+                        log::debug!("[mdns] shutdown error (proceeding): {e}");
+                        break;
+                    }
                 }
             }
         }
-        self.daemon = ServiceDaemon::new()?;
-        Self::configure_daemon(&self.daemon)?;
+        let daemon = ServiceDaemon::new()?;
+        Self::configure_daemon(&daemon)?;
+        self.daemon = Some(daemon);
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         self.tx = tx;
         self.active_browses.lock().unwrap().clear();
@@ -109,10 +112,11 @@ impl MdnsBrowser {
 
     pub fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
         log::debug!("[mdns] starting discovery...");
-        let enum_rx = self.daemon.browse("_services._dns-sd._udp.local.")?;
+        let daemon = self.daemon.as_ref().ok_or("daemon not initialized")?;
+        let enum_rx = daemon.browse("_services._dns-sd._udp.local.")?;
         log::debug!("[mdns] enumeration receiver obtained");
         let tx = self.tx.clone();
-        let daemon = self.daemon.clone();
+        let daemon = self.daemon.as_ref().unwrap().clone();
         let active_browses = self.active_browses.clone();
         let seen_instances = self.seen_instances.clone();
         let filter_non_link_local = self.filter_non_link_local;
