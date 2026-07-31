@@ -1,0 +1,40 @@
+name: "Reusable cache tools for release workflow"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  cache-tools:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: "ubuntu-22.04"
+            symbol: 🐧
+          - os: "ubuntu-24.04"
+            symbol: 🐧
+          - os: "macos-latest"
+            symbol: 🍏
+          - os: "windows-latest"
+            symbol: 🪟
+
+    name: "${{ matrix.symbol }}📦"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 🔄 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+
+      # Ensure tools used in release workflow are in the cache
+
+      - name: 🔧 Install cargo-edit
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: cargo-edit
+          version: 0.13.13
+          locked: true

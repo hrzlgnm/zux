@@ -2,6 +2,9 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -135,9 +138,15 @@ jobs:
       - name: check
         run: npm run tauri signer sign package.json
 
+  cache-tools:
+    needs: [clippy, fmt, svelte-check, signer-check]
+    name: "📦 Cache tools"
+    if: always() && ( github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' )
+    uses: ./.github/workflows/cache-tools-reusable.yml
+
   alls-green:
     if: always()
-    needs: [changes, actionlint, aur, typos, clippy, fmt, svelte-check, signer-check]
+    needs: [changes, actionlint, aur, typos, clippy, fmt, svelte-check, signer-check, cache-tools]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
@@ -148,4 +157,5 @@ jobs:
             fmt,
             svelte-check,
             signer-check,
+            cache-tools,
           jobs: ${{ toJSON(needs) }}
