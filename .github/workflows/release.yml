@@ -95,3 +95,121 @@ jobs:
           releaseDraft: true
           prerelease: false
           generateReleaseNotes: true
+
+  android-release:
+    needs: release
+    runs-on: ubuntu-22.04
+    env:
+      RUSTFLAGS: "-D warnings"
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: verify Android signing secrets
+        shell: bash
+        env:
+          ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
+          ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+          ANDROID_RELEASE_KEY: ${{ secrets.ANDROID_RELEASE_KEY }}
+          ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+        run: |
+          missing=0
+          for secret in ANDROID_RELEASE_KEYSTORE ANDROID_RELEASE_KEYSTORE_PASSWORD ANDROID_RELEASE_KEY ANDROID_RELEASE_KEY_PASSWORD; do
+            if [ -z "${!secret}" ]; then
+              echo "Error: $secret is not configured as a repository secret"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+          echo "Android signing secrets are configured"
+
+      - name: setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: setup Java
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: setup Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+
+      - name: install NDK
+        shell: bash
+        run: sdkmanager "ndk;27.0.11902837"
+
+      - name: set NDK_HOME
+        shell: bash
+        run: echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.11902837" >> "$GITHUB_ENV"
+
+      - name: install frontend dependencies
+        run: npm ci
+
+      - name: get version from tag
+        shell: bash
+        id: get_version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: 🔧 Install cargo-edit
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: cargo-edit
+          version: 0.13.13
+          locked: true
+
+      - name: sync version in Cargo.toml and tauri.conf.json
+        shell: bash
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
+          mv tmp.json src-tauri/tauri.conf.json
+          cd src-tauri
+          cargo set-version "$VERSION"
+
+      - name: build Android app bundle
+        shell: bash
+        run: |
+          npm run tauri android init
+          npm run tauri android build
+
+      - name: extract Android signing keystore
+        shell: bash
+        env:
+          ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
+        run: |
+          echo "$ANDROID_RELEASE_KEYSTORE" > src-tauri/gen/android/release.jks.base64
+          base64 -d src-tauri/gen/android/release.jks.base64 > src-tauri/gen/android/release.jks
+
+      - name: sign APK
+        shell: bash
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
+          ANDROID_RELEASE_KEY: ${{ secrets.ANDROID_RELEASE_KEY }}
+          ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+          ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+        run: |
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" sign --ks src-tauri/gen/android/release.jks \
+            --ks-key-alias "$ANDROID_RELEASE_KEY" \
+            --ks-pass "pass:$ANDROID_RELEASE_KEYSTORE_PASSWORD" \
+            --key-pass "pass:$ANDROID_RELEASE_KEY_PASSWORD" \
+            --out "src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk" \
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+
+      - name: publish APK to release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ steps.get_version.outputs.version }}.apk
