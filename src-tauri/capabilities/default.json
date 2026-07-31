@@ -9,6 +9,6 @@
     "core:event:default",
     "updater:default",
     "dialog:allow-confirm",
-    "process:default"
+    "process:allow-restart"
   ]
 }
