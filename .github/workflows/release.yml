@@ -97,7 +97,6 @@ jobs:
           generateReleaseNotes: true
 
   android-release:
-    needs: release
     runs-on: ubuntu-22.04
     env:
       RUSTFLAGS: "-D warnings"
