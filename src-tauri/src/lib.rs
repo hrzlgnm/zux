@@ -42,9 +42,9 @@ struct Cli {
 
 #[tauri::command]
 fn save_text_file(path: String, contents: String) -> Result<(), String> {
-    log::debug!("[tauri] save_text_file called");
+    log::debug!("save_text_file called");
     std::fs::write(&path, contents).map_err(|e| {
-        log::error!("[tauri] write error for {path}: {e}");
+        log::error!("write error for {path}: {e}");
         e.to_string()
     })
 }
@@ -53,7 +53,7 @@ fn save_text_file(path: String, contents: String) -> Result<(), String> {
 fn can_auto_update() -> bool {
     let current_bundle_type = bundle_type();
     if current_bundle_type.is_none() {
-        log::debug!("[updater] non-bundled version, auto-update disabled");
+        log::debug!("non-bundled version, auto-update disabled");
         return false;
     }
     true
@@ -64,33 +64,33 @@ async fn start_discovery(
     app: tauri::AppHandle,
     state: State<'_, Mutex<MdnsBrowser>>,
 ) -> Result<(), String> {
-    log::debug!("[tauri] start_discovery called");
+    log::debug!("start_discovery called");
     let mut browser = state.lock().map_err(|e| {
-        log::error!("[tauri] lock error: {e}");
+        log::error!("lock error: {e}");
         e.to_string()
     })?;
     browser.reset().map_err(|e| {
-        log::error!("[tauri] reset error: {e}");
+        log::error!("reset error: {e}");
         e.to_string()
     })?;
     let mut rx = browser.subscribe();
     let app_clone = app.clone();
 
     tokio::spawn(async move {
-        log::debug!("[tauri] event listener started");
+        log::debug!("event listener started");
         loop {
             match rx.recv().await {
                 Ok(event) => {
-                    log::debug!("[tauri] forwarding event to frontend");
+                    log::debug!("forwarding event to frontend");
                     if let Err(e) = app_clone.emit("mdns-event", &event) {
-                        log::error!("[tauri] emit error: {e}");
+                        log::error!("emit error: {e}");
                     }
                 }
                 Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                    log::warn!("[tauri] lagged behind {n} events, continuing");
+                    log::warn!("lagged behind {n} events, continuing");
                 }
                 Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    log::debug!("[tauri] event listener ended");
+                    log::debug!("event listener ended");
                     break;
                 }
             }
@@ -98,7 +98,7 @@ async fn start_discovery(
     });
 
     browser.start().map_err(|e| {
-        log::error!("[tauri] start error: {e}");
+        log::error!("start error: {e}");
         e.to_string()
     })?;
     Ok(())
