@@ -128,13 +128,6 @@
     const q = get(filterQuery);
     const allNodes = get(graphNodes);
 
-    if (disabled.size === 0 && q.length === 0) {
-      const updates: any[] = [];
-      for (const n of allNodes.values()) updates.push({ id: n.id, hidden: false });
-      if (updates.length > 0) visNodes.updateOnly(updates);
-      return;
-    }
-
     const matchingIds = new Set<string>();
     if (q.length > 0) {
       for (const n of allNodes.values()) {
@@ -155,16 +148,25 @@
       }
     }
 
-    const updates: any[] = [];
+    const hiddenByNode = new Map<string, boolean>();
+    const nodeUpdates: any[] = [];
     for (const n of allNodes.values()) {
       const hiddenByGroup = disabled.has(n.group);
       let hidden = hiddenByGroup;
       if (!hiddenByGroup && q.length > 0) {
         hidden = !neighborIds.has(n.id);
       }
-      updates.push({ id: n.id, hidden });
+      hiddenByNode.set(n.id, hidden);
+      nodeUpdates.push({ id: n.id, hidden, physics: !hidden });
     }
-    if (updates.length > 0) visNodes.updateOnly(updates);
+    if (nodeUpdates.length > 0) visNodes.updateOnly(nodeUpdates);
+
+    const edgeUpdates: any[] = [];
+    for (const e of get(graphEdges).values()) {
+      const inactive = hiddenByNode.get(e.from) || hiddenByNode.get(e.to);
+      edgeUpdates.push({ id: e.id, physics: !inactive });
+    }
+    if (edgeUpdates.length > 0) visEdges.updateOnly(edgeUpdates);
   }
 
   onMount(() => {
