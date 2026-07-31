@@ -100,7 +100,9 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(log_builder.build())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(Mutex::new(browser))
         .invoke_handler(tauri::generate_handler![start_discovery, can_auto_update])
