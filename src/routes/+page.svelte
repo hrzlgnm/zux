@@ -65,7 +65,13 @@
   }
   .graph-area {
     flex: 1;
+    min-height: 0;
     position: relative;
     overflow: hidden;
+  }
+  @media (max-width: 768px) {
+    .layout {
+      flex-direction: column;
+    }
   }
 </style>
