@@ -32,6 +32,7 @@
 
 - Conventional commits: `feat:`, `fix:`, `chore:`, etc.
 - Tags: `vMAJOR.MINOR.PATCH`.
+- All changes land via pull requests on a branch (direct pushes to `main` are blocked). Create a `feat/...`, `fix/...`, etc. branch and open a PR.
 
 ## Logging
 
