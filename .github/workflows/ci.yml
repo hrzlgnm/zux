@@ -52,6 +52,7 @@ jobs:
           echo "branch=$HEAD_REF" >> "$GITHUB_OUTPUT"
 
   aur:
+    name: "🔨 AUR"
     needs: [changes]
     if: needs.changes.outputs.aur == 'true'
     permissions:
@@ -70,6 +71,7 @@ jobs:
     uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@8c6f0744eb0550008dfe4d671445d44a9ab72fd0 # v2.5.4
 
   clippy:
+    name: "🔍 Clippy"
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
@@ -92,6 +94,7 @@ jobs:
         working-directory: src-tauri
 
   fmt:
+    name: "🎨 Format"
     needs: [changes]
     if: needs.changes.outputs.fmt == 'true'
     runs-on: ubuntu-24.04
@@ -106,6 +109,7 @@ jobs:
         working-directory: src-tauri
 
   svelte-check:
+    name: "🔍 Svelte check"
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
@@ -121,6 +125,7 @@ jobs:
         run: npm run check
 
   signer-check:
+    name: "🔐 Signer check"
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     env:

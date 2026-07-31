@@ -11,6 +11,7 @@ on:
 
 jobs:
   release-info:
+    name: "🏷️ Release info"
     permissions:
       packages: read
     runs-on: ubuntu-24.04
@@ -26,6 +27,7 @@ jobs:
         uses: ./.github/actions/latest-release-info
 
   update-aur:
+    name: "📤 Update AUR"
     needs:
       - release-info
     runs-on: ubuntu-24.04
