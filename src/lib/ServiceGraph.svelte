@@ -3,7 +3,7 @@
   import { Network } from 'vis-network';
   import { DataSet } from 'vis-data';
   import { get } from 'svelte/store';
-  import { graphNodes, graphEdges, selectedNodeId, physicsConfig, filterQuery, disabledGroups } from './store';
+  import { graphNodes, graphEdges, selectedNodeId, physicsConfig, filterQuery, disabledGroups, graphNetwork } from './store';
   import type { GraphNode, GraphEdge } from './types';
 
   let container: HTMLDivElement;
@@ -173,6 +173,7 @@
     const initialCfg = get(physicsConfig);
     options.physics = buildPhysicsOpts(initialCfg, true);
     network = new Network(container, { nodes: visNodes, edges: visEdges }, options);
+    graphNetwork.set(network);
 
     const ro = new ResizeObserver(() => {
       network.setSize(`${container.offsetWidth}px`, `${container.offsetHeight}px`);
@@ -204,6 +205,7 @@
       unsub4();
       unsub5();
       ro.disconnect();
+      graphNetwork.set(null);
       network?.destroy();
     });
   });

@@ -1,9 +1,11 @@
 import { writable, derived, get } from 'svelte/store';
 import { listen } from '@tauri-apps/api/event';
+import type { Network } from 'vis-network';
 import type { GraphNode, GraphEdge, PhysicsConfig } from './types';
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map());
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map());
+export const graphNetwork = writable<Network | null>(null);
 export const selectedNodeId = writable<string | null>(null);
 export const serviceTypes = writable<Set<string>>(new Set());
 export const filterQuery = writable<string>('');

@@ -1,7 +1,14 @@
 <script lang="ts">
-  import { stats, physicsConfig, filterQuery, disabledGroups } from './store';
+  import { get } from 'svelte/store';
+  import { stats, physicsConfig, filterQuery, disabledGroups, graphNetwork } from './store';
+  import { exportGraphSvg } from './svgExport';
 
   let physicsOpen = $state(false);
+
+  async function exportSvg() {
+    const network = get(graphNetwork);
+    if (network) await exportGraphSvg(network);
+  }
 
   const legendItems: { key: string; label: string; dotClass: string; countKey: 'types' | 'instances' | 'hosts' | 'addresses' }[] = [
     { key: 'service-type', label: 'Service Type', dotClass: 'type', countKey: 'types' },
@@ -95,6 +102,8 @@
   </div>
 
   <input type="text" class="filter-input" placeholder="Filter nodes..." bind:value={$filterQuery} onkeydown={(e) => { if (e.key === 'Escape') { $filterQuery = ''; } }} />
+
+  <button class="export-btn" onclick={exportSvg}>Export SVG</button>
 
 </aside>
 
@@ -250,6 +259,21 @@
     color: #546e7a;
   }
   .filter-input:focus {
+    border-color: #4fc3f7;
+  }
+  .export-btn {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    background: #1a1a2e;
+    color: #4fc3f7;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .export-btn:hover {
+    background: #16213e;
     border-color: #4fc3f7;
   }
   @media (max-width: 768px) {

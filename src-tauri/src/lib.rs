@@ -41,6 +41,15 @@ struct Cli {
 }
 
 #[tauri::command]
+fn save_text_file(path: String, contents: String) -> Result<(), String> {
+    log::debug!("[tauri] save_text_file called");
+    std::fs::write(&path, contents).map_err(|e| {
+        log::error!("[tauri] write error for {path}: {e}");
+        e.to_string()
+    })
+}
+
+#[tauri::command]
 fn can_auto_update() -> bool {
     let current_bundle_type = bundle_type();
     if current_bundle_type.is_none() {
@@ -118,7 +127,11 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(Mutex::new(browser))
-        .invoke_handler(tauri::generate_handler![start_discovery, can_auto_update])
+        .invoke_handler(tauri::generate_handler![
+            start_discovery,
+            can_auto_update,
+            save_text_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -139,7 +152,11 @@ pub fn run_mobile() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Mutex::new(browser))
-        .invoke_handler(tauri::generate_handler![start_discovery, can_auto_update])
+        .invoke_handler(tauri::generate_handler![
+            start_discovery,
+            can_auto_update,
+            save_text_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
