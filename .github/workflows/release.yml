@@ -203,12 +203,17 @@ jobs:
             --out "src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk" \
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
-      - name: 🚀 Publish APK to release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+      - name: 🚀 Ensure release exists and publish APK
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          name: "zux ${{ github.ref_name }}"
-          tag_name: ${{ github.ref_name }}
-          draft: true
-          files: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ steps.get_version.outputs.version }}.apk
+          VERSION: ${{ steps.get_version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          TITLE="zux ${GITHUB_REF_NAME}"
+          APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
+          if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --title "$TITLE" --notes "" \
+              || echo "Release may have been created by parallel job, continuing..."
+          fi
+          gh release upload "$TAG" "$APK" --clobber
