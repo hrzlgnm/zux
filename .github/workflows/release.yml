@@ -109,11 +109,10 @@ jobs:
         env:
           ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
-          ANDROID_RELEASE_KEY: ${{ secrets.ANDROID_RELEASE_KEY }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
           missing=0
-          for secret in ANDROID_RELEASE_KEYSTORE ANDROID_RELEASE_KEYSTORE_PASSWORD ANDROID_RELEASE_KEY ANDROID_RELEASE_KEY_PASSWORD; do
+          for secret in ANDROID_RELEASE_KEYSTORE ANDROID_RELEASE_KEYSTORE_PASSWORD ANDROID_RELEASE_KEY_PASSWORD; do
             if [ -z "${!secret}" ]; then
               echo "Error: $secret is not configured as a repository secret"
               missing=1
@@ -194,12 +193,11 @@ jobs:
         shell: bash
         env:
           VERSION: ${{ steps.get_version.outputs.version }}
-          ANDROID_RELEASE_KEY: ${{ secrets.ANDROID_RELEASE_KEY }}
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" sign --ks src-tauri/gen/android/release.jks \
-            --ks-key-alias "$ANDROID_RELEASE_KEY" \
+            --ks-key-alias zux \
             --ks-pass "pass:$ANDROID_RELEASE_KEYSTORE_PASSWORD" \
             --key-pass "pass:$ANDROID_RELEASE_KEY_PASSWORD" \
             --out "src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk" \
