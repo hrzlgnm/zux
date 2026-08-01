@@ -44,7 +44,8 @@
     "linux": {
       "deb": {
         "files": {
-          "/usr/share/licenses/zux/LICENSE": "../LICENSE"
+          "/usr/share/licenses/zux/LICENSE": "../LICENSE",
+          "/usr/share/doc/zux/copyright": "../LICENSE"
         }
       },
       "rpm": {
