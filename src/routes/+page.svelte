@@ -66,6 +66,7 @@
     display: flex;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
   }
   .graph-area {
     flex: 1;

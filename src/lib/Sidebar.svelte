@@ -281,6 +281,8 @@
       width: 100%;
       height: auto;
       max-height: 40vh;
+      max-height: 40dvh;
+      padding-top: calc(16px + env(safe-area-inset-top));
       border-right: none;
       border-bottom: 1px solid #0f3460;
     }
