@@ -178,11 +178,11 @@
   @media (max-width: 768px) {
     .panel {
       top: auto;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      left: calc(10px + env(safe-area-inset-left));
+      right: calc(10px + env(safe-area-inset-right));
       width: auto;
-      max-height: 50vh;
+      max-height: calc(50dvh - env(safe-area-inset-bottom));
     }
   }
 </style>
