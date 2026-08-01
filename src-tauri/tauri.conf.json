@@ -31,6 +31,8 @@
       "nsis",
       "dmg"
     ],
+    "license": "MIT",
+    "licenseFile": "../LICENSE",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -38,7 +40,19 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "linux": {
+      "deb": {
+        "files": {
+          "/usr/share/licenses/zux/LICENSE": "../LICENSE"
+        }
+      },
+      "rpm": {
+        "files": {
+          "/usr/share/licenses/zux/LICENSE": "../LICENSE"
+        }
+      }
+    }
   },
   "plugins": {
     "updater": {
