@@ -73,7 +73,7 @@ jobs:
         run: |
           git add Casks/zux.rb
           if ! git diff --cached --quiet; then
-            git commit -m "Update zux to v${{ needs.release-info.outputs.version }}"
+            git commit -m "chore: update zux to v${{ needs.release-info.outputs.version }}"
             git push
           else
             echo "No changes to commit"
