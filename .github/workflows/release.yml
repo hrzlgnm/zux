@@ -45,14 +45,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-22.04
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-          - platform: windows-latest
+          - os: macos-latest
+            target: universal-apple-darwin
+            args: --target universal-apple-darwin
+          - os: windows-latest
             target: x86_64-pc-windows-msvc
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     env:
       RUSTFLAGS: "-D warnings"
 
@@ -67,10 +68,10 @@ jobs:
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || matrix.target }}
 
       - name: 🧰 Install dependencies (ubuntu)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -98,7 +99,7 @@ jobs:
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
-          artifact-name: "sbom.${{ matrix.platform }}.spdx.json"
+          artifact-name: "sbom.${{ matrix.os }}.spdx.json"
           current-version: ${{ needs.draft-release.outputs.version }}
 
       - name: 🏗️ Build and publish plain binary
@@ -114,7 +115,7 @@ jobs:
           prerelease: false
           generateReleaseNotes: false
           uploadPlainBinary: true
-          args: --no-bundle
+          args: ${{ matrix.args }} --no-bundle
 
       - name: 📦 Build and publish bundles
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
@@ -128,6 +129,7 @@ jobs:
           releaseDraft: true
           prerelease: false
           generateReleaseNotes: true
+          args: ${{ matrix.args }}
 
       - name: 🛡️ Attest build provenance
         uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
