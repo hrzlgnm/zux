@@ -37,6 +37,10 @@ jobs:
   release:
     needs: [draft-release]
     name: "🚀 Release"
+    permissions:
+      id-token: write # needed for OIDC token for attestation
+      attestations: write # needed to create build attestations
+      contents: write # needed to upload build artifacts
     strategy:
       fail-fast: false
       matrix:
@@ -91,6 +95,12 @@ jobs:
           cd src-tauri
           cargo set-version "$VERSION"
 
+      - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
+        uses: ./.github/actions/sbom
+        with:
+          artifact-name: "sbom.${{ matrix.platform }}.spdx.json"
+          current-version: ${{ needs.draft-release.outputs.version }}
+
       - name: 🏗️ Build and publish plain binary
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         env:
@@ -119,9 +129,31 @@ jobs:
           prerelease: false
           generateReleaseNotes: true
 
+      - name: 🛡️ Attest build provenance
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        with:
+          subject-path: |
+            target/**/release/bundle/nsis/*
+            target/**/release/bundle/dmg/*.dmg
+            target/**/release/bundle/deb/*.deb
+            target/**/release/bundle/rpm/*.rpm
+            target/**/release/bundle/msi/*
+            target/**/release/zux
+            target/**/release/zux.exe
+
+      - name: 🛡️ Attest SBOM
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        with:
+          subject-path: target/**/release/zux
+          sbom-path: sbom.spdx.json
+
   android-release:
     needs: [draft-release]
     name: "🤖 Android release"
+    permissions:
+      id-token: write # needed for OIDC token for attestation
+      attestations: write # needed to create build attestations
+      contents: write # needed to upload build artifacts
     runs-on: ubuntu-24.04
     env:
       RUSTFLAGS: "-D warnings"
@@ -195,6 +227,12 @@ jobs:
           cd src-tauri
           cargo set-version "$VERSION"
 
+      - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
+        uses: ./.github/actions/sbom
+        with:
+          artifact-name: "sbom.android.spdx.json"
+          current-version: ${{ needs.draft-release.outputs.version }}
+
       - name: 🏗️ Build Android app bundle
         shell: bash
         run: |
@@ -232,3 +270,58 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
           gh release upload "$TAG" "$APK" --clobber
+
+      - name: 🛡️ Attest build provenance
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        with:
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
+
+      - name: 🛡️ Attest SBOM
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        with:
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
+          sbom-path: sbom.spdx.json
+
+  source_checksums:
+    needs: [draft-release]
+    permissions:
+      contents: write # to upload source checksums to release
+      actions: read # to access workflow run information and secrets
+    name: 🔢 Generate Source Checksums
+    uses: ./.github/workflows/source-checksums-reusable.yml
+    secrets: inherit
+    with:
+      tagName: ${{ github.ref_name }}
+
+  asset_checksums:
+    needs:
+      [
+        draft-release,
+        release,
+        android-release,
+      ]
+    permissions:
+      contents: write # to update release with checksums and artifacts
+      actions: read # to access workflow run information and secrets
+    name: 🔢 Generate Asset Checksums
+    uses: ./.github/workflows/asset-checksums-reusable.yml
+    secrets: inherit
+    with:
+      tagName: ${{ github.ref_name }}
+
+  publish_sbom:
+    needs:
+      [
+        draft-release,
+        release,
+        android-release,
+        asset_checksums,
+      ]
+    permissions:
+      contents: write # to update release with sboms
+      actions: read # to download workflow artifacts
+    name: 📰📜 Publish SBOM
+    uses: ./.github/workflows/publish-sbom-reusable.yml
+    secrets: inherit
+    with:
+      tagName: ${{ github.ref_name }}
