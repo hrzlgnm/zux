@@ -1,0 +1,80 @@
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT-0
+
+name: Update Homebrew Tap
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+jobs:
+  release-info:
+    permissions:
+      packages: read
+    runs-on: ubuntu-slim
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tagName: ${{ steps.version.outputs.tagName }}
+    steps:
+      - name: 🔄 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+
+      - name: 🏷️ Get version info
+        id: version
+        uses: ./.github/actions/latest-release-info
+
+  update-homebrew-tap:
+    needs: [release-info]
+    runs-on: ubuntu-latest
+    name: 🍺 Update Homebrew Tap
+    steps:
+      - name: 🔄 Checkout Tap Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: hrzlgnm/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: 📥 Download DMG Checksum
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-info.outputs.tagName }}
+        run: |
+          gh release download "$TAG" --repo hrzlgnm/zux-homebrew --pattern "*.dmg.sha256" --dir /tmp/dmg-checksum
+          CHECKSUM=$(grep "universal.dmg" /tmp/dmg-checksum/*.sha256 | cut -d' ' -f1)
+          if [ -z "$CHECKSUM" ]; then
+            echo "Error: No checksum found for universal.dmg in release $TAG"
+            exit 1
+          fi
+          echo "DMG_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
+
+      - name: 🔑 Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 🔄 Update Cask Version & SHA256
+        shell: bash
+        env:
+          NEW_VERSION: ${{ needs.release-info.outputs.version }}
+          CHECKSUM: ${{ env.DMG_CHECKSUM }}
+          CASK_PATH: homebrew-tap/Casks/zux.rb
+        run: |
+          sed -i "s/version \".*\"/version \"$NEW_VERSION\"/" "$CASK_PATH"
+          sed -i "s/sha256 \".*\"/sha256 \"$CHECKSUM\"/" "$CASK_PATH"
+
+      - name: 💾 Commit & Push to Tap
+        working-directory: homebrew-tap
+        run: |
+          git add Casks/zux.rb
+          if ! git diff --cached --quiet; then
+            git commit -m "Update zux to v${{ needs.release-info.outputs.version }}"
+            git push
+          else
+            echo "No changes to commit"
+          fi
