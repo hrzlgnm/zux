@@ -109,6 +109,13 @@ pub fn run() {
     let cli = Cli::parse();
     let level = parse_log_level(&cli.log_level);
 
+    #[cfg(target_os = "linux")]
+    {
+        webkit2gtk_nvidia_quirk::apply_workaround_with_options(
+            webkit2gtk_nvidia_quirk::ApplyWorkaroundOptions::default(),
+        );
+    }
+
     let mut log_builder = tauri_plugin_log::Builder::new()
         .level(level)
         .clear_targets()
