@@ -161,6 +161,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       RUSTFLAGS: "-D warnings"
+      NDK_VERSION: 29.0.14206865
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -202,14 +203,16 @@ jobs:
 
       - name: 🤖 Setup Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          cmdline-tools-version: 15859902
 
       - name: ⚙️ Install NDK
         shell: bash
-        run: sdkmanager "ndk;27.0.11902837"
+        run: android sdk install "ndk;$NDK_VERSION"
 
       - name: 🛠️ Set NDK_HOME
         shell: bash
-        run: echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.11902837" >> "$GITHUB_ENV"
+        run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
         run: npm ci
