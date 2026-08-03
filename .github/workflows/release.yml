@@ -241,6 +241,7 @@ jobs:
         shell: bash
         run: |
           npm run tauri android init
+          npm run tauri icon src-tauri/icons/icon.png
           npm run tauri android build
 
       - name: 🔑 Extract Android signing keystore

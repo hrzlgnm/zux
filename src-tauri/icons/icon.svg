@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFC131" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFC131" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#24C8DB" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#24C8DB" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="200" fill="url(#glow1)"/>
+  <circle cx="256" cy="256" r="200" fill="url(#glow2)"/>
+  <g stroke="#24C8DB" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="256" y1="140" x2="160" y2="220"/>
+    <line x1="256" y1="140" x2="352" y2="220"/>
+    <line x1="160" y1="220" x2="200" y2="340"/>
+    <line x1="352" y1="220" x2="312" y2="340"/>
+    <line x1="200" y1="340" x2="312" y2="340"/>
+    <line x1="160" y1="220" x2="120" y2="160"/>
+    <line x1="352" y1="220" x2="392" y2="160"/>
+  </g>
+  <g fill="#FFC131">
+    <circle cx="256" cy="140" r="18"/>
+    <circle cx="160" cy="220" r="14"/>
+    <circle cx="352" cy="220" r="14"/>
+    <circle cx="200" cy="340" r="12"/>
+    <circle cx="312" cy="340" r="12"/>
+    <circle cx="120" cy="160" r="10"/>
+    <circle cx="392" cy="160" r="10"/>
+  </g>
+  <g fill="#24C8DB">
+    <circle cx="256" cy="140" r="8"/>
+    <circle cx="160" cy="220" r="6"/>
+    <circle cx="352" cy="220" r="6"/>
+    <circle cx="200" cy="340" r="5"/>
+    <circle cx="312" cy="340" r="5"/>
+    <circle cx="120" cy="160" r="4"/>
+    <circle cx="392" cy="160" r="4"/>
+  </g>
+  <text x="256" y="440" text-anchor="middle" font-family="system-ui, sans-serif" font-size="48" font-weight="700" fill="#FFC131">zux</text>
+</svg>
