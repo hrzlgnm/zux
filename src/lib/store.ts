@@ -169,9 +169,12 @@ function handleMdnsEvent(p: any) {
                   interfaces: a.interfaces,
                 });
               } else {
-                const addr = m.get(aId)!;
-                m.set(aId, { ...addr, interfaces: a.interfaces });
-              }
+              const addr = m.get(aId)!;
+              const merged = [
+                ...new Set([...(addr.interfaces ?? []), ...a.interfaces]),
+              ];
+              m.set(aId, { ...addr, interfaces: merged });
+            }
             }
           }
           return m;
