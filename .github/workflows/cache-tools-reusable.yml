@@ -38,3 +38,9 @@ jobs:
           crate: cargo-edit
           version: 0.13.13
           locked: true
+
+      - name: 🔧 Warm grype DB cache
+        if: matrix.os == 'ubuntu-24.04'
+        uses: anchore/scan-action/download-grype@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          cache-db: true
