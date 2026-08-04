@@ -86,11 +86,13 @@ jobs:
           version: 0.13.13
           locked: true
 
-      - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
+      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
         shell: bash
         env:
           VERSION: ${{ needs.draft-release.outputs.version }}
         run: |
+          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
+          mv tmp.json package.json
           jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
           mv tmp.json src-tauri/tauri.conf.json
           cd src-tauri
@@ -224,11 +226,13 @@ jobs:
           version: 0.13.13
           locked: true
 
-      - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
+      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
         shell: bash
         env:
           VERSION: ${{ needs.draft-release.outputs.version }}
         run: |
+          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
+          mv tmp.json package.json
           jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
           mv tmp.json src-tauri/tauri.conf.json
           cd src-tauri
