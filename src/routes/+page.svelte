@@ -23,6 +23,18 @@
     try {
       const canUpdate = await invoke<boolean>('can_auto_update')
       if (!canUpdate) return
+      if (/Android/i.test(navigator.userAgent)) {
+        const update = await invoke<UpdateMeta | null>('fetch_update')
+        if (!update) return
+        const confirmed = await confirm(
+          `A new version of zux (${update.version}) is available. Open the release page to download it?`,
+          { title: 'Update available', kind: 'info' },
+        )
+        if (confirmed) {
+          await invoke('install_update')
+        }
+        return
+      }
       const update = await check()
       if (!update) return
       try {
@@ -40,6 +52,11 @@
     } catch (e) {
       console.log('[zux] update check failed:', e)
     }
+  }
+
+  interface UpdateMeta {
+    version: string
+    currentVersion: string
   }
 
   $effect(() => {
