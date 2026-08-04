@@ -134,7 +134,7 @@ jobs:
           args: ${{ matrix.args }}
 
       - name: 🛡️ Attest build provenance
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             src-tauri/target/**/release/bundle/nsis/*
@@ -146,7 +146,7 @@ jobs:
             src-tauri/target/**/release/zux.exe
 
       - name: 🛡️ Attest SBOM
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             src-tauri/target/**/release/zux
@@ -284,12 +284,12 @@ jobs:
           gh release upload "$TAG" "$APK" --clobber
 
       - name: 🛡️ Attest build provenance
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
 
       - name: 🛡️ Attest SBOM
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
           sbom-path: sbom.spdx.json
