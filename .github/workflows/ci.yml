@@ -36,6 +36,7 @@ jobs:
               - 'src-tauri/**'
               - 'package.json'
               - 'package-lock.json'
+              - '.github/workflows/ci.yml'
             fmt:
               - 'src-tauri/**'
             lint:
@@ -83,12 +84,17 @@ jobs:
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           components: clippy
+      - name: 🛠️ Setup sccache
+        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+      - name: 🔗 Enable sccache for cargo
+        shell: bash
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: 📦 Install frontend dependencies
-        run: npm ci
       - name: 🔍 Check
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
