@@ -36,6 +36,7 @@ jobs:
               - 'src-tauri/**'
               - 'package.json'
               - 'package-lock.json'
+              - '.github/workflows/ci.yml'
             fmt:
               - 'src-tauri/**'
             lint:
