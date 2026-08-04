@@ -39,6 +39,9 @@ tokio = { version = "1", features = ["sync"] }
 url = "2"
 log = "0.4"
 
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-http = { version = "2", default-features = false, features = ["rustls-tls"] }
+
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 clap = { version = "4", features = ["derive"] }
 tauri-plugin-process = "2"

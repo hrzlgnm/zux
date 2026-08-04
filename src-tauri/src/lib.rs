@@ -5,9 +5,11 @@ use clap::Parser;
 use log::LevelFilter;
 use mdns::MdnsBrowser;
 use std::sync::Mutex;
-use tauri::utils::platform::bundle_type;
 use tauri::{Emitter, State};
 use tauri_plugin_log::{Target, TargetKind};
+
+#[cfg(desktop)]
+use tauri::utils::platform::bundle_type;
 
 #[cfg(desktop)]
 fn parse_log_level(s: &str) -> LevelFilter {
@@ -49,6 +51,7 @@ fn save_text_file(path: String, contents: String) -> Result<(), String> {
     })
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 fn can_auto_update() -> bool {
     let current_bundle_type = bundle_type();
@@ -56,6 +59,12 @@ fn can_auto_update() -> bool {
         log::debug!("non-bundled version, auto-update disabled");
         return false;
     }
+    true
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+fn can_auto_update() -> bool {
     true
 }
 
@@ -144,6 +153,109 @@ pub fn run() {
 }
 
 #[cfg(mobile)]
+mod autoupdate {
+    use serde::Serialize;
+    use std::sync::Mutex;
+    use tauri::{AppHandle, State};
+    use tauri_plugin_http::reqwest;
+    use tauri_plugin_opener::OpenerExt;
+
+    const LATEST_JSON_URL: &str =
+        "https://github.com/hrzlgnm/zux/releases/latest/download/latest.json";
+    const GITHUB_RELEASES_URL: &str = "https://github.com/hrzlgnm/zux/releases/latest";
+
+    #[derive(Clone, Serialize, Debug, PartialEq)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpdateMetadata {
+        pub version: String,
+        pub current_version: String,
+    }
+
+    #[derive(Clone)]
+    pub struct PendingUpdate {
+        pub version: String,
+    }
+
+    pub struct PendingUpdateInfo(pub Mutex<Option<PendingUpdate>>);
+
+    #[derive(serde::Deserialize)]
+    struct LatestJson {
+        version: String,
+    }
+
+    #[tauri::command]
+    pub async fn fetch_update(
+        app: AppHandle,
+        pending_update: State<'_, PendingUpdateInfo>,
+    ) -> Result<Option<UpdateMetadata>, String> {
+        let body = reqwest::get(LATEST_JSON_URL)
+            .await
+            .map_err(|e| {
+                log::error!("[updater] failed to fetch latest release info: {e}");
+                format!("failed to fetch latest release info: {e}")
+            })?
+            .text()
+            .await
+            .map_err(|e| {
+                log::error!("[updater] failed to read latest release info: {e}");
+                format!("failed to read latest release info: {e}")
+            })?;
+        let latest_json: LatestJson = serde_json::from_str(&body).map_err(|e| {
+            log::error!("[updater] failed to parse latest release info: {e}");
+            format!("failed to parse latest release info: {e}")
+        })?;
+        let latest_version = latest_json.version.trim_start_matches('v').to_string();
+        let current_version = app.package_info().version.to_string();
+
+        if latest_version == current_version {
+            log::info!("[updater] app is up to date ({current_version})");
+            *pending_update.0.lock().expect("To lock") = None;
+            return Ok(None);
+        }
+
+        log::info!("[updater] update {latest_version} found");
+        *pending_update.0.lock().expect("To lock") = Some(PendingUpdate {
+            version: latest_version.clone(),
+        });
+
+        Ok(Some(UpdateMetadata {
+            version: latest_version,
+            current_version,
+        }))
+    }
+
+    #[tauri::command]
+    pub async fn install_update(
+        app: AppHandle,
+        pending_update: State<'_, PendingUpdateInfo>,
+    ) -> Result<(), String> {
+        let pending = pending_update
+            .0
+            .lock()
+            .expect("To lock")
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| "there is no pending update".to_string())?;
+
+        let releases_url = GITHUB_RELEASES_URL;
+        log::info!(
+            "[updater] opening releases page for update {}: {}",
+            pending.version,
+            releases_url
+        );
+        app.opener()
+            .open_url(releases_url.to_string(), None::<String>)
+            .map_err(|e| {
+                log::error!("[updater] failed to open releases page: {e:?}");
+                format!("failed to open releases page: {e:?}")
+            })?;
+
+        log::info!("[updater] releases page opened, user can download APK manually");
+        Ok(())
+    }
+}
+
+#[cfg(mobile)]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run_mobile() {
     let browser = MdnsBrowser::new(true).expect("failed to create mDNS browser");
@@ -158,11 +270,15 @@ pub fn run_mobile() {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_http::init())
         .manage(Mutex::new(browser))
+        .manage(autoupdate::PendingUpdateInfo(std::sync::Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             start_discovery,
             can_auto_update,
-            save_text_file
+            save_text_file,
+            autoupdate::fetch_update,
+            autoupdate::install_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
