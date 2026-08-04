@@ -1,5 +1,6 @@
 <script lang="ts">
   import { get } from 'svelte/store';
+  import pkg from '../../package.json';
   import { stats, physicsConfig, filterQuery, disabledGroups, graphNetwork } from './store';
   import { exportGraphSvg } from './svgExport';
 
@@ -27,7 +28,7 @@
 </script>
 
 <aside class="sidebar">
-  <h2 class="title">zux</h2>
+  <h2 class="title">zux <span class="version">v{pkg.version}</span></h2>
   <p class="subtitle">mDNS-SD Visualizer</p>
 
   <div class="stats">
@@ -126,6 +127,11 @@
     font-size: 20px;
     font-weight: 700;
     color: #4fc3f7;
+  }
+  .version {
+    font-size: 11px;
+    font-weight: 400;
+    color: #78909c;
   }
   .subtitle {
     margin: -8px 0 0;
