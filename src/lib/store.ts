@@ -168,6 +168,9 @@ function handleMdnsEvent(p: any) {
                   group: 'address', shape: 'triangle', size: 12, color: '#ce93d8',
                   interfaces: a.interfaces,
                 });
+              } else {
+                const addr = m.get(aId)!;
+                m.set(aId, { ...addr, interfaces: a.interfaces });
               }
             }
           }
