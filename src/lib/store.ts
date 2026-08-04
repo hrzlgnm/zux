@@ -160,21 +160,27 @@ function handleMdnsEvent(p: any) {
             m.set(hId, { ...host, addresses: d.addresses });
           }
           if (d.addresses) {
+            const ipInterfaces = new Map<string, string[]>();
             for (const a of d.addresses) {
-              const aId = addrId(a.ip);
+              const existing = ipInterfaces.get(a.ip);
+              if (existing) {
+                ipInterfaces.set(a.ip, [...existing, ...a.interfaces]);
+              } else {
+                ipInterfaces.set(a.ip, [...a.interfaces]);
+              }
+            }
+            for (const [ip, interfaces] of ipInterfaces) {
+              const aId = addrId(ip);
               if (!m.has(aId)) {
                 m.set(aId, {
-                  id: aId, label: a.ip,
+                  id: aId, label: ip,
                   group: 'address', shape: 'triangle', size: 12, color: '#ce93d8',
-                  interfaces: a.interfaces,
+                  interfaces,
                 });
               } else {
-              const addr = m.get(aId)!;
-              const merged = [
-                ...new Set([...(addr.interfaces ?? []), ...a.interfaces]),
-              ];
-              m.set(aId, { ...addr, interfaces: merged });
-            }
+                const addr = m.get(aId)!;
+                m.set(aId, { ...addr, interfaces });
+              }
             }
           }
           return m;
