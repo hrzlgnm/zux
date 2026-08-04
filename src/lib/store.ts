@@ -1,7 +1,7 @@
 import { writable, derived, get } from 'svelte/store';
 import { listen } from '@tauri-apps/api/event';
 import type { Network } from 'vis-network';
-import type { GraphNode, GraphEdge, PhysicsConfig } from './types';
+import type { GraphNode, GraphEdge, PhysicsConfig, AddressInfo } from './types';
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map());
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map());
@@ -139,14 +139,15 @@ function handleMdnsEvent(p: any) {
               serviceType: d.service_type, subType: d.sub_type, hostname: d.hostname,
               port: d.port, addresses: d.addresses, txt: d.txt, urls: d.urls,
             });
-          } else if (existing.offline) {
-            m.set(nId, applyOnlineStyle({
+          } else {
+            const updated = {
               ...existing,
               label: d.name || d.id.split('.')[0],
               hostname: d.hostname, port: d.port,
               addresses: d.addresses, txt: d.txt, urls: d.urls,
               subType: d.sub_type,
-            }));
+            };
+            m.set(nId, existing.offline ? applyOnlineStyle(updated) : updated);
           }
           if (!m.has(hId)) {
             m.set(hId, {
@@ -154,6 +155,9 @@ function handleMdnsEvent(p: any) {
               group: 'host', shape: 'square', size: 20, color: '#ffb74d',
               hostname: d.hostname, addresses: d.addresses,
             });
+          } else {
+            const host = m.get(hId)!;
+            m.set(hId, { ...host, addresses: d.addresses });
           }
           if (d.addresses) {
             for (const a of d.addresses) {
@@ -188,11 +192,37 @@ function handleMdnsEvent(p: any) {
                   id: edgeId,
                   from: hId, to: aId, color: '#b39ddb',
                 });
+                }
               }
             }
-          }
-          return m;
-        });
+            return m;
+          });
+
+        if (d.addresses) {
+          const currentAddrIds = new Set(d.addresses.map((a: AddressInfo) => addrId(a.ip)));
+          graphEdges.update(edges => {
+            for (const [eid, e] of edges) {
+              if (eid.startsWith(`e:ha:${hId}:`) && !currentAddrIds.has(e.to)) {
+                edges.delete(eid);
+              }
+            }
+            return edges;
+          });
+          graphNodes.update(nodes => {
+            const connectedAddrs = new Set<string>();
+            for (const [, e] of get(graphEdges)) {
+              if (e.from.startsWith('host:') && e.to.startsWith('addr:')) {
+                connectedAddrs.add(e.to);
+              }
+            }
+            for (const [nid, n] of nodes) {
+              if (n.group === 'address' && !connectedAddrs.has(nid)) {
+                nodes.delete(nid);
+              }
+            }
+            return nodes;
+          });
+        }
         cascadeOffline();
         break;
       }
