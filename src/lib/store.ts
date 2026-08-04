@@ -171,15 +171,16 @@ function handleMdnsEvent(p: any) {
             }
             for (const [ip, interfaces] of ipInterfaces) {
               const aId = addrId(ip);
+              const sorted = [...interfaces].sort();
               if (!m.has(aId)) {
                 m.set(aId, {
                   id: aId, label: ip,
                   group: 'address', shape: 'triangle', size: 12, color: '#ce93d8',
-                  interfaces,
+                  interfaces: sorted,
                 });
               } else {
                 const addr = m.get(aId)!;
-                m.set(aId, { ...addr, interfaces });
+                m.set(aId, { ...addr, interfaces: sorted });
               }
             }
           }
