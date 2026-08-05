@@ -94,6 +94,7 @@ jobs:
           URL_DEB: ${{ matrix.package.checksum_url_deb }}
           URL_EXE: ${{ matrix.package.checksum_url_exe }}
           NEEDS_EXE: ${{ matrix.package.needs_exe }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ needs.release-info.outputs.tagName }}
         run: |
           if [[ "$NEEDS_EXE" == "true" ]]; then
