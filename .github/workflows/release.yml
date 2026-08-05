@@ -305,19 +305,8 @@ jobs:
     with:
       tagName: ${{ github.ref_name }}
 
-  asset_checksums:
-    needs: [draft-release, release, android-release]
-    permissions:
-      contents: write # to update release with checksums and artifacts
-      actions: read # to access workflow run information and secrets
-    name: 🔢 Generate Asset Checksums
-    uses: ./.github/workflows/asset-checksums-reusable.yml
-    secrets: inherit
-    with:
-      tagName: ${{ github.ref_name }}
-
   publish_sbom:
-    needs: [draft-release, release, android-release, asset_checksums]
+    needs: [draft-release, release, android-release, source_checksums]
     permissions:
       contents: write # to update release with sboms
       actions: read # to download workflow artifacts
