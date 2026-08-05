@@ -153,15 +153,12 @@ pub fn run() {
 }
 
 #[cfg(any(mobile, test))]
-fn compare_versions(fetched: &str, current: &str) -> Result<std::cmp::Ordering, String> {
-    let fetched = semver::Version::parse(fetched.trim_start_matches('v')).map_err(|e| {
-        log::error!("[updater] failed to parse latest release version: {e}");
-        format!("failed to parse latest release version: {e}")
-    })?;
-    let current = semver::Version::parse(current).map_err(|e| {
-        log::error!("[updater] failed to parse current app version: {e}");
-        format!("failed to parse current app version: {e}")
-    })?;
+fn compare_versions(
+    fetched: &str,
+    current: &str,
+) -> Result<std::cmp::Ordering, Box<dyn std::error::Error>> {
+    let fetched = semver::Version::parse(fetched.strip_prefix('v').unwrap_or(fetched))?;
+    let current = semver::Version::parse(current)?;
     Ok(fetched.cmp(&current))
 }
 
@@ -222,7 +219,12 @@ mod autoupdate {
         let latest_version = latest_json.version.trim_start_matches('v').to_string();
         let current_version = app.package_info().version.to_string();
 
-        match compare_versions(&latest_json.version, &current_version)? {
+        let ordering = compare_versions(&latest_json.version, &current_version).map_err(|e| {
+            log::error!("[updater] failed to compare release versions: {e}");
+            format!("failed to compare release versions: {e}")
+        })?;
+
+        match ordering {
             std::cmp::Ordering::Greater => {
                 log::info!("[updater] update {latest_version} found");
                 *pending_update.0.lock().expect("To lock") = Some(PendingUpdate {
@@ -308,22 +310,29 @@ mod tests {
 
     #[test]
     fn fetched_version_older_than_installed_is_not_an_update() {
-        assert_eq!(compare_versions("1.9.0", "2.0.0"), Ok(Ordering::Less));
+        assert_eq!(compare_versions("1.9.0", "2.0.0").unwrap(), Ordering::Less);
     }
 
     #[test]
     fn fetched_version_equal_to_installed_is_not_an_update() {
-        assert_eq!(compare_versions("2.0.0", "2.0.0"), Ok(Ordering::Equal));
+        assert_eq!(compare_versions("2.0.0", "2.0.0").unwrap(), Ordering::Equal);
     }
 
     #[test]
     fn fetched_version_newer_than_installed_is_an_update() {
-        assert_eq!(compare_versions("2.0.1", "2.0.0"), Ok(Ordering::Greater));
-        assert_eq!(compare_versions("v2.0.1", "2.0.0"), Ok(Ordering::Greater));
+        assert_eq!(
+            compare_versions("2.0.1", "2.0.0").unwrap(),
+            Ordering::Greater
+        );
+        assert_eq!(
+            compare_versions("v2.0.1", "2.0.0").unwrap(),
+            Ordering::Greater
+        );
     }
 
     #[test]
     fn fetched_version_malformed_is_rejected() {
         assert!(compare_versions("not-a-version", "2.0.0").is_err());
+        assert!(compare_versions("vv2.0.1", "2.0.0").is_err());
     }
 }
