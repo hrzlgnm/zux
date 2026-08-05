@@ -130,6 +130,49 @@ jobs:
       - name: 🔍 Check
         run: npm run check
 
+  tests:
+    name: "🧪 Tests"
+    needs: [changes]
+    if: needs.changes.outputs.tests == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      checks: write # required for action-junit-report annotation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: 🦀 Install Rust stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+      - name: 🛠️ Setup sccache
+        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+      - name: 🔗 Enable sccache for cargo
+        shell: bash
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
+      - name: 🧰 Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: 🛠️ nextest
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: cargo-nextest
+          version: 0.9.143
+          locked: true
+      - name: ✅ Run tests with nextest
+        run: cargo --locked nextest run --profile ci
+        working-directory: src-tauri
+        env:
+          RUSTFLAGS: "-D warnings"
+      - name: 📋 JUnit Report
+        if: always()
+        uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16 # v6
+        with:
+          report_paths: "**/junit.xml"
+          fail_on_parse_error: true
+          require_tests: true
+          include_passed: true
+          check_name: "JUnit Report"
+
   signer-check:
     name: "🔐 Signer check"
     needs: [changes]
@@ -157,7 +200,7 @@ jobs:
 
   alls-green:
     if: always()
-    needs: [changes, actionlint, aur, typos, clippy, fmt, svelte-check, signer-check, cache-tools]
+    needs: [changes, actionlint, aur, typos, clippy, fmt, tests, svelte-check, signer-check, cache-tools]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
@@ -166,6 +209,7 @@ jobs:
             aur,
             clippy,
             fmt,
+            tests,
             svelte-check,
             signer-check,
             cache-tools,
