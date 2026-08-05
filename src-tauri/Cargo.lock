@@ -5851,6 +5851,7 @@ dependencies = [
  "clap",
  "log",
  "mdns-sd",
+ "semver",
  "serde",
  "serde_json",
  "tauri",
