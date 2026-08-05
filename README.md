@@ -3,6 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/hrzlgnm/zux)](https://github.com/hrzlgnm/zux/releases/latest)
 [![GitHub Release Date](https://img.shields.io/github/release-date/hrzlgnm/zux)](https://github.com/hrzlgnm/zux/releases/latest)
 [![AUR Version](https://img.shields.io/aur/version/zux-bin)](https://aur.archlinux.org/packages/zux-bin)
+[![WinGet Version](https://img.shields.io/winget/v/hrzlgnm.zux)](https://winget.run/hrzlgnm.zux)
 [![License: MIT](https://img.shields.io/github/license/hrzlgnm/zux)](https://github.com/hrzlgnm/zux/blob/main/LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/hrzlgnm/zux/ci.yml)](https://github.com/hrzlgnm/zux/actions)
 
