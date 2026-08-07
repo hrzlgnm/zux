@@ -21,6 +21,7 @@ jobs:
       fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
       tests: ${{ steps.filter.outputs.tests }}
+      winget: ${{ steps.filter.outputs.winget }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -45,6 +46,9 @@ jobs:
             tests:
               - 'src-tauri/**'
               - 'src/**'
+            winget:
+              - '.github/workflows/winget-reusable.yml'
+              - '.github/actions/latest-release-info/action.yml'
       - name: 🌿 Output branch name
         id: branch
         env:
@@ -60,6 +64,15 @@ jobs:
       contents: read
       packages: read
     uses: ./.github/workflows/aur-reusable.yml
+
+  winget:
+    name: winget
+    needs:
+      - changes
+      - actionlint
+    if: needs.changes.outputs.winget == 'true'
+    uses: ./.github/workflows/winget-reusable.yml
+    secrets: inherit
 
   typos:
     name: 📝 Check typos
@@ -200,7 +213,7 @@ jobs:
 
   alls-green:
     if: always()
-    needs: [changes, actionlint, aur, typos, clippy, fmt, tests, svelte-check, signer-check, cache-tools]
+    needs: [changes, actionlint, aur, typos, clippy, fmt, tests, svelte-check, signer-check, cache-tools, winget]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
@@ -213,4 +226,5 @@ jobs:
             svelte-check,
             signer-check,
             cache-tools,
+            winget,
           jobs: ${{ toJSON(needs) }}
