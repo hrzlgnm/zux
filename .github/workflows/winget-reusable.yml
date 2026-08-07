@@ -42,16 +42,21 @@ jobs:
             exit 1
           fi
 
-      - name: 🛠️ Get latest installer url 🔗
+      - name: 🛠️ Get latest installer urls 🔗
         shell: bash
         run: |
           TAG_NAME="${{ needs.release-info.outputs.tagName }}"
           VERSION="${{ needs.release-info.outputs.version }}"
-          URL="https://github.com/hrzlgnm/zux/releases/download/${TAG_NAME}/zux_${VERSION}_x64-setup.exe"
-          echo "URL=$URL" >> "$GITHUB_ENV"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          EXE_URL="https://github.com/hrzlgnm/zux/releases/download/${TAG_NAME}/zux_${VERSION}_x64-setup.exe"
+          MSI_URL="https://github.com/hrzlgnm/zux/releases/download/${TAG_NAME}/zux_${VERSION}_x64_en-US.msi"
+          {
+            echo "EXE_URL=$EXE_URL"
+            echo "MSI_URL=$MSI_URL"
+            echo "VERSION=$VERSION"
+          } >> "$GITHUB_ENV"
           echo "Detected latest tag name: $TAG_NAME"
-          echo "URL: $URL"
+          echo "EXE_URL: $EXE_URL"
+          echo "MSI_URL: $MSI_URL"
           echo "Version: $VERSION"
 
       - name: 🦀 Install Rust stable
@@ -85,7 +90,7 @@ jobs:
         run: |
           komac update hrzlgnm.zux \
             --version "$VERSION" \
-            --urls "$URL" \
+            --urls "$EXE_URL" "$MSI_URL" \
             --submit
 
       - name: 🧹 Cleanup merged branches
