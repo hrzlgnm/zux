@@ -40,20 +40,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true,
-    "linux": {
-      "deb": {
-        "files": {
-          "/usr/share/licenses/zux/LICENSE": "../LICENSE",
-          "/usr/share/doc/zux/copyright": "../LICENSE"
-        }
-      },
-      "rpm": {
-        "files": {
-          "/usr/share/licenses/zux/LICENSE": "../LICENSE"
-        }
-      }
-    }
+    "createUpdaterArtifacts": true
   },
   "plugins": {
     "updater": {
