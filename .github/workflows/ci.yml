@@ -36,7 +36,7 @@ jobs:
               - 'src/**'
               - 'src-tauri/**'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
               - '.github/workflows/ci.yml'
             fmt:
               - 'src-tauri/**'
@@ -138,14 +138,17 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: ⚡ Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@4700d737c3d7a2e7199f3d42a920f0bf7f34e411 # v2.0.1
         with:
-          node-version: 24
+          version: 11.20.0
+          runtime: node@24
+          cache: true
+          install: false
       - name: 📦 Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: 🔍 Check
-        run: npm run check
+        run: pnpm run check
 
   tests:
     name: "🧪 Tests"
@@ -204,14 +207,17 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: ⚡ Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@4700d737c3d7a2e7199f3d42a920f0bf7f34e411 # v2.0.1
         with:
-          node-version: 24
+          version: 11.20.0
+          runtime: node@24
+          cache: true
+          install: false
       - name: 📦 Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: 🔍 Check
-        run: npm run tauri signer sign package.json
+        run: pnpm run tauri signer sign package.json
 
   cache-tools:
     needs: [clippy, fmt, svelte-check, signer-check]
