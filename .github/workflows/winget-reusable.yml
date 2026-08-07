@@ -44,9 +44,10 @@ jobs:
 
       - name: 🛠️ Get latest installer urls 🔗
         shell: bash
+        env:
+          TAG_NAME: ${{ needs.release-info.outputs.tagName }}
+          VERSION: ${{ needs.release-info.outputs.version }}
         run: |
-          TAG_NAME="${{ needs.release-info.outputs.tagName }}"
-          VERSION="${{ needs.release-info.outputs.version }}"
           EXE_URL="https://github.com/hrzlgnm/zux/releases/download/${TAG_NAME}/zux_${VERSION}_x64-setup.exe"
           MSI_URL="https://github.com/hrzlgnm/zux/releases/download/${TAG_NAME}/zux_${VERSION}_x64_en-US.msi"
           {
