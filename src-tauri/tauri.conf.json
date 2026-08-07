@@ -40,7 +40,15 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "linux": {
+      "rpm": {
+        "compression": {
+          "type": "xz",
+          "level": 6
+        }
+      }
+    }
   },
   "plugins": {
     "updater": {
