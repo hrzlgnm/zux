@@ -8,6 +8,13 @@
 - After making changes, run all CI checks locally: `cargo fmt` then `cargo clippy -- -D warnings` (in `src-tauri/`) and `pnpm run check`.
 - Run `cargo fmt` in `src-tauri/` before committing.
 
+## AUR Packaging
+
+- Run AUR packaging tests from the repository root with `~/.local/bin/test-aur-local --variant=both`.
+- Test only the source package with `~/.local/bin/test-aur-local --variant=source` or only the binary package with `~/.local/bin/test-aur-local --variant=bin`.
+- Use `--no-build` only for generator and lint smoke tests; omit it to test package creation and installation.
+- Use `--no-install` to skip installing the `-bin` package, and `--no-cleanup` or `--keep-dir=<path>` to retain build artifacts for debugging.
+
 ## Rust
 
 - 4-space indentation. Edition 2024.
