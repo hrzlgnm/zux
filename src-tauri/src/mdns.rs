@@ -84,8 +84,8 @@ impl MdnsBrowser {
         self.daemon = Some(daemon);
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         self.tx = tx;
-        self.active_browses.lock().unwrap().clear();
-        self.seen_instances.lock().unwrap().clear();
+        self.active_browses = Arc::new(Mutex::new(HashMap::new()));
+        self.seen_instances = Arc::new(Mutex::new(HashMap::new()));
         Ok(())
     }
 
@@ -203,20 +203,20 @@ async fn browse_with_retry(
     daemon: &ServiceDaemon,
     service_type: &str,
 ) -> Result<mdns_sd::Receiver<ServiceEvent>, Error> {
-    let mut attempts = 0;
+    let mut calls = 0;
     loop {
+        calls += 1;
         match daemon.browse(service_type) {
             Ok(rx) => return Ok(rx),
-            Err(Error::Again) if attempts < BROWSE_RETRY_ATTEMPTS => {
-                attempts += 1;
+            Err(Error::Again) if calls < BROWSE_RETRY_ATTEMPTS => {
                 log::warn!(
-                    "[mdns] browse {service_type} failed, retrying ({attempts}/{BROWSE_RETRY_ATTEMPTS})"
+                    "[mdns] browse {service_type} failed, retrying ({calls}/{BROWSE_RETRY_ATTEMPTS})"
                 );
                 tokio::time::sleep(BROWSE_RETRY_DELAY).await;
             }
             Err(e) => {
                 log::error!(
-                    "[mdns] giving up browsing {service_type} after {attempts} retries: {e}"
+                    "[mdns] giving up browsing {service_type} after {calls} browse attempts: {e}"
                 );
                 return Err(e);
             }

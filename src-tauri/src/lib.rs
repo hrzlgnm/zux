@@ -100,14 +100,14 @@ async fn start_discovery(
             tokio::select! {
                 result = rx.recv() => match result {
                     Ok(event) => {
-                        log::debug!("buffering event for frontend");
-                        pending.push(event);
+                        coalesce_event(&mut pending, event);
                     }
                     Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
                         log::warn!("lagged behind {n} events, continuing");
                     }
                     Err(tokio::sync::broadcast::error::RecvError::Closed) => {
                         log::debug!("event listener ended");
+                        emit_batch(&app_clone, &mut pending);
                         break;
                     }
                 },
@@ -121,6 +121,38 @@ async fn start_discovery(
         e.to_string()
     })?;
     Ok(())
+}
+
+fn coalesce_event(pending: &mut Vec<MdnsEvent>, event: MdnsEvent) {
+    match event {
+        MdnsEvent::Added(svc) => {
+            let id = svc.id.clone();
+            pending.retain(|e| match e {
+                MdnsEvent::Added(s) => s.id != id,
+                MdnsEvent::Removed { id: r_id, .. } => r_id.as_str() != id.as_str(),
+                MdnsEvent::TypeAdded { .. } => true,
+            });
+            pending.push(MdnsEvent::Added(svc));
+        }
+        MdnsEvent::Removed {
+            id, service_type, ..
+        } => {
+            let is_pending_add = pending
+                .iter()
+                .any(|e| matches!(e, MdnsEvent::Added(s) if s.id == id));
+            pending.retain(|e| !matches!(e, MdnsEvent::Added(s) if s.id == id));
+            if !is_pending_add {
+                pending.push(MdnsEvent::Removed { id, service_type });
+            }
+        }
+        MdnsEvent::TypeAdded { service_type } => {
+            if !pending.iter().any(
+                |e| matches!(e, MdnsEvent::TypeAdded { service_type: st } if st == &service_type),
+            ) {
+                pending.push(MdnsEvent::TypeAdded { service_type });
+            }
+        }
+    }
 }
 
 fn emit_batch(app: &tauri::AppHandle, pending: &mut Vec<MdnsEvent>) {

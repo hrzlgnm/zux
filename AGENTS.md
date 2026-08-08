@@ -13,7 +13,7 @@
 - 4-space indentation. Edition 2024.
 - Import order: external crates, std, crate-local — alphabetical within each group.
 - Fallible Tauri commands return `Result<_, String>`. Internal functions return `Result<_, Box<dyn std::error::Error>>`.
-- Use `log` crate with `[subsystem]` prefix: `log::debug!("[mdns] ...")`.
+- Use `log` crate for Rust logging; log debug messages via `log::debug!`.
 - Structs: `#[derive(Clone, Serialize, Debug, PartialEq)]`. Enums: `#[derive(Clone, Serialize, Debug)]`.
 - Tagged enums: `#[serde(tag = "type", content = "data")]` with `#[serde(rename = "kebab-case")]` on variants.
 - CLI: `clap::Parser` derive, long-form `--` args only, snake_case fields.
