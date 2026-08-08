@@ -41,8 +41,8 @@ prepare() {
 build() {
     cd "\$srcdir/\$_builddir" || exit 1
     export CFLAGS="\${CFLAGS//-flto=auto//}"
-    pnpm run tauri -- build --no-bundle
-    pnpm run tauri -- build -b deb --no-sign
+    pnpm run tauri build --no-bundle
+    pnpm run tauri build -b deb --no-sign
 }
 check() {
     cd "\$srcdir/\$_builddir" || exit 1
