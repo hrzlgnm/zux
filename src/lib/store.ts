@@ -258,7 +258,12 @@ function handleMdnsEvent(p: any) {
 export function setupEventListeners() {
   console.log('[zux] setting up event listeners');
   listen<any>('mdns-event', (event) => {
-    handleMdnsEvent(event.payload);
+    const payload = event.payload;
+    if (Array.isArray(payload)) {
+      for (const p of payload) handleMdnsEvent(p);
+    } else {
+      handleMdnsEvent(payload);
+    }
   });
 }
 
