@@ -1,12 +1,15 @@
-use mdns_sd::{IfKind, ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
+use mdns_sd::{Error, IfKind, ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tauri::async_runtime::spawn;
 use tokio::sync::broadcast;
 use url::Url;
 
 const EVENT_CHANNEL_CAPACITY: usize = 8192;
+const BROWSE_RETRY_DELAY: Duration = Duration::from_millis(20);
+const BROWSE_RETRY_ATTEMPTS: usize = 100;
 
 #[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct AddressInfo {
@@ -81,8 +84,8 @@ impl MdnsBrowser {
         self.daemon = Some(daemon);
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         self.tx = tx;
-        self.active_browses.lock().unwrap().clear();
-        self.seen_instances.lock().unwrap().clear();
+        self.active_browses = Arc::new(Mutex::new(HashMap::new()));
+        self.seen_instances = Arc::new(Mutex::new(HashMap::new()));
         Ok(())
     }
 
@@ -138,59 +141,86 @@ impl MdnsBrowser {
                         continue;
                     }
 
-                    match daemon.browse(&service_type) {
-                        Ok(type_rx) => {
-                            let tx2 = tx.clone();
-                            let seen = seen_instances.clone();
-                            let filter = filter_non_link_local;
-                            spawn(async move {
-                                while let Ok(ev) = type_rx.recv_async().await {
-                                    match ev {
-                                        ServiceEvent::ServiceResolved(svc) => {
-                                            let discovered = resolved_to_discovered(&svc, filter);
-                                            let id = discovered.id.clone();
-                                            let mut cache = seen.lock().unwrap();
-                                            if let Some(prev) = cache.get(&id)
-                                                && *prev == discovered
-                                            {
-                                                log::debug!("unchanged: {}", discovered.name);
-                                                continue;
-                                            }
-                                            log::debug!("resolved: {}", discovered.name);
-                                            cache.insert(id, discovered.clone());
-                                            drop(cache);
-                                            let _ = tx2.send(MdnsEvent::Added(discovered));
-                                        }
-                                        ServiceEvent::ServiceRemoved(st, fullname) => {
-                                            log::debug!("removed: {fullname}");
-                                            let id = extract_instance_id(&fullname);
-                                            if let Some(ref instid) = id {
-                                                seen.lock().unwrap().remove(instid);
-                                            }
-                                            let _ = tx2.send(MdnsEvent::Removed {
-                                                id: id.unwrap_or(fullname),
-                                                service_type: st,
-                                            });
-                                        }
-                                        ServiceEvent::SearchStopped(_) => {
-                                            break;
-                                        }
-                                        _ => {}
+                    let tx2 = tx.clone();
+                    let seen = seen_instances.clone();
+                    let active = active_browses.clone();
+                    let daemon2 = daemon.clone();
+                    let filter = filter_non_link_local;
+                    spawn(async move {
+                        let type_rx = match browse_with_retry(&daemon2, &service_type).await {
+                            Ok(rx) => rx,
+                            Err(_) => {
+                                active.lock().unwrap().remove(&service_type);
+                                return;
+                            }
+                        };
+                        while let Ok(ev) = type_rx.recv_async().await {
+                            match ev {
+                                ServiceEvent::ServiceResolved(svc) => {
+                                    let discovered = resolved_to_discovered(&svc, filter);
+                                    let id = discovered.id.clone();
+                                    let mut cache = seen.lock().unwrap();
+                                    if let Some(prev) = cache.get(&id)
+                                        && *prev == discovered
+                                    {
+                                        log::debug!("unchanged: {}", discovered.name);
+                                        continue;
                                     }
+                                    log::debug!("resolved: {}", discovered.name);
+                                    cache.insert(id, discovered.clone());
+                                    drop(cache);
+                                    let _ = tx2.send(MdnsEvent::Added(discovered));
                                 }
-                                log::debug!("browse task for {service_type} ended");
-                            });
+                                ServiceEvent::ServiceRemoved(st, fullname) => {
+                                    log::debug!("removed: {fullname}");
+                                    let id = extract_instance_id(&fullname);
+                                    if let Some(ref instid) = id {
+                                        seen.lock().unwrap().remove(instid);
+                                    }
+                                    let _ = tx2.send(MdnsEvent::Removed {
+                                        id: id.unwrap_or(fullname),
+                                        service_type: st,
+                                    });
+                                }
+                                ServiceEvent::SearchStopped(_) => {
+                                    break;
+                                }
+                                _ => {}
+                            }
                         }
-                        Err(e) => {
-                            log::error!("browse error for {}: {}", service_type, e);
-                        }
-                    }
+                        log::debug!("browse task for {service_type} ended");
+                    });
                 }
             }
             log::debug!("enum service types task ended");
         });
 
         Ok(())
+    }
+}
+
+async fn browse_with_retry(
+    daemon: &ServiceDaemon,
+    service_type: &str,
+) -> Result<mdns_sd::Receiver<ServiceEvent>, Error> {
+    let mut calls = 0;
+    loop {
+        calls += 1;
+        match daemon.browse(service_type) {
+            Ok(rx) => return Ok(rx),
+            Err(Error::Again) if calls < BROWSE_RETRY_ATTEMPTS => {
+                log::warn!(
+                    "[mdns] browse {service_type} failed, retrying ({calls}/{BROWSE_RETRY_ATTEMPTS})"
+                );
+                tokio::time::sleep(BROWSE_RETRY_DELAY).await;
+            }
+            Err(e) => {
+                log::error!(
+                    "[mdns] giving up browsing {service_type} after {calls} browse attempts: {e}"
+                );
+                return Err(e);
+            }
+        }
     }
 }
 

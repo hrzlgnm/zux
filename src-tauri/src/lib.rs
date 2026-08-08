@@ -1,12 +1,17 @@
 mod mdns;
 
+use std::sync::Mutex;
+use std::time::Duration;
+
 #[cfg(desktop)]
 use clap::Parser;
 use log::LevelFilter;
-use mdns::MdnsBrowser;
-use std::sync::Mutex;
+use mdns::{MdnsBrowser, MdnsEvent};
 use tauri::{Emitter, State};
 use tauri_plugin_log::{Target, TargetKind};
+
+const EMIT_BATCH_SIZE: usize = 10;
+const EMIT_BATCH_INTERVAL: Duration = Duration::from_millis(500);
 
 #[cfg(desktop)]
 use tauri::utils::platform::bundle_type;
@@ -87,21 +92,26 @@ async fn start_discovery(
 
     tokio::spawn(async move {
         log::debug!("event listener started");
+        let mut pending: Vec<MdnsEvent> = Vec::new();
+        let mut timer = tokio::time::interval(EMIT_BATCH_INTERVAL);
+        timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+        timer.tick().await;
         loop {
-            match rx.recv().await {
-                Ok(event) => {
-                    log::debug!("forwarding event to frontend");
-                    if let Err(e) = app_clone.emit("mdns-event", &event) {
-                        log::error!("emit error: {e}");
+            tokio::select! {
+                result = rx.recv() => match result {
+                    Ok(event) => {
+                        coalesce_event(&mut pending, event);
                     }
-                }
-                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                    log::warn!("lagged behind {n} events, continuing");
-                }
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    log::debug!("event listener ended");
-                    break;
-                }
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                        log::warn!("lagged behind {n} events, continuing");
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                        log::debug!("event listener ended");
+                        emit_batch(&app_clone, &mut pending);
+                        break;
+                    }
+                },
+                _ = timer.tick() => emit_batch(&app_clone, &mut pending),
             }
         }
     });
@@ -111,6 +121,50 @@ async fn start_discovery(
         e.to_string()
     })?;
     Ok(())
+}
+
+fn coalesce_event(pending: &mut Vec<MdnsEvent>, event: MdnsEvent) {
+    match event {
+        MdnsEvent::Added(svc) => {
+            let id = svc.id.clone();
+            pending.retain(|e| match e {
+                MdnsEvent::Added(s) => s.id != id,
+                MdnsEvent::Removed { id: r_id, .. } => r_id.as_str() != id.as_str(),
+                MdnsEvent::TypeAdded { .. } => true,
+            });
+            pending.push(MdnsEvent::Added(svc));
+        }
+        MdnsEvent::Removed {
+            id, service_type, ..
+        } => {
+            let is_pending_add = pending
+                .iter()
+                .any(|e| matches!(e, MdnsEvent::Added(s) if s.id == id));
+            pending.retain(|e| !matches!(e, MdnsEvent::Added(s) if s.id == id));
+            if !is_pending_add {
+                pending.push(MdnsEvent::Removed { id, service_type });
+            }
+        }
+        MdnsEvent::TypeAdded { service_type } => {
+            if !pending.iter().any(
+                |e| matches!(e, MdnsEvent::TypeAdded { service_type: st } if st == &service_type),
+            ) {
+                pending.push(MdnsEvent::TypeAdded { service_type });
+            }
+        }
+    }
+}
+
+fn emit_batch(app: &tauri::AppHandle, pending: &mut Vec<MdnsEvent>) {
+    if pending.is_empty() {
+        return;
+    }
+    let take = pending.len().min(EMIT_BATCH_SIZE);
+    let events: Vec<MdnsEvent> = pending.drain(..take).collect();
+    log::debug!("emitting {} events to frontend", events.len());
+    if let Err(e) = app.emit("mdns-event", &events) {
+        log::error!("emit error: {e}");
+    }
 }
 
 #[cfg(desktop)]
