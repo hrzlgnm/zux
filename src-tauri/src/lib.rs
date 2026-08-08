@@ -10,8 +10,8 @@ use mdns::{MdnsBrowser, MdnsEvent};
 use tauri::{Emitter, State};
 use tauri_plugin_log::{Target, TargetKind};
 
-const EMIT_BATCH_SIZE: usize = 10;
-const EMIT_BATCH_INTERVAL: Duration = Duration::from_millis(500);
+const EMIT_BATCH_SIZE: usize = 1;
+const EMIT_BATCH_INTERVAL: Duration = Duration::from_millis(50);
 
 #[cfg(desktop)]
 use tauri::utils::platform::bundle_type;
