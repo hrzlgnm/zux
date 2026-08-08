@@ -28,5 +28,10 @@ export default defineConfig(async () => ({
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+    fs: {
+      // 4. SvelteKit restricts Vite's fs.allow to src/.svelte-kit/node_modules,
+      // which blocks serving the root package.json imported by Sidebar.svelte
+      allow: ['.'],
+    },
   },
 }));
