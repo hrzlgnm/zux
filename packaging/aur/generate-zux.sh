@@ -56,6 +56,6 @@ package() {
     install -Dm644 usr/share/icons/hicolor/128x128/apps/zux.png "\$pkgdir"/usr/share/icons/hicolor/128x128/apps/zux.png
     install -Dm644 usr/share/icons/hicolor/256x256@2/apps/zux.png "\$pkgdir"/usr/share/icons/hicolor/256x256@2/apps/zux.png
     install -Dm644 usr/share/icons/hicolor/32x32/apps/zux.png "\$pkgdir"/usr/share/icons/hicolor/32x32/apps/zux.png
-    install -Dm644 usr/share/licenses/zux/LICENSE "\$pkgdir"/usr/share/licenses/zux/LICENSE
+    install -Dm644 "\${srcdir}/\${_builddir}/LICENSE" "\$pkgdir"/usr/share/licenses/zux/LICENSE
 }
 EOF
