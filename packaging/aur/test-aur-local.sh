@@ -7,8 +7,8 @@
 #
 # Unlike CI (triggered by a git tag push), this script always targets the
 # *latest* release. It resolves the release tag/version, fetches the required
-# checksums (source tarball sha256 from the `<tag>.tar.gz.sha256` release
-# asset; `*-bin` deb+exe digests from the release assets), generates a PKGBUILD
+# checksums (source tarball sha256 computed from the GitHub archive URL;
+# `*-bin` deb+exe digests from the release assets), generates a PKGBUILD
 # for each available variant into a fresh temporary directory, lints it, builds
 # it, and installs the `*-bin` variant (the source variant is built only).
 #
@@ -101,7 +101,12 @@ as_sudo() {
     elif sudo -n true 2>/dev/null; then
         sudo -E "$@"
     else
-        return 255
+        # No cached credentials; attempt interactive authentication.
+        if sudo -v; then
+            sudo -E "$@"
+        else
+            return 255
+        fi
     fi
 }
 
@@ -168,6 +173,7 @@ else
     # Normalize to "github.com/owner/repo" (handles ssh, git@, ssh://, https).
     remote="${remote#git@github.com:}"
     remote="${remote#ssh://git@github.com/}"
+    remote="${remote#ssh://github.com/}"
     remote="${remote#https://github.com/}"
     remote="${remote#http://github.com/}"
     remote="${remote#github.com:}"
@@ -240,12 +246,12 @@ log "Latest release: tag=$TAG version=$VERSION"
 # command substitution (a subshell) where `die`/`exit` would not terminate the
 # script. Callers check the result and call `die` in the main shell.
 #
-# Source variant: checksum of the github archive tarball (published as the
-# `<tag>.tar.gz.sha256` release asset).
+# Source variant: checksum of the github archive tarball (downloaded from
+# the same URL that the PKGBUILD uses).
 resolve_source_checksum() {
-    local url="https://github.com/$OWNER/$REPO/releases/download/$TAG/$TAG.tar.gz.sha256"
+    local url="https://github.com/$OWNER/$REPO/archive/refs/tags/v$VERSION.tar.gz"
     local sum
-    sum=$(curl -LfsS "$url" 2>/dev/null | cut -d' ' -f1) || true
+    sum=$(curl -LfsS "$url" 2>/dev/null | sha256sum | cut -d' ' -f1) || true
     printf '%s' "$sum"
 }
 
@@ -280,7 +286,7 @@ run_variant() {
             local source_sha
             source_sha=$(resolve_source_checksum)
             [[ -n "$source_sha" ]] \
-                || die "Failed to fetch source checksum from https://github.com/$OWNER/$REPO/releases/download/$TAG/$TAG.tar.gz.sha256"
+                || die "Failed to compute source checksum from https://github.com/$OWNER/$REPO/archive/refs/tags/v$VERSION.tar.gz"
             sha_args=("$VERSION" "$source_sha" "$TAG")
             generate_script="$source_gen"
             extra="source tarball sha256=$source_sha"
