@@ -221,7 +221,6 @@ mod autoupdate {
     use serde::Serialize;
     use std::sync::Mutex;
     use tauri::{AppHandle, State};
-    use tauri_plugin_http::reqwest;
     use tauri_plugin_opener::OpenerExt;
 
     use crate::compare_versions;
@@ -343,7 +342,6 @@ pub fn run_mobile() {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_http::init())
         .manage(Mutex::new(browser))
         .manage(autoupdate::PendingUpdateInfo(std::sync::Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
