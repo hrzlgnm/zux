@@ -211,11 +211,13 @@ Building for Android requires a few additional prerequisites on top of the ones 
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 ```
 
-Generate the Android project and build the APK:
+Generate the Android project, generate the app icons from the icon source, and build the
+APK:
 
 ```console
 pnpm install
 pnpm run tauri android init
+pnpm run tauri icon src-tauri/icons/icon.png
 pnpm run tauri android build
 ```
 
