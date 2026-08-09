@@ -58,6 +58,7 @@ services from a terminal, take a look at
         - [Homebrew (macOS)](#homebrew-macos)
         - [Android](#android)
     - [Building](#building)
+        - [Building for Android](#building-for-android)
     - [Attested build artifacts](#attested-build-artifacts)
     - [Acknowledgments](#acknowledgments)
 
@@ -162,7 +163,7 @@ brew install --cask zux
 
 Prebuilt APKs are attached to each [GitHub Release](https://github.com/hrzlgnm/zux/releases/latest).
 The app checks for updates at startup and will open the release page so you can download
-the latest APK.
+the latest APK. To build the APK yourself, see [Building for Android](#building-for-android).
 
 ## Building
 
@@ -197,6 +198,36 @@ pnpm run tauri build
 ```
 
 The bundles are created in `src-tauri/target/release/bundle/`.
+
+### Building for Android
+
+Building for Android requires a few additional prerequisites on top of the ones above:
+
+- [Java](https://developer.android.com/build/jdks) (JDK 17)
+- The [Android SDK](https://developer.android.com/studio) and NDK
+- The Rust Android targets:
+
+```console
+rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+```
+
+Generate the Android project and build the APK:
+
+```console
+pnpm install
+pnpm run tauri android init
+pnpm run tauri android build
+```
+
+The unsigned APK is written to
+`src-tauri/gen/android/app/build/outputs/apk/universal/release/`. It needs to be signed
+before it can be installed.
+
+To run the app in development on an emulator or a connected device:
+
+```console
+pnpm run tauri android dev
+```
 
 ## Attested build artifacts
 
