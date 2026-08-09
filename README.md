@@ -21,6 +21,10 @@ For a list-based mDNS browser for the desktop, check out
 services from a terminal, take a look at
 [mDNS-TUI-Browser](https://github.com/hrzlgnm/mdns-tui-browser).
 
+## Screenshots
+
+![zux](./doc/assets/screenshot.png)
+
 ## Features
 
 - **Automatic discovery** of every mDNS service type advertised on the network
@@ -46,6 +50,7 @@ services from a terminal, take a look at
 <!--toc:start-->
 
 - [zux Overview](#zux)
+    - [Screenshots](#screenshots)
     - [Features](#features)
     - [Command line options](#command-line-options)
         - [keep-all-ips](#keep-all-ips)
