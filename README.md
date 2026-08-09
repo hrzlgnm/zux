@@ -201,7 +201,9 @@ The bundles are created in `src-tauri/target/release/bundle/`.
 
 ### Building for Android
 
-Building for Android requires a few additional prerequisites on top of the ones above:
+Building for Android requires a few additional prerequisites on top of the ones above. You
+can find more details on setting those up in the official
+[Tauri Guide — Android prerequisites](https://tauri.app/start/prerequisites/#android):
 
 - [Java](https://developer.android.com/build/jdks) (JDK 17)
 - The [Android SDK](https://developer.android.com/studio) and NDK
