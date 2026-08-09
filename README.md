@@ -241,7 +241,7 @@ binaries are available [here](https://github.com/hrzlgnm/zux/attestations). For 
 information and details on how to verify those, see
 [Verifying artifact attestations with the GitHub CLI](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds#verifying-artifact-attestations-with-the-github-cli)
 
-Since release v0.1.0
+Since release v0.7.1
 
 ## Acknowledgments
 
