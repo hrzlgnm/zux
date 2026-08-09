@@ -5,6 +5,7 @@
 [![AUR Version](https://img.shields.io/aur/version/zux)](https://aur.archlinux.org/packages/zux)
 [![AUR Version](https://img.shields.io/aur/version/zux-bin)](https://aur.archlinux.org/packages/zux-bin)
 [![WinGet Version](https://img.shields.io/winget/v/hrzlgnm.zux)](https://winget.run/hrzlgnm.zux)
+[![FlatPark Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fflatpark%2Fflatpark%2Fmain%2Fregistry%2Fio.github.hrzlgnm.zux%2Fio.github.hrzlgnm.zux.yml&search=download%2Fv%3F%28%3F%3Cversion%3E%5B0-9.%5D%2B%29%2F&replace=%24%3Cversion%3E&label=FlatPark&color=blue)](https://flatpark.org/apps/io.github.hrzlgnm.zux)
 [![License: MIT](https://img.shields.io/github/license/hrzlgnm/zux)](https://github.com/hrzlgnm/zux/blob/main/LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/hrzlgnm/zux/ci.yml)](https://github.com/hrzlgnm/zux/actions)
 
@@ -61,6 +62,7 @@ services from a terminal, take a look at
         - [WinGet installation](#winget-installation)
         - [Arch Linux (AUR)](#arch-linux-aur)
         - [Homebrew (macOS)](#homebrew-macos)
+        - [Flatpak (FlatPark)](#flatpak-flatpark)
         - [Android](#android)
     - [Building](#building)
         - [Building for Android](#building-for-android)
@@ -163,6 +165,17 @@ Or add the tap first:
 brew tap hrzlgnm/tap
 brew install --cask zux
 ```
+
+### Flatpak (FlatPark)
+
+To install on Linux via Flatpak, use the community-maintained [FlatPark](https://flatpark.org/) repository:
+
+```console
+flatpak remote-add --if-not-exists flatpark https://dl.flatpark.org/flatpark.flatpakrepo
+flatpak install flatpark io.github.hrzlgnm.zux
+```
+
+The package page is available at <https://flatpark.org/apps/io.github.hrzlgnm.zux>.
 
 ### Android
 
