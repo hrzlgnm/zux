@@ -54,7 +54,7 @@ services from a terminal, take a look at
     - [Screenshots](#screenshots)
     - [Features](#features)
     - [Command line options](#command-line-options)
-        - [keep-all-ips](#keep-all-ips)
+        - [include-non-link-local-ipv6](#include-non-link-local-ipv6)
         - [log-level](#log-level)
         - [log-to-file](#log-to-file)
     - [Where to find the executables?](#where-to-find-the-executables)
@@ -77,17 +77,17 @@ services from a terminal, take a look at
 Usage: zux [OPTIONS]
 
 Options:
-      --keep-all-ips           Keep all IP addresses including non-link-local IPv6
-      --log-level <LOG_LEVEL>  Log level (trace, debug, info, warn, error) [default: info]
-      --log-to-file            Log to file in the OS-specific log directory
-  -h, --help                   Print help
-  -V, --version                Print version
+  -I, --include-non-link-local-ipv6  Include non-link-local IPv6 addresses (global and ULA)
+      --log-level <LOG_LEVEL>        Log level (trace, debug, info, warn, error) [default: info]
+      --log-to-file                  Log to file in the OS-specific log directory
+  -h, --help                         Print help
+  -V, --version                      Print version
 ```
 
-### keep-all-ips
+### include-non-link-local-ipv6
 
 By default, only IPv4 addresses and link-local IPv6 addresses are shown in the graph.
-If enabled, all IP addresses are kept, including non-link-local IPv6 addresses.
+If enabled, non-link-local IPv6 addresses (global and ULA) are also included.
 
 ### log-level
 
