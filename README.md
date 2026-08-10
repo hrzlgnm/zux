@@ -291,6 +291,8 @@ releases by comparing the thumbprint:
 
 It must be `4f3cc75f545c898d57c5cc4349873a3bff8d4527`.
 
+This process is established since zux v1.2.0.
+
 ## Immutable releases
 
 The GitHub releases are now immutable: a release is first created as a draft, all its assets (binaries, checksums, attestations) are uploaded while it is still a draft, and it is only published once everything is in place. This ensures that a published release is always complete and cannot be altered afterward.
