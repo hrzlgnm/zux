@@ -89,6 +89,8 @@ Options:
 By default, only IPv4 addresses and link-local IPv6 addresses are shown in the graph.
 If enabled, non-link-local IPv6 addresses (global and ULA) are also included.
 
+Filtering is enabled by default to avoid leaking your public IPv6 address.
+
 ### log-level
 
 Sets the minimum log level. Possible values are `trace`, `debug`, `info`, `warn` and
