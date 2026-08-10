@@ -36,6 +36,7 @@ fn parse_log_level(s: &str) -> LevelFilter {
     version
 )]
 struct Cli {
+    // Disabled by default so the graph does not leak your public IPv6 address
     /// Include non-link-local IPv6 addresses (global and ULA)
     #[arg(short = 'I', long)]
     include_non_link_local_ipv6: bool,
