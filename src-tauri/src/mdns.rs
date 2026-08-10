@@ -46,7 +46,7 @@ pub struct MdnsBrowser {
     tx: broadcast::Sender<MdnsEvent>,
     active_browses: Arc<Mutex<HashMap<String, bool>>>,
     seen_instances: Arc<Mutex<HashMap<String, ServiceDiscovered>>>,
-    filter_non_link_local: bool,
+    link_local_only: bool,
 }
 
 impl MdnsBrowser {
@@ -57,14 +57,14 @@ impl MdnsBrowser {
         Ok(())
     }
 
-    pub fn new(filter_non_link_local: bool) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(link_local_only: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         Ok(Self {
             daemon: None,
             tx,
             active_browses: Arc::new(Mutex::new(HashMap::new())),
             seen_instances: Arc::new(Mutex::new(HashMap::new())),
-            filter_non_link_local,
+            link_local_only,
         })
     }
 
@@ -98,7 +98,7 @@ impl MdnsBrowser {
         let daemon = daemon.clone();
         let active_browses = self.active_browses.clone();
         let seen_instances = self.seen_instances.clone();
-        let filter_non_link_local = self.filter_non_link_local;
+        let link_local_only = self.link_local_only;
 
         spawn(async move {
             while let Ok(event) = enum_rx.recv_async().await {
@@ -145,7 +145,6 @@ impl MdnsBrowser {
                     let seen = seen_instances.clone();
                     let active = active_browses.clone();
                     let daemon2 = daemon.clone();
-                    let filter = filter_non_link_local;
                     spawn(async move {
                         let type_rx = match browse_with_retry(&daemon2, &service_type).await {
                             Ok(rx) => rx,
@@ -157,7 +156,7 @@ impl MdnsBrowser {
                         while let Ok(ev) = type_rx.recv_async().await {
                             match ev {
                                 ServiceEvent::ServiceResolved(svc) => {
-                                    let discovered = resolved_to_discovered(&svc, filter);
+                                    let discovered = resolved_to_discovered(&svc, link_local_only);
                                     let id = discovered.id.clone();
                                     let mut cache = seen.lock().unwrap();
                                     if let Some(prev) = cache.get(&id)
@@ -327,10 +326,7 @@ fn derive_urls(
     urls
 }
 
-fn resolved_to_discovered(
-    info: &ResolvedService,
-    filter_non_link_local: bool,
-) -> ServiceDiscovered {
+fn resolved_to_discovered(info: &ResolvedService, link_local_only: bool) -> ServiceDiscovered {
     let fullname = info.get_fullname();
     let suffix = info.ty_domain.trim_end_matches('.');
     let name = fullname
@@ -347,7 +343,7 @@ fn resolved_to_discovered(
     let addresses: Vec<AddressInfo> = info
         .get_addresses()
         .iter()
-        .filter(|s| !filter_non_link_local || keep_address(s))
+        .filter(|s| !link_local_only || keep_address(s))
         .map(|s| {
             let interfaces: Vec<String> = match s {
                 ScopedIp::V4(v4) => v4
