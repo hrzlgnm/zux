@@ -291,14 +291,6 @@ releases by comparing the thumbprint:
 
 It must be `4f3cc75f545c898d57c5cc4349873a3bff8d4527`.
 
-To make the signature fully trusted on your machine (so `Status` becomes `Valid`), import
-the certificate into the `Trusted Publishers` and `Root` certificate stores:
-
-```powershell
-Import-PfxCertificate -FilePath .\certificate.pfx -CertStoreLocation Cert:\CurrentUser\TrustedPublisher
-Import-PfxCertificate -FilePath .\certificate.pfx -CertStoreLocation Cert:\CurrentUser\Root
-```
-
 ## Immutable releases
 
 The GitHub releases are now immutable: a release is first created as a draft, all its assets (binaries, checksums, attestations) are uploaded while it is still a draft, and it is only published once everything is in place. This ensures that a published release is always complete and cannot be altered afterward.
