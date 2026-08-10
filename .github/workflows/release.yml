@@ -107,6 +107,20 @@ jobs:
           artifact-name: "sbom.${{ matrix.os }}.spdx.json"
           current-version: ${{ needs.draft-release.outputs.version }}
 
+      - name: 🔑 Import windows signing certificate (windows only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+          Remove-Item -Path certificate -Recurse -Force
+
       - name: 🏗️ Build and publish plain binary
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         env:
@@ -122,6 +136,21 @@ jobs:
           uploadPlainBinary: true
           args: ${{ matrix.args }} --no-bundle
 
+      - name: 🛡️ Attest build provenance (plain binary)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            src-tauri/target/**/release/zux
+            src-tauri/target/**/release/zux.exe
+
+      - name: 🛡️ Attest SBOM (plain binary)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            src-tauri/target/**/release/zux
+            src-tauri/target/**/release/zux.exe
+          sbom-path: sbom.spdx.json
+
       - name: 📦 Build and publish bundles
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         env:
@@ -136,7 +165,36 @@ jobs:
           generateReleaseNotes: true
           args: ${{ matrix.args }}
 
-      - name: 🛡️ Attest build provenance
+      - name: ✅ Verify Windows bundle signatures (windows only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $certThumbprint = "4f3cc75f545c898d57c5cc4349873a3bff8d4527"
+          $targets = @(
+            Get-ChildItem -Path "src-tauri/target/release/bundle/msi" -Filter "*.msi" -File -Recurse
+            Get-ChildItem -Path "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File
+          )
+          if ($targets.Count -eq 0) {
+            throw "No Windows bundle executables found to verify"
+          }
+          foreach ($target in $targets) {
+            $sig = Get-AuthenticodeSignature -FilePath $target.FullName
+            if ($sig.Status -ne "Valid") {
+              throw "$($target.FullName) signature is $($sig.Status)"
+            }
+            if ($sig.SignerCertificate.Thumbprint -ne $certThumbprint) {
+              throw "$($target.FullName) signed by unexpected certificate $($sig.SignerCertificate.Thumbprint)"
+            }
+            Write-Output "OK: $($target.FullName)"
+          }
+
+      - name: ✅ Verify macOS bundle signature (macos only)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/zux.app"
+
+      - name: 🛡️ Attest build provenance (bundles)
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
@@ -145,16 +203,6 @@ jobs:
             src-tauri/target/**/release/bundle/deb/*.deb
             src-tauri/target/**/release/bundle/rpm/*.rpm
             src-tauri/target/**/release/bundle/msi/*
-            src-tauri/target/**/release/zux
-            src-tauri/target/**/release/zux.exe
-
-      - name: 🛡️ Attest SBOM
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: |
-            src-tauri/target/**/release/zux
-            src-tauri/target/**/release/zux.exe
-          sbom-path: sbom.spdx.json
 
   android-release:
     needs: [draft-release]
