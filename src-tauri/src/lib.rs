@@ -36,9 +36,10 @@ fn parse_log_level(s: &str) -> LevelFilter {
     version
 )]
 struct Cli {
-    /// Keep all IP addresses including non-link-local IPv6
-    #[arg(long)]
-    keep_all_ips: bool,
+    // Disabled by default so the graph does not leak your public IPv6 address
+    /// Include non-link-local IPv6 addresses (global and ULA)
+    #[arg(short = 'I', long)]
+    include_non_link_local_ipv6: bool,
     /// Log level (trace, debug, info, warn, error) [default: info]
     #[arg(long, default_value = "info")]
     log_level: String,
@@ -188,7 +189,8 @@ pub fn run() {
         log_builder = log_builder.target(Target::new(TargetKind::LogDir { file_name: None }));
     }
 
-    let browser = MdnsBrowser::new(!cli.keep_all_ips).expect("failed to create mDNS browser");
+    let browser =
+        MdnsBrowser::new(!cli.include_non_link_local_ipv6).expect("failed to create mDNS browser");
 
     tauri::Builder::default()
         .plugin(log_builder.build())
