@@ -67,6 +67,7 @@ services from a terminal, take a look at
     - [Building](#building)
         - [Building for Android](#building-for-android)
     - [Attested build artifacts](#attested-build-artifacts)
+    - [Verifying the Windows build signature](#verifying-the-windows-build-signature)
     - [Immutable releases](#immutable-releases)
     - [Acknowledgments](#acknowledgments)
 
@@ -263,6 +264,42 @@ information and details on how to verify those, see
 [Verifying artifact attestations with the GitHub CLI](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds#verifying-artifact-attestations-with-the-github-cli)
 
 Since release v0.7.1
+
+## Verifying the Windows build signature
+
+The Windows MSI and NSIS bundles are signed with a self-signed code-signing certificate.
+The release workflow verifies the signature of every bundle before it is published. The
+standalone `zux.exe` binary is intentionally not signed.
+
+To verify a downloaded bundle, run the following in PowerShell:
+
+```powershell
+Get-AuthenticodeSignature -FilePath .\zux_1.2.0_x64-setup.exe | Format-List Status, StatusMessage, @{n='Thumbprint'; e={$_.SignerCertificate.Thumbprint}}
+```
+
+Because the certificate is self-signed, `Status` will be `NotTrusted` — this is expected
+and only means the certificate is not in the Windows trust store. The important thing is
+that the signature is cryptographically intact, i.e. `Status` is **not** `HashMismatch`,
+`NotSigned`, `UnknownError`, `NotSupported` or `Incompatible`.
+
+You can additionally confirm the signer certificate matches the certificate used for
+releases by comparing the thumbprint:
+
+```powershell
+(Get-AuthenticodeSignature -FilePath .\zux_1.2.0_x64-setup.exe).SignerCertificate.Thumbprint
+```
+
+It must be `4f3cc75f545c898d57c5cc4349873a3bff8d4527`.
+
+To make the signature fully trusted on your machine (so `Status` becomes `Valid`), import
+the certificate into the `Trusted Publishers` and `Root` certificate stores:
+
+```powershell
+Import-PfxCertificate -FilePath .\certificate.pfx -CertStoreLocation Cert:\CurrentUser\TrustedPublisher
+Import-PfxCertificate -FilePath .\certificate.pfx -CertStoreLocation Cert:\CurrentUser\Root
+```
+
+The PFX is available from the `WINDOWS_CERTIFICATE` repository secret (base64-encoded).
 
 ## Immutable releases
 

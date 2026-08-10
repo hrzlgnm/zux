@@ -179,13 +179,13 @@ jobs:
           }
           foreach ($target in $targets) {
             $sig = Get-AuthenticodeSignature -FilePath $target.FullName
-            if ($sig.Status -ne "Valid") {
-              throw "$($target.FullName) signature is $($sig.Status)"
+            if ($sig.Status -in @("HashMismatch", "NotSigned", "Incompatible", "NotSupported", "UnknownError")) {
+              throw "$($target.FullName) signature is $($sig.Status): $($sig.StatusMessage)"
             }
             if ($sig.SignerCertificate.Thumbprint -ne $certThumbprint) {
               throw "$($target.FullName) signed by unexpected certificate $($sig.SignerCertificate.Thumbprint)"
             }
-            Write-Output "OK: $($target.FullName)"
+            Write-Output "OK: $($target.FullName) ($($sig.Status))"
           }
 
       - name: ✅ Verify macOS bundle signature (macos only)
