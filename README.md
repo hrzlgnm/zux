@@ -67,6 +67,7 @@ services from a terminal, take a look at
     - [Building](#building)
         - [Building for Android](#building-for-android)
     - [Attested build artifacts](#attested-build-artifacts)
+    - [Immutable releases](#immutable-releases)
     - [Acknowledgments](#acknowledgments)
 
 <!--toc:end-->
@@ -262,6 +263,12 @@ information and details on how to verify those, see
 [Verifying artifact attestations with the GitHub CLI](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds#verifying-artifact-attestations-with-the-github-cli)
 
 Since release v0.7.1
+
+## Immutable releases
+
+The GitHub releases are now immutable: a release is first created as a draft, all its assets (binaries, checksums, attestations) are uploaded while it is still a draft, and it is only published once everything is in place. This ensures that a published release is always complete and cannot be altered afterwards.
+
+Since release v0.1.0
 
 ## Acknowledgments
 
