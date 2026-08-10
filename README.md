@@ -266,9 +266,9 @@ Since release v0.7.1
 
 ## Immutable releases
 
-The GitHub releases are now immutable: a release is first created as a draft, all its assets (binaries, checksums, attestations) are uploaded while it is still a draft, and it is only published once everything is in place. This ensures that a published release is always complete and cannot be altered afterwards.
+The GitHub releases are now immutable: a release is first created as a draft, all its assets (binaries, checksums, attestations) are uploaded while it is still a draft, and it is only published once everything is in place. This ensures that a published release is always complete and cannot be altered afterward.
 
-Since release v0.1.0
+This process has been used since release v0.1.0.
 
 ## Acknowledgments
 
