@@ -7,6 +7,7 @@
 - Run `actionlint` after editing workflow files.
 - After making changes, run all CI checks locally: `cargo fmt` then `cargo clippy -- -D warnings` (in `src-tauri/`) and `pnpm run check`.
 - Run `cargo fmt` in `src-tauri/` before committing.
+- When adding or changing a tool used in the release workflow (e.g. via `baptiste0928/cargo-install` or `anchore/scan-action/download-grype`), keep `.github/workflows/cache-tools-reusable.yml` in sync so the tool/DB is cached for release runs.
 
 ## AUR Packaging
 
