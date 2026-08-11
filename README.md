@@ -277,10 +277,11 @@ To verify a downloaded bundle, run the following in PowerShell:
 Get-AuthenticodeSignature -FilePath .\zux_1.2.0_x64-setup.exe | Format-List Status, StatusMessage, @{n='Thumbprint'; e={$_.SignerCertificate.Thumbprint}}
 ```
 
-Because the certificate is self-signed, `Status` will be `NotTrusted` — this is expected
-and only means the certificate is not in the Windows trust store. The important thing is
-that the signature is cryptographically intact, i.e. `Status` is **not** `HashMismatch`,
-`NotSigned`, `UnknownError`, `NotSupported` or `Incompatible`.
+Because the certificate is self-signed, `Status` will be `UnknownError` with the message
+`certificate chain processed, but terminated in a root certificate which is not trusted by
+the trust provider.` — this is expected and only means the certificate is not in the
+Windows trust store. The important thing is that the signature is cryptographically intact,
+i.e. `Status` is **not** `HashMismatch`, `NotSigned`, `NotSupported` or `Incompatible`.
 
 You can additionally confirm the signer certificate matches the certificate used for
 releases by comparing the thumbprint:

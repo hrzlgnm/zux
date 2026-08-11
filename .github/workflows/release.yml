@@ -179,7 +179,10 @@ jobs:
           }
           foreach ($target in $targets) {
             $sig = Get-AuthenticodeSignature -FilePath $target.FullName
-            if ($sig.Status -in @("HashMismatch", "NotSigned", "Incompatible", "NotSupported", "UnknownError")) {
+            if ($sig.Status -in @("HashMismatch", "NotSigned", "NotSupported", "Incompatible")) {
+              throw "$($target.FullName) signature is $($sig.Status): $($sig.StatusMessage)"
+            }
+            if ($sig.Status -eq "UnknownError" -and $sig.StatusMessage -notmatch "trusted by the trust provider") {
               throw "$($target.FullName) signature is $($sig.Status): $($sig.StatusMessage)"
             }
             if ($sig.SignerCertificate.Thumbprint -ne $certThumbprint) {
