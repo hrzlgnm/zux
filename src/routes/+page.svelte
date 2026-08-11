@@ -28,6 +28,7 @@
       if (!mounted) return
       clearGraph()
       invoke('start_discovery').catch(() => {})
+      checkForUpdates()
     } else {
       seedPreviewData()
     }
@@ -80,10 +81,6 @@
     version: string
     currentVersion: string
   }
-
-  $effect(() => {
-    checkForUpdates()
-  })
 </script>
 
 <div class="layout">
