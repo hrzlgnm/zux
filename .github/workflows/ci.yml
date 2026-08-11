@@ -20,6 +20,7 @@ jobs:
       aur: ${{ steps.filter.outputs.aur }}
       fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
+      prettier: ${{ steps.filter.outputs.prettier }}
       tests: ${{ steps.filter.outputs.tests }}
       winget: ${{ steps.filter.outputs.winget }}
     steps:
@@ -43,6 +44,16 @@ jobs:
             lint:
               - '.github/workflows/ci.yml'
               - '_typos.toml'
+            prettier:
+              - 'src/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'jsconfig.json'
+              - 'svelte.config.js'
+              - 'vite.config.js'
+              - '.prettierrc'
+              - '.prettierignore'
+              - '.github/workflows/ci.yml'
             tests:
               - 'src-tauri/**'
               - 'src/**'
@@ -130,6 +141,29 @@ jobs:
       - name: 🎨 Check formatting
         run: cargo fmt --check
         working-directory: src-tauri
+
+  prettier:
+    name: "🎨 Prettier"
+    needs: [changes]
+    if: needs.changes.outputs.prettier == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          version: 11.20.0
+          runtime: node@24
+          cache: true
+          install: false
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 🎨 Check formatting
+        run: pnpm run format:check
 
   svelte-check:
     name: "🔍 Svelte check"
@@ -227,7 +261,7 @@ jobs:
 
   alls-green:
     if: always()
-    needs: [changes, actionlint, aur, typos, clippy, fmt, tests, svelte-check, signer-check, cache-tools, winget]
+    needs: [changes, actionlint, aur, typos, clippy, fmt, prettier, tests, svelte-check, signer-check, cache-tools, winget]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
@@ -236,6 +270,7 @@ jobs:
             aur,
             clippy,
             fmt,
+            prettier,
             tests,
             svelte-check,
             signer-check,
