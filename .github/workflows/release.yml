@@ -29,7 +29,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔧 Install git-cliff
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57cd0 # v3
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
           crate: git-cliff
           version: 2.13.1
@@ -378,4 +378,3 @@ jobs:
     secrets: inherit
     with:
       tagName: ${{ github.ref_name }}
-
