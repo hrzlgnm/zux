@@ -48,6 +48,14 @@
           "level": 6
         }
       }
+    },
+    "windows": {
+      "certificateThumbprint": "4f3cc75f545c898d57c5cc4349873a3bff8d4527",
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com"
+    },
+    "macOS": {
+      "signingIdentity": "-"
     }
   },
   "plugins": {
