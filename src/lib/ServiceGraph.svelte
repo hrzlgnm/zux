@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
+  import { SvelteSet, SvelteMap } from 'svelte/reactivity'
   import { get } from 'svelte/store'
   import { Network } from 'vis-network'
   import { DataSet } from 'vis-data'
@@ -156,14 +157,14 @@
     const q = get(filterQuery)
     const allNodes = get(graphNodes)
 
-    const matchingIds = new Set<string>()
+    const matchingIds = new SvelteSet<string>()
     if (q.length > 0) {
       for (const n of allNodes.values()) {
         if (nodeMatchesQuery(n, q)) matchingIds.add(n.id)
       }
     }
 
-    const neighborIds = new Set<string>(matchingIds)
+    const neighborIds = new SvelteSet<string>(matchingIds)
     if (q.length > 0) {
       const allEdges = get(graphEdges)
       for (const e of allEdges.values()) {
@@ -176,7 +177,7 @@
       }
     }
 
-    const hiddenByNode = new Map<string, boolean>()
+    const hiddenByNode = new SvelteMap<string, boolean>()
     const nodeUpdates: any[] = []
     for (const n of allNodes.values()) {
       const hiddenByGroup = disabled.has(n.group)
