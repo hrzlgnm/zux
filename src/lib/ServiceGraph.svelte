@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte'
   import { SvelteSet, SvelteMap } from 'svelte/reactivity'
   import { get } from 'svelte/store'
-  import { Network } from 'vis-network'
+  import { Network, type Node, type Edge, type Options, type IdType } from 'vis-network'
   import { DataSet } from 'vis-data'
   import {
     graphNodes,
@@ -17,8 +17,8 @@
 
   let container: HTMLDivElement
   let network: Network
-  let visNodes = new DataSet<any>([])
-  let visEdges = new DataSet<any>([])
+  let visNodes = new DataSet<Node>([])
+  let visEdges = new DataSet<Edge>([])
   let prevNodeIds = new Set<string>()
   let prevEdgeIds = new Set<string>()
   let prevNodeData = new Map<string, GraphNode>()
@@ -40,7 +40,7 @@
     }
   }
 
-  const options: any = {
+  const options: Options = {
     nodes: {
       font: { size: 12, color: '#e0e0e0' },
       borderWidth: 2,
@@ -178,7 +178,7 @@
     }
 
     const hiddenByNode = new SvelteMap<string, boolean>()
-    const nodeUpdates: any[] = []
+    const nodeUpdates: { id: string; hidden: boolean; physics: boolean }[] = []
     for (const n of allNodes.values()) {
       const hiddenByGroup = disabled.has(n.group)
       let hidden = hiddenByGroup
@@ -190,7 +190,7 @@
     }
     if (nodeUpdates.length > 0) visNodes.updateOnly(nodeUpdates)
 
-    const edgeUpdates: any[] = []
+    const edgeUpdates: { id: string; physics: boolean }[] = []
     for (const e of get(graphEdges).values()) {
       const inactive = hiddenByNode.get(e.from) || hiddenByNode.get(e.to)
       edgeUpdates.push({ id: e.id, physics: !inactive })
@@ -209,9 +209,9 @@
     })
     ro.observe(container)
 
-    network.on('click', (params: any) => {
+    network.on('click', (params: { nodes: IdType[] }) => {
       if (params.nodes.length > 0) {
-        selectedNodeId.set(params.nodes[0])
+        selectedNodeId.set(params.nodes[0] as string)
       } else {
         selectedNodeId.set(null)
       }
