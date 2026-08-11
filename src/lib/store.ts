@@ -1,5 +1,5 @@
 import { writable, derived, get } from 'svelte/store'
-import { listen } from '@tauri-apps/api/event'
+import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type { Network } from 'vis-network'
 import type { GraphNode, GraphEdge, PhysicsConfig, AddressInfo } from './types'
 
@@ -308,9 +308,9 @@ function handleMdnsEvent(p: any) {
   }
 }
 
-export function setupEventListeners() {
+export function setupEventListeners(): Promise<UnlistenFn> {
   console.log('[zux] setting up event listeners')
-  listen<any>('mdns-event', (event) => {
+  return listen<any>('mdns-event', (event) => {
     const payload = event.payload
     if (Array.isArray(payload)) {
       for (const p of payload) handleMdnsEvent(p)
