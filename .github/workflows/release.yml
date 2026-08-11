@@ -15,24 +15,43 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - name: 🏷️ Get version from tag
         shell: bash
         id: get_version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: 🚀 Ensure draft release exists
+      - name: 🧹 Delete pre-existing draft releases
+        uses: hugo19941994/delete-draft-releases@3f19a25abf2ce87850c2268938f98f14e4d3d1f1 # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Install git-cliff
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57cd0 # v3
+        with:
+          crate: git-cliff
+          version: 2.13.1
+          locked: true
+
+      - name: 🗒️ Generate release body with git-cliff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
+
+      - name: 🚀 Create draft release
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          TITLE="zux ${GITHUB_REF_NAME}"
-          if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --title "$TITLE" --notes "" \
-              || echo "Release may have been created by parallel job, continuing..."
-          fi
+          gh release create "$TAG_NAME" \
+            --title "zux $TAG_NAME" \
+            --notes-file release-body.md \
+            --draft \
+            --latest=false
 
   release:
     needs: [draft-release]
@@ -132,7 +151,6 @@ jobs:
           releaseName: "zux ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: false
           uploadPlainBinary: true
           args: ${{ matrix.args }} --no-bundle
 
@@ -162,7 +180,6 @@ jobs:
           releaseName: "zux ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: true
           args: ${{ matrix.args }}
 
       - name: ✅ Verify Windows bundle signatures (windows only)
