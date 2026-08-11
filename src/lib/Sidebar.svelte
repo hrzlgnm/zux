@@ -9,7 +9,13 @@
 
   async function exportSvg() {
     const network = get(graphNetwork)
-    if (network) await exportGraphSvg(network)
+    if (network) {
+      try {
+        await exportGraphSvg(network)
+      } catch (e) {
+        console.log('[zux] export failed:', e)
+      }
+    }
   }
 
   const legendItems: {
