@@ -52,7 +52,7 @@
   </div>
 
   <div class="legend">
-    {#each legendItems as { key, label, dotClass, countKey }}
+    {#each legendItems as { key, label, dotClass, countKey } (key)}
       <label class="legend-item">
         <input
           type="checkbox"
