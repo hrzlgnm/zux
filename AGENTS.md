@@ -59,7 +59,7 @@
 
 - Every commit gets both trailers in a trailer block at the end, after a blank line. Use `--trailer` on the command line so no wrapping or manual formatting is needed:
   - `Co-authored-by: opencode <noreply@opencode.ai>`
-  - `Assisted-by: opencode (gemini-3.5-flash-lite)`
+  - `Assisted-by: opencode (<model-name>)`
 - Trailers are exempt from the 72-character body wrap.
 - Never use `--author` or `--committer` for this attribution. The release notes template (`.github/cliff-release.toml`) derives the credited `@username` from the commit author, so doing so would replace the user with the bot throughout the release notes.
 - `amend!` commits must repeat both trailers in the replacement message body. The replacement overwrites the target's message wholesale, so omitting them strips attribution from the target when the user folds the amend in with `--autosquash`. Plain `fixup!` commits need no special care: their message is discarded on autosquash and the target keeps its own trailers.
