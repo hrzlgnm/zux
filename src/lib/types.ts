@@ -3,6 +3,23 @@ export interface AddressInfo {
   interfaces: string[]
 }
 
+export interface ServiceDiscovered {
+  id: string
+  name: string
+  service_type: string
+  sub_type?: string | null
+  hostname: string
+  port: number
+  addresses: AddressInfo[]
+  txt: Record<string, string>
+  urls: string[]
+}
+
+export type MdnsEvent =
+  | { type: 'service-added'; data: ServiceDiscovered }
+  | { type: 'service-removed'; data: { id: string; service_type: string } }
+  | { type: 'service-type-added'; data: { service_type: string } }
+
 export interface GraphNode {
   id: string
   label: string
