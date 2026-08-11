@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import { isTauri, invoke } from '@tauri-apps/api/core'
+  import type { UnlistenFn } from '@tauri-apps/api/event'
   import { confirm } from '@tauri-apps/plugin-dialog'
   import { relaunch } from '@tauri-apps/plugin-process'
   import { check } from '@tauri-apps/plugin-updater'
@@ -9,13 +10,34 @@
   import Sidebar from '$lib/Sidebar.svelte'
   import NodeDetail from '$lib/NodeDetail.svelte'
 
-  onMount(() => {
+  let unlisten: UnlistenFn | null = null
+  let mounted = true
+
+  onMount(async () => {
     if (isTauri()) {
-      setupEventListeners()
+      try {
+        const fn = await setupEventListeners()
+        if (mounted) {
+          unlisten = fn
+        } else {
+          fn()
+        }
+      } catch (e) {
+        console.log('[zux] failed to subscribe to mdns events:', e)
+      }
+      if (!mounted) return
       clearGraph()
       invoke('start_discovery').catch(() => {})
     } else {
       seedPreviewData()
+    }
+  })
+
+  onDestroy(() => {
+    mounted = false
+    if (unlisten) {
+      unlisten()
+      unlisten = null
     }
   })
 
