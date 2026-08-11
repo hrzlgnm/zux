@@ -1,29 +1,35 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
-  import pkg from '../../package.json';
-  import { stats, physicsConfig, filterQuery, disabledGroups, graphNetwork } from './store';
-  import { exportGraphSvg } from './svgExport';
+  import { get } from 'svelte/store'
+  import pkg from '../../package.json'
+  import { stats, physicsConfig, filterQuery, disabledGroups, graphNetwork } from './store'
+  import { exportGraphSvg } from './svg-export'
+  import type { Solver } from './types'
 
-  let physicsOpen = $state(false);
+  let physicsOpen = $state(false)
 
   async function exportSvg() {
-    const network = get(graphNetwork);
-    if (network) await exportGraphSvg(network);
+    const network = get(graphNetwork)
+    if (network) await exportGraphSvg(network)
   }
 
-  const legendItems: { key: string; label: string; dotClass: string; countKey: 'types' | 'instances' | 'hosts' | 'addresses' }[] = [
+  const legendItems: {
+    key: string
+    label: string
+    dotClass: string
+    countKey: 'types' | 'instances' | 'hosts' | 'addresses'
+  }[] = [
     { key: 'service-type', label: 'Service Type', dotClass: 'type', countKey: 'types' },
     { key: 'instance', label: 'Instance', dotClass: 'inst', countKey: 'instances' },
     { key: 'host', label: 'Host', dotClass: 'host', countKey: 'hosts' },
     { key: 'address', label: 'Address', dotClass: 'addr', countKey: 'addresses' },
-  ];
+  ]
 
   function toggleGroup(key: string) {
-    disabledGroups.update(s => {
-      if (s.has(key)) s.delete(key);
-      else s.add(key);
-      return s;
-    });
+    disabledGroups.update((s) => {
+      if (s.has(key)) s.delete(key)
+      else s.add(key)
+      return s
+    })
   }
 </script>
 
@@ -42,8 +48,13 @@
   <div class="legend">
     {#each legendItems as { key, label, dotClass, countKey }}
       <label class="legend-item">
-        <input type="checkbox" checked={!$disabledGroups.has(key)} onchange={() => toggleGroup(key)} />
-        <span class="dot {dotClass}"></span> {label}
+        <input
+          type="checkbox"
+          checked={!$disabledGroups.has(key)}
+          onchange={() => toggleGroup(key)}
+        />
+        <span class="dot {dotClass}"></span>
+        {label}
         <span class="legend-count">{$stats[countKey]}</span>
       </label>
     {/each}
@@ -54,14 +65,20 @@
   </div>
 
   <div class="section">
-    <button class="section-toggle" onclick={() => physicsOpen = !physicsOpen}>
+    <button class="section-toggle" onclick={() => (physicsOpen = !physicsOpen)}>
       <span class="arrow">{physicsOpen ? '▼' : '▶'}</span> Physics
     </button>
     {#if physicsOpen}
       <div class="physics-controls">
         <label class="ctrl">
           Solver
-          <select value={$physicsConfig.solver} onchange={(e) => { const t = e.target as HTMLSelectElement; physicsConfig.set({ ...$physicsConfig, solver: t.value as import('./types').Solver }); }}>
+          <select
+            value={$physicsConfig.solver}
+            onchange={(e) => {
+              const t = e.target as HTMLSelectElement
+              physicsConfig.set({ ...$physicsConfig, solver: t.value as Solver })
+            }}
+          >
             <option value="forceAtlas2Based">forceAtlas2Based</option>
             <option value="barnesHut">barnesHut</option>
             <option value="repulsion">repulsion</option>
@@ -70,42 +87,91 @@
         </label>
         <label class="ctrl">
           Gravity <span class="val">{$physicsConfig.gravitationalConstant}</span>
-          <input type="range" min="-200" max="0" step="1"
+          <input
+            type="range"
+            min="-200"
+            max="0"
+            step="1"
             value={$physicsConfig.gravitationalConstant}
-            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, gravitationalConstant: Number(t.value) }); }} />
+            oninput={(e) => {
+              const t = e.target as HTMLInputElement
+              physicsConfig.set({ ...$physicsConfig, gravitationalConstant: Number(t.value) })
+            }}
+          />
         </label>
         <label class="ctrl">
           Cent. Gravity <span class="val">{$physicsConfig.centralGravity.toFixed(3)}</span>
-          <input type="range" min="0" max="0.1" step="0.001"
+          <input
+            type="range"
+            min="0"
+            max="0.1"
+            step="0.001"
             value={$physicsConfig.centralGravity}
-            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, centralGravity: Number(t.value) }); }} />
+            oninput={(e) => {
+              const t = e.target as HTMLInputElement
+              physicsConfig.set({ ...$physicsConfig, centralGravity: Number(t.value) })
+            }}
+          />
         </label>
         <label class="ctrl">
           Spring Len <span class="val">{$physicsConfig.springLength}</span>
-          <input type="range" min="50" max="500" step="5"
+          <input
+            type="range"
+            min="50"
+            max="500"
+            step="5"
             value={$physicsConfig.springLength}
-            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, springLength: Number(t.value) }); }} />
+            oninput={(e) => {
+              const t = e.target as HTMLInputElement
+              physicsConfig.set({ ...$physicsConfig, springLength: Number(t.value) })
+            }}
+          />
         </label>
         <label class="ctrl">
           Spring Const <span class="val">{$physicsConfig.springConstant.toFixed(3)}</span>
-          <input type="range" min="0.001" max="0.1" step="0.001"
+          <input
+            type="range"
+            min="0.001"
+            max="0.1"
+            step="0.001"
             value={$physicsConfig.springConstant}
-            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, springConstant: Number(t.value) }); }} />
+            oninput={(e) => {
+              const t = e.target as HTMLInputElement
+              physicsConfig.set({ ...$physicsConfig, springConstant: Number(t.value) })
+            }}
+          />
         </label>
         <label class="ctrl">
           Damping <span class="val">{$physicsConfig.damping.toFixed(2)}</span>
-          <input type="range" min="0" max="1" step="0.01"
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
             value={$physicsConfig.damping}
-            oninput={(e) => { const t = e.target as HTMLInputElement; physicsConfig.set({ ...$physicsConfig, damping: Number(t.value) }); }} />
+            oninput={(e) => {
+              const t = e.target as HTMLInputElement
+              physicsConfig.set({ ...$physicsConfig, damping: Number(t.value) })
+            }}
+          />
         </label>
       </div>
     {/if}
   </div>
 
-  <input type="text" class="filter-input" placeholder="Filter nodes..." bind:value={$filterQuery} onkeydown={(e) => { if (e.key === 'Escape') { $filterQuery = ''; } }} />
+  <input
+    type="text"
+    class="filter-input"
+    placeholder="Filter nodes..."
+    bind:value={$filterQuery}
+    onkeydown={(e) => {
+      if (e.key === 'Escape') {
+        $filterQuery = ''
+      }
+    }}
+  />
 
   <button class="export-btn" onclick={exportSvg}>Export SVG</button>
-
 </aside>
 
 <style>
@@ -168,7 +234,7 @@
     margin: 4px 0;
     cursor: pointer;
   }
-  .legend-item input[type="checkbox"] {
+  .legend-item input[type='checkbox'] {
     accent-color: #4fc3f7;
     cursor: pointer;
   }
@@ -192,10 +258,23 @@
     border-radius: 50%;
     display: inline-block;
   }
-  .dot.type { background: #4fc3f7; border-radius: 2px; transform: rotate(45deg); }
-  .dot.inst { background: #81c784; }
-  .dot.host { background: #ffb74d; border-radius: 2px; }
-  .dot.addr { background: #ce93d8; border-radius: 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .dot.type {
+    background: #4fc3f7;
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+  .dot.inst {
+    background: #81c784;
+  }
+  .dot.host {
+    background: #ffb74d;
+    border-radius: 2px;
+  }
+  .dot.addr {
+    background: #ce93d8;
+    border-radius: 0;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
   .section {
     margin-top: 4px;
   }
@@ -232,7 +311,9 @@
   }
   .ctrl select {
     appearance: none;
-    background: #1a1a2e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='%2378909c'/%3E%3C/svg%3E") no-repeat right 6px center;
+    background: #1a1a2e
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='%2378909c'/%3E%3C/svg%3E")
+      no-repeat right 6px center;
     color: #b0bec5;
     border: 1px solid #16213e;
     border-radius: 4px;
@@ -240,7 +321,7 @@
     font-size: 11px;
     cursor: pointer;
   }
-  .ctrl input[type="range"] {
+  .ctrl input[type='range'] {
     width: 100%;
     accent-color: #4fc3f7;
   }
