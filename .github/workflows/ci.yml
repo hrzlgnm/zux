@@ -16,12 +16,14 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       branch: ${{ steps.branch.outputs.branch }}
-      code: ${{ steps.filter.outputs.code }}
+      rust: ${{ steps.filter.outputs.rust }}
       aur: ${{ steps.filter.outputs.aur }}
       fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
       prettier: ${{ steps.filter.outputs.prettier }}
       tests: ${{ steps.filter.outputs.tests }}
+      svelte-check: ${{ steps.filter.outputs.svelte-check }}
+      signer: ${{ steps.filter.outputs.signer }}
       winget: ${{ steps.filter.outputs.winget }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -33,11 +35,8 @@ jobs:
               - '.github/workflows/aur-reusable.yml'
               - '.github/actions/latest-release-info/action.yml'
               - 'packaging/aur/**'
-            code:
-              - 'src/**'
+            rust:
               - 'src-tauri/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
               - '.github/workflows/ci.yml'
             fmt:
               - 'src-tauri/**'
@@ -62,7 +61,19 @@ jobs:
               - '.github/workflows/ci.yml'
             tests:
               - 'src-tauri/**'
+              - '.github/workflows/ci.yml'
+            svelte-check:
               - 'src/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'jsconfig.json'
+              - 'svelte.config.js'
+              - '.github/workflows/ci.yml'
+            signer:
+              - 'src-tauri/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - '.github/workflows/ci.yml'
             winget:
               - '.github/workflows/winget-reusable.yml'
               - '.github/actions/latest-release-info/action.yml'
@@ -104,7 +115,7 @@ jobs:
   clippy:
     name: "🔍 Clippy"
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     env:
       RUSTFLAGS: "-D warnings"
@@ -197,7 +208,7 @@ jobs:
   svelte-check:
     name: "🔍 Svelte check"
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.svelte-check == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -263,7 +274,7 @@ jobs:
   signer-check:
     name: "🔐 Signer check"
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.signer == 'true'
     env:
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
