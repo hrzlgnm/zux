@@ -1,7 +1,7 @@
 import { writable, derived, get } from 'svelte/store'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type { Network } from 'vis-network'
-import type { GraphNode, GraphEdge, PhysicsConfig, AddressInfo } from './types'
+import type { GraphNode, GraphEdge, PhysicsConfig, MdnsEvent } from './types'
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map())
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map())
@@ -72,7 +72,7 @@ function applyOnlineStyle(n: GraphNode): GraphNode {
     ...n,
     offline: false,
     color: ONLINE_COLORS[n.group] || '#e0e0e0',
-    font: undefined as any,
+    font: undefined,
   }
 }
 
@@ -124,7 +124,7 @@ function cascadeOffline() {
   })
 }
 
-function handleMdnsEvent(p: any) {
+function handleMdnsEvent(p: MdnsEvent) {
   console.log('[zux] event:', JSON.stringify(p).slice(0, 200))
   switch (p.type) {
     case 'service-type-added': {
@@ -166,7 +166,7 @@ function handleMdnsEvent(p: any) {
             size: 15,
             color: '#81c784',
             serviceType: d.service_type,
-            subType: d.sub_type,
+            subType: d.sub_type ?? undefined,
             hostname: d.hostname,
             port: d.port,
             addresses: d.addresses,
@@ -182,7 +182,7 @@ function handleMdnsEvent(p: any) {
             addresses: d.addresses,
             txt: d.txt,
             urls: d.urls,
-            subType: d.sub_type,
+            subType: d.sub_type ?? undefined,
           }
           m.set(nId, existing.offline ? applyOnlineStyle(updated) : updated)
         }
@@ -265,7 +265,7 @@ function handleMdnsEvent(p: any) {
       })
 
       if (d.addresses) {
-        const currentAddrIds = new Set(d.addresses.map((a: AddressInfo) => addrId(a.ip)))
+        const currentAddrIds = new Set(d.addresses.map((a) => addrId(a.ip)))
         graphEdges.update((edges) => {
           for (const [eid, e] of edges) {
             if (eid.startsWith(`e:ha:${hId}:`) && !currentAddrIds.has(e.to)) {
@@ -310,7 +310,7 @@ function handleMdnsEvent(p: any) {
 
 export function setupEventListeners(): Promise<UnlistenFn> {
   console.log('[zux] setting up event listeners')
-  return listen<any>('mdns-event', (event) => {
+  return listen<MdnsEvent | MdnsEvent[]>('mdns-event', (event) => {
     const payload = event.payload
     if (Array.isArray(payload)) {
       for (const p of payload) handleMdnsEvent(p)
