@@ -43,7 +43,7 @@
       {#if node.addresses && node.addresses.length > 0}
         <div class="field">
           <span class="label">Addresses</span>
-          {#each node.addresses as a}
+          {#each node.addresses as a (a.ip)}
             <div class="addr-row">
               <span class="addr-ip">{a.ip}</span>
               {#if a.interfaces.length > 0}
@@ -62,7 +62,7 @@
       {#if node.txt && Object.keys(node.txt).length > 0}
         <div class="field"><span class="label">TXT Records</span></div>
         <div class="txt-records">
-          {#each Object.entries(node.txt).sort(([a], [b]) => a.localeCompare(b)) as [k, v]}
+          {#each Object.entries(node.txt).sort(([a], [b]) => a.localeCompare(b)) as [k, v] (k)}
             <div class="txt-entry"><em>{k}</em>{v ? ` = ${v}` : ''}</div>
           {/each}
         </div>
@@ -70,7 +70,7 @@
       {#if node.urls && node.urls.length > 0}
         <div class="field">
           <span class="label">URLs</span>
-          {#each node.urls as url}
+          {#each node.urls as url (url)}
             <button
               class="url-link"
               onclick={() => openUrl(url).catch((e) => console.log('[zux] failed to open URL:', e))}
