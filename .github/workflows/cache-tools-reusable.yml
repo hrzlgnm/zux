@@ -47,6 +47,14 @@ jobs:
           version: 0.9.143
           locked: true
 
+      - name: 🔧 Install git-cliff
+        if: matrix.os == 'ubuntu-24.04'
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: git-cliff
+          version: 2.13.1
+          locked: true
+
       - name: 🔧 Warm grype DB cache
         if: matrix.os == 'ubuntu-24.04'
         uses: anchore/scan-action/download-grype@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
