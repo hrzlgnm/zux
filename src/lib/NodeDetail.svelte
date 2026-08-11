@@ -71,7 +71,11 @@
         <div class="field">
           <span class="label">URLs</span>
           {#each node.urls as url}
-            <button class="url-link" onclick={() => openUrl(url)}>{url}</button>
+            <button
+              class="url-link"
+              onclick={() => openUrl(url).catch((e) => console.log('[zux] failed to open URL:', e))}
+              >{url}</button
+            >
           {/each}
         </div>
       {/if}
