@@ -17,7 +17,11 @@ const GROUP_FONTS: Record<string, { color: string; size: number }> = {
 }
 
 function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 function rgbToHsv(r: number, g: number, b: number): [number, number, number] {
@@ -42,7 +46,9 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
   const c = v * s
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
   const m = v - c
-  let r = 0, g = 0, b = 0
+  let r = 0,
+    g = 0,
+    b = 0
   if (h < 60) [r, g, b] = [c, x, 0]
   else if (h < 120) [r, g, b] = [x, c, 0]
   else if (h < 180) [r, g, b] = [0, c, x]
@@ -53,14 +59,19 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
 }
 
 function darken(hex: string): string {
-  const [h, s, v] = rgbToHsv(parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16))
+  const [h, s, v] = rgbToHsv(
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  )
   const [r, g, b] = hsvToRgb(h, Math.min(1, s * 1.25), v * 0.8)
-  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
 }
 
 function nodeColors(n: any): { background: string; border: string } {
   const c = n.color
-  if (c && typeof c === 'object' && c.background) return { background: c.background, border: c.border ?? darken(c.background) }
+  if (c && typeof c === 'object' && c.background)
+    return { background: c.background, border: c.border ?? darken(c.background) }
   const bg = GROUP_COLORS[n.group] ?? '#e0e0e0'
   return { background: bg, border: darken(bg) }
 }
@@ -125,30 +136,43 @@ export async function exportGraphSvg(network: Network) {
   const pos = network.getPositions()
 
   const visible = new Set<string>()
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity
   for (const n of nodes) {
     const p = pos[n.id]
     if (!p || n.hidden) continue
     visible.add(n.id)
-    minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x)
-    minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y)
+    minX = Math.min(minX, p.x)
+    maxX = Math.max(maxX, p.x)
+    minY = Math.min(minY, p.y)
+    maxY = Math.max(maxY, p.y)
   }
   if (visible.size === 0) return
 
   const pad = 60
-  minX -= pad; minY -= pad; maxX += pad; maxY += pad
+  minX -= pad
+  minY -= pad
+  maxX += pad
+  maxY += pad
   const w = Math.max(100, maxX - minX)
   const h = Math.max(100, maxY - minY)
 
   const edgeEls: string[] = []
   for (const e of edges) {
     if (!visible.has(e.from) || !visible.has(e.to)) continue
-    const pf = pos[e.from], pt = pos[e.to]
+    const pf = pos[e.from],
+      pt = pos[e.to]
     if (!pf || !pt) continue
     const via = body?.edges?.[e.id]?.edgeType?.getViaNode?.()
-    const d = via ? `M ${pf.x} ${pf.y} Q ${via.x} ${via.y} ${pt.x} ${pt.y}` : `M ${pf.x} ${pf.y} L ${pt.x} ${pt.y}`
+    const d = via
+      ? `M ${pf.x} ${pf.y} Q ${via.x} ${via.y} ${pt.x} ${pt.y}`
+      : `M ${pf.x} ${pf.y} L ${pt.x} ${pt.y}`
     const dashes = e.dashes ? ' stroke-dasharray="5 5"' : ''
-    edgeEls.push(`<path d="${d}" stroke="${e.color ?? '#78909c'}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`)
+    edgeEls.push(
+      `<path d="${d}" stroke="${e.color ?? '#78909c'}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`,
+    )
   }
 
   const nodeEls: string[] = []

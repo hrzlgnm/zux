@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
-  import { graphNodes, selectedNodeId } from './store';
-  import type { GraphNode } from './types';
-  import { openUrl } from '@tauri-apps/plugin-opener';
+  import { get } from 'svelte/store'
+  import { openUrl } from '@tauri-apps/plugin-opener'
+  import { graphNodes, selectedNodeId } from './store'
+  import type { GraphNode } from './types'
 
-  let node = $state<GraphNode | null>(null);
+  let node = $state<GraphNode | null>(null)
 
   $effect(() => {
-    const id = $selectedNodeId;
+    const id = $selectedNodeId
     if (id) {
-      node = get(graphNodes).get(id) ?? null;
-      const unsub = graphNodes.subscribe(nodes => {
-        node = nodes.get(id) ?? null;
-      });
-      return unsub;
+      node = get(graphNodes).get(id) ?? null
+      const unsub = graphNodes.subscribe((nodes) => {
+        node = nodes.get(id) ?? null
+      })
+      return unsub
     } else {
-      node = null;
+      node = null
     }
-  });
+  })
 </script>
 
 {#if node}
@@ -41,7 +41,8 @@
         <div class="field"><span class="label">Port</span><span>{node.port}</span></div>
       {/if}
       {#if node.addresses && node.addresses.length > 0}
-        <div class="field"><span class="label">Addresses</span>
+        <div class="field">
+          <span class="label">Addresses</span>
           {#each node.addresses as a}
             <div class="addr-row">
               <span class="addr-ip">{a.ip}</span>
@@ -53,7 +54,8 @@
         </div>
       {/if}
       {#if node.interfaces && node.interfaces.length > 0}
-        <div class="field"><span class="label">Interfaces</span>
+        <div class="field">
+          <span class="label">Interfaces</span>
           <span>{node.interfaces.join(', ')}</span>
         </div>
       {/if}
@@ -66,7 +68,8 @@
         </div>
       {/if}
       {#if node.urls && node.urls.length > 0}
-        <div class="field"><span class="label">URLs</span>
+        <div class="field">
+          <span class="label">URLs</span>
           {#each node.urls as url}
             <button class="url-link" onclick={() => openUrl(url)}>{url}</button>
           {/each}
@@ -90,7 +93,7 @@
     padding: 20px;
     color: #e0e0e0;
     z-index: 10;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   }
   .close {
     position: absolute;
@@ -108,7 +111,9 @@
     color: #e0e0e0;
     word-break: break-all;
   }
-  .meta { margin-bottom: 10px; }
+  .meta {
+    margin-bottom: 10px;
+  }
   .badge {
     display: inline-block;
     padding: 2px 8px;
@@ -116,10 +121,22 @@
     font-size: 13px;
     font-weight: 600;
   }
-  .type-service-type { background: #0288d1; color: #e1f5fe; }
-  .type-instance { background: #388e3c; color: #e8f5e9; }
-  .type-host { background: #f57c00; color: #fff3e0; }
-  .type-address { background: #ce93d8; color: #1a1a2e; }
+  .type-service-type {
+    background: #0288d1;
+    color: #e1f5fe;
+  }
+  .type-instance {
+    background: #388e3c;
+    color: #e8f5e9;
+  }
+  .type-host {
+    background: #f57c00;
+    color: #fff3e0;
+  }
+  .type-address {
+    background: #ce93d8;
+    color: #1a1a2e;
+  }
   .fields {
     display: flex;
     flex-direction: column;
@@ -137,14 +154,25 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .field span { color: #e0e0e0; word-break: break-all; font-size: 14px; }
+  .field span {
+    color: #e0e0e0;
+    word-break: break-all;
+    font-size: 14px;
+  }
   .addr-row {
     display: flex;
     gap: 6px;
     align-items: baseline;
   }
-  .addr-ip { color: #e0e0e0; word-break: break-all; font-size: 14px; }
-  .addr-ifaces { color: #4dd0e1; font-size: 12px; }
+  .addr-ip {
+    color: #e0e0e0;
+    word-break: break-all;
+    font-size: 14px;
+  }
+  .addr-ifaces {
+    color: #4dd0e1;
+    font-size: 12px;
+  }
   .txt-records {
     background: #1a1a2e;
     border-radius: 4px;
