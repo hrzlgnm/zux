@@ -1,4 +1,4 @@
-import type { Network } from 'vis-network'
+import type { Network, Node, Edge, Position, IdType } from 'vis-network'
 import { isTauri, invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
 
@@ -46,9 +46,7 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
   const c = v * s
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
   const m = v - c
-  let r = 0,
-    g = 0,
-    b = 0
+  let r: number, g: number, b: number
   if (h < 60) [r, g, b] = [c, x, 0]
   else if (h < 120) [r, g, b] = [x, c, 0]
   else if (h < 180) [r, g, b] = [0, c, x]
@@ -68,20 +66,21 @@ function darken(hex: string): string {
   return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
 }
 
-function nodeColors(n: any): { background: string; border: string } {
+function nodeColors(n: Node): { background: string; border: string } {
   const c = n.color
   if (c && typeof c === 'object' && c.background)
     return { background: c.background, border: c.border ?? darken(c.background) }
-  const bg = GROUP_COLORS[n.group] ?? '#e0e0e0'
+  const bg = GROUP_COLORS[n.group ?? ''] ?? '#e0e0e0'
   return { background: bg, border: darken(bg) }
 }
 
-function nodeFontInfo(n: any): { color: string; size: number } {
-  const f = n.font ?? GROUP_FONTS[n.group]
-  return { color: f?.color ?? '#e0e0e0', size: f?.size ?? 12 }
+function nodeFontInfo(n: Node): { color: string; size: number } {
+  const f = n.font
+  if (f && typeof f === 'object') return { color: f.color ?? '#e0e0e0', size: f.size ?? 12 }
+  return GROUP_FONTS[n.group ?? ''] ?? { color: '#e0e0e0', size: 12 }
 }
 
-function shapeEl(n: any, x: number, y: number): string {
+function shapeEl(n: Node, x: number, y: number): string {
   const r = n.size ?? 15
   const c = nodeColors(n)
   const fill = ` fill="${c.background}"`
@@ -122,20 +121,31 @@ function fontAscent(size: number): number {
   return ascent
 }
 
-function labelEl(n: any, x: number, y: number): string {
+function labelEl(n: Node, x: number, y: number): string {
   const f = nodeFontInfo(n)
   const yBaseline = y + (n.size ?? 15) + LABEL_GAP + fontAscent(f.size)
-  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label)}</text>`
+  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label ?? '')}</text>`
 }
 
-export async function exportGraphSvg(network: Network) {
-  const body = (network as any).body
-  const nodes = body?.data?.nodes?.get() as any[]
-  if (!nodes || nodes.length === 0) return
-  const edges = (body?.data?.edges?.get() as any[]) ?? []
-  const pos = network.getPositions()
+interface GraphBody {
+  data?: {
+    nodes?: { get(): Node[] }
+    edges?: { get(): Edge[] }
+  }
+  edges?: Record<string, { edgeType?: { getViaNode?(): Position } }>
+}
 
-  const visible = new Set<string>()
+type PositionedNode = Node & { id: IdType }
+type PositionedEdge = Edge & { id: IdType; from: IdType; to: IdType }
+
+export async function exportGraphSvg(network: Network) {
+  const body = network as unknown as GraphBody
+  const nodes = body?.data?.nodes?.get() as PositionedNode[] | undefined
+  if (!nodes || nodes.length === 0) return
+  const edges = (body?.data?.edges?.get() as PositionedEdge[] | undefined) ?? []
+  const pos: Record<string, Position | undefined> = network.getPositions()
+
+  const visible = new Set<IdType>()
   let minX = Infinity,
     minY = Infinity,
     maxX = -Infinity,
@@ -165,13 +175,14 @@ export async function exportGraphSvg(network: Network) {
     const pf = pos[e.from],
       pt = pos[e.to]
     if (!pf || !pt) continue
-    const via = body?.edges?.[e.id]?.edgeType?.getViaNode?.()
+    const via = body.edges?.[e.id]?.edgeType?.getViaNode?.()
     const d = via
       ? `M ${pf.x} ${pf.y} Q ${via.x} ${via.y} ${pt.x} ${pt.y}`
       : `M ${pf.x} ${pf.y} L ${pt.x} ${pt.y}`
     const dashes = e.dashes ? ' stroke-dasharray="5 5"' : ''
+    const color = typeof e.color === 'string' ? e.color : '#78909c'
     edgeEls.push(
-      `<path d="${d}" stroke="${e.color ?? '#78909c'}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`,
+      `<path d="${d}" stroke="${color}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`,
     )
   }
 
