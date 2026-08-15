@@ -1,6 +1,8 @@
 import type { Network, Node, Edge, Position, IdType } from 'vis-network'
 import { isTauri, invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
+// Embed the font so exported SVGs render labels with the same metrics used for measurement
+import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url&inline'
 
 const GROUP_COLORS: Record<string, string> = {
   'service-type': '#4fc3f7',
@@ -198,7 +200,10 @@ export async function exportGraphSvg(network: Network) {
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`,
     `<rect width="${w}" height="${h}" fill="#1a1a2e"/>`,
-    '<defs><filter id="zux-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/></filter></defs>',
+    '<defs>',
+    `<style>@font-face{font-family:'Inter Variable';src:url(${interFont}) format('woff2')}</style>`,
+    '<filter id="zux-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/></filter>',
+    '</defs>',
     `<g transform="translate(${-minX} ${-minY})">`,
     ...edgeEls,
     ...nodeEls,
