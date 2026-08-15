@@ -110,7 +110,7 @@ function fontAscent(size: number): number {
   svg.style.width = '0'
   svg.style.height = '0'
   const t = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-  t.setAttribute('font-family', 'Arial, sans-serif')
+  t.setAttribute('font-family', "'Inter Variable', Arial, sans-serif")
   t.setAttribute('font-size', String(size))
   t.textContent = 'Ag'
   svg.appendChild(t)
@@ -124,7 +124,7 @@ function fontAscent(size: number): number {
 function labelEl(n: Node, x: number, y: number): string {
   const f = nodeFontInfo(n)
   const yBaseline = y + (n.size ?? 15) + LABEL_GAP + fontAscent(f.size)
-  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label ?? '')}</text>`
+  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="'Inter Variable', Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label ?? '')}</text>`
 }
 
 interface GraphBody {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
+  import '@fontsource-variable/inter'
   import { isTauri, invoke } from '@tauri-apps/api/core'
   import type { UnlistenFn } from '@tauri-apps/api/event'
   import { confirm } from '@tauri-apps/plugin-dialog'
@@ -97,6 +98,12 @@
     padding: 0;
     overflow: hidden;
     background: #1a1a2e;
+    font-family:
+      'Inter Variable',
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      sans-serif;
   }
   .layout {
     display: flex;
