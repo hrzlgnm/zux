@@ -1,6 +1,8 @@
 import type { Network, Node, Edge, Position, IdType } from 'vis-network'
 import { isTauri, invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
+// Embed the font so exported SVGs render labels with the same metrics used for measurement
+import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url&inline'
 
 const GROUP_COLORS: Record<string, string> = {
   'service-type': '#4fc3f7',
@@ -110,7 +112,7 @@ function fontAscent(size: number): number {
   svg.style.width = '0'
   svg.style.height = '0'
   const t = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-  t.setAttribute('font-family', 'Arial, sans-serif')
+  t.setAttribute('font-family', "'Inter Variable', Arial, sans-serif")
   t.setAttribute('font-size', String(size))
   t.textContent = 'Ag'
   svg.appendChild(t)
@@ -124,7 +126,7 @@ function fontAscent(size: number): number {
 function labelEl(n: Node, x: number, y: number): string {
   const f = nodeFontInfo(n)
   const yBaseline = y + (n.size ?? 15) + LABEL_GAP + fontAscent(f.size)
-  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label ?? '')}</text>`
+  return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="'Inter Variable', Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label ?? '')}</text>`
 }
 
 interface GraphBody {
@@ -198,7 +200,10 @@ export async function exportGraphSvg(network: Network) {
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`,
     `<rect width="${w}" height="${h}" fill="#1a1a2e"/>`,
-    '<defs><filter id="zux-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/></filter></defs>',
+    '<defs>',
+    `<style>@font-face{font-family:'Inter Variable';src:url(${interFont}) format('woff2')}</style>`,
+    '<filter id="zux-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/></filter>',
+    '</defs>',
     `<g transform="translate(${-minX} ${-minY})">`,
     ...edgeEls,
     ...nodeEls,

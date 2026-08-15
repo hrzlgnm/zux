@@ -42,13 +42,13 @@
 
   const options: Options = {
     nodes: {
-      font: { size: 12, color: '#e0e0e0' },
+      font: { face: 'Inter Variable', size: 12, color: '#e0e0e0' },
       borderWidth: 2,
       shadow: { enabled: true, size: 4 },
     },
     edges: {
       width: 2,
-      font: { size: 10, color: '#b0bec5', align: 'middle' },
+      font: { face: 'Inter Variable', size: 10, color: '#b0bec5', align: 'middle' },
       smooth: { enabled: true, type: 'continuous', roundness: 0.5 },
     },
     groups: {
