@@ -1,7 +1,18 @@
 {
-    "bundle": {
-        "android": {
-            "debugApplicationIdSuffix": ".debug"
-        }
+  "bundle": {
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
     }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "zux — mDNS-SD Visualizer",
+        "width": 1200,
+        "height": 800,
+        "label": "main",
+        "visible": true
+      }
+    ]
+  }
 }
