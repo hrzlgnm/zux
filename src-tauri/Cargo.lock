@@ -5122,9 +5122,9 @@ dependencies = [
 
 [[package]]
 name = "webkit2gtk-nvidia-quirk"
-version = "1.4.2"
+version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83370cb7711a31b42568d272020170a3363c15069704105ac6c5225d4f497db1"
+checksum = "346ca51979f591fd90693a1cd548c3ac482e665b1f736ea5bba6f2e7f2e6d18c"
 
 [[package]]
 name = "webkit2gtk-sys"
