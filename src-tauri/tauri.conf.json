@@ -10,13 +10,6 @@
     "frontendDist": "../build"
   },
   "app": {
-    "windows": [
-      {
-        "title": "zux — mDNS-SD Visualizer",
-        "width": 1200,
-        "height": 800
-      }
-    ],
     "security": {
       "csp": null
     }

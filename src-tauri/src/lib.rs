@@ -168,6 +168,56 @@ fn emit_batch(app: &tauri::AppHandle, pending: &mut Vec<MdnsEvent>) {
     }
 }
 
+/// Creates the main application window.
+///
+/// The window is created programmatically (rather than via `tauri.conf.json`)
+/// so its decoration state can be decided at creation time, which is the only
+/// point at which it reliably takes effect: Wayland/GTK and X11 do not honor
+/// runtime decoration changes once the window is mapped. Tiling Wayland
+/// compositors therefore start borderless, while every other session starts
+/// decorated.
+///
+/// On non-tiling Wayland the minimize/maximize/close buttons are dead after the
+/// window is created hidden and shown, unless the window is created maximized:
+/// a creation-time reconfigure wires the buttons up, avoiding any runtime
+/// toggle/cycle.
+#[cfg(desktop)]
+fn create_main_window(
+    app: &tauri::AppHandle,
+) -> Result<tauri::WebviewWindow, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    let wayland = webkit2gtk_nvidia_quirk::is_wayland_session();
+    #[cfg(target_os = "linux")]
+    let tiling = webkit2gtk_nvidia_quirk::is_tiling_compositor();
+    #[cfg(target_os = "linux")]
+    let decorate = !(wayland && tiling);
+    #[cfg(target_os = "linux")]
+    let start_maximized = wayland && !tiling;
+    #[cfg(not(target_os = "linux"))]
+    let decorate = true;
+    #[cfg(not(target_os = "linux"))]
+    let start_maximized = false;
+
+    let mut builder =
+        tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App("index.html".into()))
+            .title("zux — mDNS-SD Visualizer")
+            .inner_size(1200.0, 800.0)
+            .decorations(decorate)
+            .visible(false);
+    if start_maximized {
+        builder = builder.maximized(true);
+    }
+    let window = builder.build().map_err(|e| {
+        log::error!("Failed to create main window: {e}");
+        Box::new(e) as Box<dyn std::error::Error>
+    })?;
+    window.show().map_err(|e| {
+        log::error!("Failed to show main window: {e}");
+        Box::new(e) as Box<dyn std::error::Error>
+    })?;
+    Ok(window)
+}
+
 #[cfg(desktop)]
 pub fn run() {
     let cli = Cli::parse();
@@ -204,6 +254,15 @@ pub fn run() {
             can_auto_update,
             save_text_file
         ])
+        .setup(|app| {
+            // The main window is created programmatically (instead of via
+            // tauri.conf.json) so its decoration state can be set at creation
+            // time. Runtime decoration changes do not take effect on
+            // Wayland/GTK (and X11) once the window is mapped, so tiling
+            // Wayland compositors must start borderless from the start.
+            create_main_window(app.handle())?;
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
