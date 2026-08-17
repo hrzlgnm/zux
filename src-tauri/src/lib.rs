@@ -182,7 +182,9 @@ fn emit_batch(app: &tauri::AppHandle, pending: &mut Vec<MdnsEvent>) {
 /// a creation-time reconfigure wires the buttons up, avoiding any runtime
 /// toggle/cycle.
 #[cfg(desktop)]
-fn create_main_window(app: &tauri::AppHandle) -> Result<tauri::WebviewWindow, tauri::Error> {
+fn create_main_window(
+    app: &tauri::AppHandle,
+) -> Result<tauri::WebviewWindow, Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     let wayland = webkit2gtk_nvidia_quirk::is_wayland_session();
     #[cfg(target_os = "linux")]
@@ -207,11 +209,11 @@ fn create_main_window(app: &tauri::AppHandle) -> Result<tauri::WebviewWindow, ta
     }
     let window = builder.build().map_err(|e| {
         log::error!("Failed to create main window: {e}");
-        e
+        Box::new(e) as Box<dyn std::error::Error>
     })?;
     window.show().map_err(|e| {
         log::error!("Failed to show main window: {e}");
-        e
+        Box::new(e) as Box<dyn std::error::Error>
     })?;
     Ok(window)
 }
