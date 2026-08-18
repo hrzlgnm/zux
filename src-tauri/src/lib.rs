@@ -46,6 +46,22 @@ struct Cli {
     /// Log to file in the OS-specific log directory
     #[arg(long)]
     log_to_file: bool,
+    #[cfg(target_os = "linux")]
+    /// Disable dmabuf renderer, useful when having rendering issues
+    #[arg(short = 'd', long)]
+    disable_dmabuf_renderer: bool,
+    #[cfg(target_os = "linux")]
+    /// Disable NVIDIA explicit sync even if NVIDIA is not detected
+    #[arg(short = 'e', long)]
+    disable_nv_explicit_sync: bool,
+    #[cfg(target_os = "linux")]
+    /// Disable all NVIDIA workarounds entirely
+    #[arg(short = 'n', long)]
+    no_nvidia_workaround: bool,
+    #[cfg(target_os = "linux")]
+    /// Print diagnostic notes when applying an NVIDIA workaround
+    #[arg(short = 'v', long)]
+    nvidia_workaround_verbose: bool,
 }
 
 #[tauri::command]
@@ -225,9 +241,13 @@ pub fn run() {
 
     #[cfg(target_os = "linux")]
     {
-        webkit2gtk_nvidia_quirk::apply_workaround_with_options(
-            webkit2gtk_nvidia_quirk::ApplyWorkaroundOptions::default(),
-        );
+        if !cli.no_nvidia_workaround {
+            let options = webkit2gtk_nvidia_quirk::ApplyWorkaroundOptions::default()
+                .force_disable_dmabuf(cli.disable_dmabuf_renderer)
+                .force_disable_nv_explicit_sync(cli.disable_nv_explicit_sync)
+                .verbose(cli.nvidia_workaround_verbose);
+            webkit2gtk_nvidia_quirk::apply_workaround_with_options(options);
+        }
     }
 
     let mut log_builder = tauri_plugin_log::Builder::new()
