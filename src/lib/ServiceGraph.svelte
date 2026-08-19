@@ -163,6 +163,7 @@
         if (nodeMatchesQuery(n, q)) matchingIds.add(n.id)
       }
     }
+    const isServiceType = (id: string) => allNodes.get(id)?.group === 'service-type'
 
     const neighborIds = new SvelteSet<string>(matchingIds)
     if (q.length > 0) {
@@ -172,8 +173,10 @@
         if (matchingIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from)
       }
       for (const e of allEdges.values()) {
-        if (neighborIds.has(e.from) && !matchingIds.has(e.to)) neighborIds.add(e.to)
-        if (neighborIds.has(e.to) && !matchingIds.has(e.from)) neighborIds.add(e.from)
+        if (neighborIds.has(e.from) && !matchingIds.has(e.to) && !isServiceType(e.from))
+          neighborIds.add(e.to)
+        if (neighborIds.has(e.to) && !matchingIds.has(e.from) && !isServiceType(e.to))
+          neighborIds.add(e.from)
       }
     }
 
