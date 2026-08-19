@@ -268,6 +268,25 @@ fn clean_hostname(hostname: &str) -> String {
         .to_string()
 }
 
+fn url_hostname(hostname: &str) -> String {
+    let host = clean_hostname(hostname);
+    let host = host.strip_suffix(".local").unwrap_or(&host);
+    format!("{host}.local")
+}
+
+fn format_url(scheme: &str, host: &str, port: u16, path: &str) -> String {
+    let default_port = match scheme {
+        "http" => Some(80),
+        "https" => Some(443),
+        _ => None,
+    };
+    if default_port == Some(port) {
+        format!("{scheme}://{host}{path}")
+    } else {
+        format!("{scheme}://{host}:{port}{path}")
+    }
+}
+
 fn derive_urls(
     info: &ResolvedService,
     txt: &HashMap<String, String>,
@@ -292,8 +311,8 @@ fn derive_urls(
         } else {
             "http"
         };
-        let host = clean_hostname(info.get_hostname());
-        urls.push(format!("{scheme}://{host}:{port}{path}"));
+        let host = url_hostname(info.get_hostname());
+        urls.push(format_url(scheme, &host, port, path));
         for a in addresses {
             let ip = &a.ip;
             if ip.starts_with("fe80:") || ip.starts_with("FE80:") {
@@ -304,7 +323,7 @@ fn derive_urls(
             } else {
                 ip.to_string()
             };
-            let u = format!("{scheme}://{addr_str}:{port}{path}");
+            let u = format_url(scheme, &addr_str, port, path);
             if !urls.contains(&u) {
                 urls.push(u);
             }
@@ -383,4 +402,51 @@ fn keep_address(ip: &ScopedIp) -> bool {
 
 fn extract_instance_id(fullname: &str) -> Option<String> {
     fullname.split('.').next().map(|s| s.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format_url_omits_default_port() {
+        assert_eq!(
+            format_url("http", "printer.local", 80, "/ipp"),
+            "http://printer.local/ipp"
+        );
+        assert_eq!(
+            format_url("https", "printer.local", 443, "/"),
+            "https://printer.local/"
+        );
+    }
+
+    #[test]
+    fn format_url_keeps_non_default_port() {
+        assert_eq!(
+            format_url("http", "printer.local", 8080, "/"),
+            "http://printer.local:8080/"
+        );
+        assert_eq!(
+            format_url("https", "printer.local", 8443, "/ipp"),
+            "https://printer.local:8443/ipp"
+        );
+    }
+
+    #[test]
+    fn format_url_brackets_ipv6() {
+        assert_eq!(format_url("https", "[::1]", 443, "/"), "https://[::1]/");
+        assert_eq!(format_url("http", "[::1]", 8080, "/"), "http://[::1]:8080/");
+    }
+
+    #[test]
+    fn clean_hostname_strips_local_domain() {
+        assert_eq!(clean_hostname("printer.local."), "printer");
+        assert_eq!(clean_hostname("printer.local"), "printer.local");
+    }
+
+    #[test]
+    fn url_hostname_keeps_local_domain() {
+        assert_eq!(url_hostname("printer.local."), "printer.local");
+        assert_eq!(url_hostname("printer.local"), "printer.local");
+    }
 }
