@@ -287,127 +287,6 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-#[cfg(any(mobile, test))]
-fn compare_versions(
-    fetched: &str,
-    current: &str,
-) -> Result<std::cmp::Ordering, Box<dyn std::error::Error>> {
-    let fetched = semver::Version::parse(fetched.strip_prefix('v').unwrap_or(fetched))?;
-    let current = semver::Version::parse(current)?;
-    Ok(fetched.cmp(&current))
-}
-
-#[cfg(mobile)]
-mod autoupdate {
-    use serde::Serialize;
-    use std::sync::Mutex;
-    use tauri::{AppHandle, State};
-    use tauri_plugin_opener::OpenerExt;
-
-    use crate::compare_versions;
-
-    const LATEST_JSON_URL: &str =
-        "https://github.com/hrzlgnm/zux/releases/latest/download/latest.json";
-    const GITHUB_RELEASES_URL: &str = "https://github.com/hrzlgnm/zux/releases/latest";
-
-    #[derive(Clone, Serialize, Debug, PartialEq)]
-    #[serde(rename_all = "camelCase")]
-    pub struct UpdateMetadata {
-        pub version: String,
-        pub current_version: String,
-    }
-
-    #[derive(Clone)]
-    pub struct PendingUpdate {
-        pub version: String,
-    }
-
-    pub struct PendingUpdateInfo(pub Mutex<Option<PendingUpdate>>);
-
-    #[derive(serde::Deserialize)]
-    struct LatestJson {
-        version: String,
-    }
-
-    #[tauri::command]
-    pub async fn fetch_update(
-        app: AppHandle,
-        pending_update: State<'_, PendingUpdateInfo>,
-    ) -> Result<Option<UpdateMetadata>, String> {
-        let body = reqwest::get(LATEST_JSON_URL)
-            .await
-            .map_err(|e| {
-                log::error!("[updater] failed to fetch latest release info: {e}");
-                format!("failed to fetch latest release info: {e}")
-            })?
-            .text()
-            .await
-            .map_err(|e| {
-                log::error!("[updater] failed to read latest release info: {e}");
-                format!("failed to read latest release info: {e}")
-            })?;
-        let latest_json: LatestJson = serde_json::from_str(&body).map_err(|e| {
-            log::error!("[updater] failed to parse latest release info: {e}");
-            format!("failed to parse latest release info: {e}")
-        })?;
-        let latest_version = latest_json.version.trim_start_matches('v').to_string();
-        let current_version = app.package_info().version.to_string();
-
-        let ordering = compare_versions(&latest_json.version, &current_version).map_err(|e| {
-            log::error!("[updater] failed to compare release versions: {e}");
-            format!("failed to compare release versions: {e}")
-        })?;
-
-        match ordering {
-            std::cmp::Ordering::Greater => {
-                log::info!("[updater] update {latest_version} found");
-                *pending_update.0.lock().expect("To lock") = Some(PendingUpdate {
-                    version: latest_version.clone(),
-                });
-                Ok(Some(UpdateMetadata {
-                    version: latest_version,
-                    current_version,
-                }))
-            }
-            _ => {
-                log::info!("[updater] app is up to date ({current_version})");
-                *pending_update.0.lock().expect("To lock") = None;
-                Ok(None)
-            }
-        }
-    }
-
-    #[tauri::command]
-    pub async fn install_update(
-        app: AppHandle,
-        pending_update: State<'_, PendingUpdateInfo>,
-    ) -> Result<(), String> {
-        let pending = pending_update
-            .0
-            .lock()
-            .expect("To lock")
-            .as_ref()
-            .cloned()
-            .ok_or_else(|| "there is no pending update".to_string())?;
-
-        let releases_url = GITHUB_RELEASES_URL;
-        log::info!(
-            "[updater] opening releases page for update {}: {}",
-            pending.version,
-            releases_url
-        );
-        app.opener()
-            .open_url(releases_url.to_string(), None::<String>)
-            .map_err(|e| {
-                log::error!("[updater] failed to open releases page: {e:?}");
-                format!("failed to open releases page: {e:?}")
-            })?;
-
-        log::info!("[updater] releases page opened, user can download APK manually");
-        Ok(())
-    }
-}
-
 #[cfg(mobile)]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run_mobile() {
@@ -423,49 +302,18 @@ pub fn run_mobile() {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(
+            tauri_plugin_android_update::Builder::new()
+                .owner("hrzlgnm")
+                .repo("zux")
+                .build(),
+        )
         .manage(Mutex::new(browser))
-        .manage(autoupdate::PendingUpdateInfo(std::sync::Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             start_discovery,
             can_auto_update,
-            save_text_file,
-            autoupdate::fetch_update,
-            autoupdate::install_update
+            save_text_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[cfg(test)]
-mod tests {
-    use super::compare_versions;
-    use std::cmp::Ordering;
-
-    #[test]
-    fn fetched_version_older_than_installed_is_not_an_update() {
-        assert_eq!(compare_versions("1.9.0", "2.0.0").unwrap(), Ordering::Less);
-    }
-
-    #[test]
-    fn fetched_version_equal_to_installed_is_not_an_update() {
-        assert_eq!(compare_versions("2.0.0", "2.0.0").unwrap(), Ordering::Equal);
-    }
-
-    #[test]
-    fn fetched_version_newer_than_installed_is_an_update() {
-        assert_eq!(
-            compare_versions("2.0.1", "2.0.0").unwrap(),
-            Ordering::Greater
-        );
-        assert_eq!(
-            compare_versions("v2.0.1", "2.0.0").unwrap(),
-            Ordering::Greater
-        );
-    }
-
-    #[test]
-    fn fetched_version_malformed_is_rejected() {
-        assert!(compare_versions("not-a-version", "2.0.0").is_err());
-        assert!(compare_versions("vv2.0.1", "2.0.0").is_err());
-    }
 }

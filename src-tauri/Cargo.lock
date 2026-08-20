@@ -4180,6 +4180,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-android-update"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fa57e10f2256473d65f8aec162112dafa4d6edf0046b565b2d8916b4cd52a4b"
+dependencies = [
+ "log",
+ "reqwest 0.12.28",
+ "semver",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-opener",
+]
+
+[[package]]
 name = "tauri-plugin-dialog"
 version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5933,12 +5949,11 @@ dependencies = [
  "clap",
  "log",
  "mdns-sd",
- "reqwest 0.12.28",
- "semver",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri-plugin-android-update",
  "tauri-plugin-dialog",
  "tauri-plugin-log",
  "tauri-plugin-opener",
