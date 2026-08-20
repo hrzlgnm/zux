@@ -48,14 +48,14 @@
       const canUpdate = await invoke<boolean>('can_auto_update')
       if (!canUpdate) return
       if (/Android/i.test(navigator.userAgent)) {
-        const update = await invoke<UpdateMeta | null>('fetch_update')
+        const update = await invoke<UpdateMeta | null>('plugin:android-update|check')
         if (!update) return
         const confirmed = await confirm(
           `A new version of zux (${update.version}) is available. Open the release page to download it?`,
           { title: 'Update available', kind: 'info' },
         )
         if (confirmed) {
-          await invoke('install_update')
+          await invoke('plugin:android-update|download_and_install')
         }
         return
       }

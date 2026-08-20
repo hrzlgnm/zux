@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile",
+  "description": "Mobile-only capabilities for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "android-update:default"
+  ],
+  "platforms": [
+    "android",
+    "iOS"
+  ]
+}
