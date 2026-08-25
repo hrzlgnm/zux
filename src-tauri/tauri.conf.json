@@ -35,10 +35,16 @@
     ],
     "createUpdaterArtifacts": true,
     "linux": {
+      "deb": {
+        "changelog": "../CHANGELOG.md"
+      },
       "rpm": {
         "compression": {
           "type": "xz",
           "level": 6
+        },
+        "files": {
+          "/usr/share/doc/zux/changelog": "../CHANGELOG.md"
         }
       }
     },
