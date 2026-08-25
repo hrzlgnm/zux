@@ -78,9 +78,8 @@ jobs:
               --title "chore: update unreleased changelog" \
               --body "Automated update of the \`[Unreleased]\` section in \`CHANGELOG.md\`.
 
-          This PR is created automatically on a nightly schedule
-          by running \`git-cliff\` without a version tag." \
-              --label ignore
+              This PR is created automatically on a nightly schedule
+          by running \`git-cliff\` without a version tag."
           fi
 
           gh pr merge "$BRANCH" --auto --squash
