@@ -19,7 +19,9 @@ body = """
     ## [Unreleased] {%- if commits and previous and previous.version %} [compare](https://github.com/hrzlgnm/zux/compare/{{ previous.version }}...HEAD){% endif %}\n
 {% endif -%}\
 {% for group, commits in commits | group_by(attribute="group") %}\
-    {% if group == "Added" -%}\
+    {% if group == "Breaking" -%}\
+        ### Breaking Changes\n
+    {% elif group == "Added" -%}\
         ### Added\n
     {% elif group == "Fixed" -%}\
         ### Fixed\n
@@ -47,6 +49,8 @@ trim = true
 footer = ""
 # postprocessors to apply to the changelog
 postprocessors = [
+    # fix a misspelling carried over from historical commit messages
+    { pattern = 'throroughly', replace = 'thoroughly' },
     # remove duplicate (#NNN) PR refs already rendered as links ([#NNN](url))
     { pattern = '\s*\(#[0-9]+\)', replace = '' },
 ]
@@ -60,6 +64,11 @@ filter_unconventional = true
 split_commits = false
 # regex for parsing and grouping commits
 commit_parsers = [
+    { message = "^feat!", group = "Breaking" },
+    { message = "^fix!", group = "Breaking" },
+    { message = "^refactor!", group = "Breaking" },
+    { message = "^perf!", group = "Breaking" },
+    { message = "^chore!", group = "Breaking" },
     { message = "^\\w+\\(ci\\)", group = "Maintenance" },
     { message = "^feat", group = "Added" },
     { message = "^fix\\(deps\\)", group = "Dependencies" },
@@ -89,6 +98,7 @@ commit_parsers = [
     { message = "^security", group = "Security" },
     { message = "^GHSA-", group = "Security" },
     { message = "^Bump version", skip = true },
+    { message = ".*", group = "Miscellaneous" },
 ]
 # protect breaking commits from being skipped
 protect_breaking_commits = true
