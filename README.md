@@ -57,6 +57,10 @@ services from a terminal, take a look at
         - [include-non-link-local-ipv6](#include-non-link-local-ipv6)
         - [log-level](#log-level)
         - [log-to-file](#log-to-file)
+        - [disable-dmabuf-renderer](#disable-dmabuf-renderer)
+        - [disable-nv-explicit-sync](#disable-nv-explicit-sync)
+        - [no-nvidia-workaround](#no-nvidia-workaround)
+        - [nvidia-workaround-verbose](#nvidia-workaround-verbose)
     - [Where to find the executables?](#where-to-find-the-executables)
         - [GitHub Releases](#github-releases)
         - [WinGet installation](#winget-installation)
@@ -82,6 +86,10 @@ Options:
   -I, --include-non-link-local-ipv6  Include non-link-local IPv6 addresses (global and ULA)
       --log-level <LOG_LEVEL>        Log level (trace, debug, info, warn, error) [default: info]
       --log-to-file                  Log to file in the OS-specific log directory
+  -d, --disable-dmabuf-renderer      Disable dmabuf renderer (Linux only), useful when having rendering issues
+  -e, --disable-nv-explicit-sync     Disable NVIDIA explicit sync even if NVIDIA is not detected (Linux only)
+  -n, --no-nvidia-workaround         Disable all NVIDIA workarounds entirely (Linux only)
+  -v, --nvidia-workaround-verbose    Print diagnostic notes when applying an NVIDIA workaround (Linux only)
   -h, --help                         Print help
   -V, --version                      Print version
 ```
@@ -108,6 +116,22 @@ If enabled, a log file will be created in a platform-specific location:
 
 The log file will be named `zux.log` and will contain log messages with a log-level having
 at least the level specified by the `log-level` option.
+
+### disable-dmabuf-renderer
+
+Disable the dmabuf renderer. Useful when having rendering issues (Linux only).
+
+### disable-nv-explicit-sync
+
+Disable NVIDIA explicit sync even if NVIDIA is not detected (Linux only).
+
+### no-nvidia-workaround
+
+Disable all NVIDIA workarounds entirely (Linux only).
+
+### nvidia-workaround-verbose
+
+Print diagnostic notes when applying an NVIDIA workaround (Linux only).
 
 ## Where to find the executables?
 
