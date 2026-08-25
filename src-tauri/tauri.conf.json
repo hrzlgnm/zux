@@ -36,7 +36,10 @@
     "createUpdaterArtifacts": true,
     "linux": {
       "deb": {
-        "changelog": "../CHANGELOG.md"
+        "changelog": "../CHANGELOG.md",
+        "files": {
+          "/usr/share/man/man1/zux.1": "../docs/zux.1"
+        }
       },
       "rpm": {
         "compression": {
@@ -44,7 +47,8 @@
           "level": 6
         },
         "files": {
-          "/usr/share/doc/zux/changelog": "../CHANGELOG.md"
+          "/usr/share/doc/zux/changelog": "../CHANGELOG.md",
+          "/usr/share/man/man1/zux.1": "../docs/zux.1"
         }
       }
     },
