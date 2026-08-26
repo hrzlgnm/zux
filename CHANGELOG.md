@@ -5,7 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.6.6...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.7.1...HEAD)
+
+### Added
+
+- Gzip the SBOM workflow artifacts on publish ([#201](https://github.com/hrzlgnm/zux/pull/201))
+
+- Trigger snap release after a release is published ([#202](https://github.com/hrzlgnm/zux/pull/202))
+
+## [1.7.1] - 2026-08-25 [compare](https://github.com/hrzlgnm/zux/compare/v1.7.0...v1.7.1)
+
+### Changed
+
+- Require two-axis code review before completion ([#197](https://github.com/hrzlgnm/zux/pull/197))
+
+- Point README to webkit2gtk-nvidia-quirk tracing docs ([#200](https://github.com/hrzlgnm/zux/pull/200))
+
+### Dependencies
+
+- *(deps)* Update rust crate webkit2gtk-nvidia-quirk to v2.1.0 ([#198](https://github.com/hrzlgnm/zux/pull/198))
+
+- *(deps)* Lock file maintenance ([#199](https://github.com/hrzlgnm/zux/pull/199))
+
+## [1.7.0] - 2026-08-25 [compare](https://github.com/hrzlgnm/zux/compare/v1.6.6...v1.7.0)
 
 ### Added
 
