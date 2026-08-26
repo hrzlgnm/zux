@@ -5,7 +5,7 @@
 - Never use `${{ }}` expressions inside `run:` blocks. Pass them through `env:` instead and reference via shell variables.
 - Pin actions to commit SHAs with a `# vN` comment (e.g., `@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`).
 - Run `actionlint` after editing workflow files.
-- After making changes, run all CI checks locally: `cargo fmt` then `cargo clippy -- -D warnings` (in `src-tauri/`) and `pnpm run check`, `pnpm run lint`, and `pnpm exec prettier --check .`.
+- After making changes, run all CI checks locally: `cargo fmt` then `cargo clippy -- -D warnings` (in `src-tauri/`) and `pnpm run check`, `pnpm run lint`, `pnpm run test:e2e`, and `pnpm exec prettier --check .`. The e2e suite (`e2e/`) runs the app in a real browser via Playwright; install the browser once with `pnpm exec playwright install chromium`.
 - Run `cargo fmt` in `src-tauri/` before committing.
 - When adding or changing a tool used in the release workflow (e.g. via `baptiste0928/cargo-install` or `anchore/scan-action/download-grype`), keep `.github/workflows/cache-tools-reusable.yml` in sync so the tool/DB is cached for release runs.
 
@@ -57,7 +57,7 @@
 
 - Prefer a fine-grained commit history. Commits should be as small as possible while still being meaningful and self-contained.
 - Every commit must compile and pass all tests. No "WIP" commits, no commits that leave the tree broken and rely on a follow-up to fix it.
-- Every commit must be formatted and lint-clean. Run `cargo fmt`, `cargo clippy -- -D warnings` and `cargo test` (in `src-tauri/`), `pnpm run check`, `pnpm run lint`, and `pnpm exec prettier --check .` before committing — don't introduce a warning in one commit and rely on a later commit (or the user) to clean it up.
+- Every commit must be formatted and lint-clean. Run `cargo fmt`, `cargo clippy -- -D warnings` and `cargo test` (in `src-tauri/`), `pnpm run check`, `pnpm run lint`, `pnpm run test:e2e`, and `pnpm exec prettier --check .` before committing — don't introduce a warning in one commit and rely on a later commit (or the user) to clean it up.
 - Commit messages explain why, not what. The diff already shows what changed; the message should capture the motivation, the constraint, or the bug being fixed. If the reason is obvious from a one-line subject, no body is needed — but never paraphrase the diff.
 - Separate preparatory refactorings from behavior changes. If a fix or feature is easier to review after a refactor, land the refactor in its own commit first. Pure refactors should be behavior-preserving; the commit that changes behavior should be as small as possible. This applies even when the refactor only becomes apparent while writing the behavior change — e.g. you extract a helper to avoid duplication. Don't let "I discovered it mid-change" excuse bundling it in. Before committing, review your diff and split out any hunk that is behavior-preserving (an extraction, a rename, a move) into a preceding commit, by staging hunks or resetting and recommitting in order.
 - Wrap the message body to 72 characters. The subject is allowed to go up to 80 characters, or a little more if needed to convey a good single-line summary; the body should be wrapped at 72 exactly.
