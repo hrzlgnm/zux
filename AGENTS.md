@@ -16,7 +16,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 | Filter | Working directory | Command |
 | --- | --- | --- |
 | `rust` | `src-tauri/` | `cargo clippy -- -D warnings` |
-| `fmt` | `src-tauri/` | `cargo fmt` |
+| `fmt` | `src-tauri/` | `cargo fmt --check` |
 | `tests` | `src-tauri/` | `cargo test` |
 | `lint` | repository root | `pnpm run lint` |
 | `prettier` | repository root | `pnpm run format:check` |
@@ -47,7 +47,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 - Log through `log`; use `log::debug!` for debug messages.
 - Structs derive `Clone, Serialize, Debug, PartialEq`; enums derive `Clone, Serialize, Debug`.
 - Tagged enums use `#[serde(tag = "type", content = "data")]` and `#[serde(rename = "kebab-case")]` on variants.
-- CLI types derive `clap::Parser`; expose only long-form `--` arguments and use snake_case fields.
+- CLI types derive `clap::Parser`; use snake_case fields. Preserve existing short aliases (`-I`, `-d`, `-e`, `-n`, `-v`); prefer long-form-only for new flags.
 
 ## JavaScript / TypeScript / Svelte
 
