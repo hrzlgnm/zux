@@ -1,7 +1,9 @@
 import { writable, derived, get } from 'svelte/store'
+import { isTauri } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { Store } from '@tauri-apps/plugin-store'
 import type { Network } from 'vis-network'
-import type { GraphNode, GraphEdge, PhysicsConfig, MdnsEvent } from './types'
+import type { GraphNode, GraphEdge, PhysicsConfig, MdnsEvent, Solver } from './types'
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map())
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map())
@@ -11,14 +13,51 @@ export const serviceTypes = writable<Set<string>>(new Set())
 export const filterQuery = writable<string>('')
 export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
 
-export const physicsConfig = writable<PhysicsConfig>({
+export const defaultPhysicsConfig: PhysicsConfig = {
   solver: 'repulsion',
   gravitationalConstant: -100,
   centralGravity: 0.005,
   springLength: 75,
   springConstant: 0.05,
   damping: 0.4,
-})
+}
+
+export const physicsConfig = writable<PhysicsConfig>(defaultPhysicsConfig)
+
+const PHYSICS_STORE_FILE = 'physics-config.json'
+const PHYSICS_CONFIG_KEY = 'physicsConfig'
+const SOLVERS: Solver[] = ['forceAtlas2Based', 'barnesHut', 'repulsion', 'hierarchicalRepulsion']
+
+function loadPhysicsStore() {
+  return Store.load(PHYSICS_STORE_FILE)
+}
+
+async function savePhysicsConfig(cfg: PhysicsConfig) {
+  if (!isTauri()) return
+  try {
+    const store = await loadPhysicsStore()
+    await store.set(PHYSICS_CONFIG_KEY, cfg)
+    await store.save()
+  } catch (e) {
+    console.log('[zux] failed to save physics config:', e)
+  }
+}
+
+export async function initPhysicsConfig() {
+  if (!isTauri()) return
+  try {
+    const store = await loadPhysicsStore()
+    const saved = await store.get<PhysicsConfig>(PHYSICS_CONFIG_KEY)
+    if (saved) {
+      const merged: PhysicsConfig = { ...defaultPhysicsConfig, ...saved }
+      if (!SOLVERS.includes(merged.solver)) merged.solver = defaultPhysicsConfig.solver
+      physicsConfig.set(merged)
+    }
+    physicsConfig.subscribe((cfg) => void savePhysicsConfig(cfg))
+  } catch (e) {
+    console.log('[zux] failed to load physics config:', e)
+  }
+}
 
 export function clearGraph() {
   graphNodes.set(new Map())

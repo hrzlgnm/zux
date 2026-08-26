@@ -6,7 +6,7 @@
   import { confirm } from '@tauri-apps/plugin-dialog'
   import { relaunch } from '@tauri-apps/plugin-process'
   import { check } from '@tauri-apps/plugin-updater'
-  import { setupEventListeners, clearGraph, seedPreviewData } from '$lib/store'
+  import { setupEventListeners, clearGraph, seedPreviewData, initPhysicsConfig } from '$lib/store'
   import ServiceGraph from '$lib/ServiceGraph.svelte'
   import Sidebar from '$lib/Sidebar.svelte'
   import NodeDetail from '$lib/NodeDetail.svelte'
@@ -16,6 +16,7 @@
 
   onMount(async () => {
     if (isTauri()) {
+      void initPhysicsConfig()
       try {
         const fn = await setupEventListeners()
         if (mounted) {

@@ -24,6 +24,7 @@
     "@tauri-apps/plugin-dialog": "^2.7.2",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-store": "^2",
     "@tauri-apps/plugin-updater": "^2.10.1",
     "vis-data": "^8.0.4",
     "vis-network": "^10.1.0"

@@ -268,6 +268,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .manage(Mutex::new(browser))
         .invoke_handler(tauri::generate_handler![
             start_discovery,
@@ -308,6 +309,7 @@ pub fn run_mobile() {
                 .repo("zux")
                 .build(),
         )
+        .plugin(tauri_plugin_store::Builder::new().build())
         .manage(Mutex::new(browser))
         .invoke_handler(tauri::generate_handler![
             start_discovery,
