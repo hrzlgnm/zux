@@ -75,20 +75,33 @@ async function persistPhysicsConfig(cfg: PhysicsConfig) {
   }
 }
 
+function configEquals(a: PhysicsConfig, b: PhysicsConfig): boolean {
+  return (
+    a.solver === b.solver &&
+    a.gravitationalConstant === b.gravitationalConstant &&
+    a.centralGravity === b.centralGravity &&
+    a.springLength === b.springLength &&
+    a.springConstant === b.springConstant &&
+    a.damping === b.damping
+  )
+}
+
 export async function initPhysicsConfig() {
   if (!isTauri()) return
+  let firstEmit = true
+  physicsConfig.subscribe((cfg) => {
+    if (firstEmit) {
+      firstEmit = false
+      return
+    }
+    savePhysicsConfig(cfg)
+  })
   try {
     const store = await loadPhysicsStore()
     const saved = await store.get<PhysicsConfig>(PHYSICS_CONFIG_KEY)
-    if (saved) physicsConfig.set(sanitizePhysicsConfig(saved))
-    let firstEmit = true
-    physicsConfig.subscribe((cfg) => {
-      if (firstEmit) {
-        firstEmit = false
-        return
-      }
-      savePhysicsConfig(cfg)
-    })
+    if (saved && configEquals(get(physicsConfig), defaultPhysicsConfig)) {
+      physicsConfig.set(sanitizePhysicsConfig(saved))
+    }
   } catch (e) {
     console.log('[zux] failed to load physics config:', e)
   }
