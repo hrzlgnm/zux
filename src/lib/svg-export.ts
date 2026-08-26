@@ -133,18 +133,28 @@ interface VisBody {
   nodes?: Record<string, { id: IdType; group?: string; options?: Record<string, unknown> }>
   edges?: Record<
     string,
-    { id: IdType; fromId: IdType; toId: IdType; options?: Record<string, unknown>; edgeType?: { getViaNode?(): Position } }
+    {
+      id: IdType
+      fromId: IdType
+      toId: IdType
+      options?: Record<string, unknown>
+      edgeType?: { getViaNode?(): Position }
+    }
   >
 }
 
 type RawNode = Node & { id: IdType }
 type RawEdge = Edge & { id: IdType; from: IdType; to: IdType }
 
-function extractNodeData(n: { id: IdType; group?: string; options?: Record<string, unknown> }): RawNode {
+function extractNodeData(n: {
+  id: IdType
+  group?: string
+  options?: Record<string, unknown>
+}): RawNode {
   const o = n.options ?? {}
   return {
     id: n.id,
-    group: (o.group as string | undefined) ?? (n.group as string | undefined),
+    group: (o.group as string | undefined) ?? n.group,
     hidden: o.hidden as boolean | undefined,
     shape: o.shape as string | undefined,
     color: o.color as Node['color'],
@@ -152,7 +162,7 @@ function extractNodeData(n: { id: IdType; group?: string; options?: Record<strin
     borderWidth: o.borderWidth as number | undefined,
     label: o.label as string | undefined,
     font: o.font as Node['font'],
-  } as RawNode
+  }
 }
 
 function extractEdgeData(e: {
@@ -169,7 +179,7 @@ function extractEdgeData(e: {
     dashes: o.dashes as boolean | undefined,
     color: o.color as string | undefined,
     width: o.width as number | undefined,
-  } as RawEdge
+  }
 }
 
 export async function exportGraphSvg(network: Network) {
