@@ -1,0 +1,68 @@
+.TH zux 1 "2026-08-25" "zux" "User Commands"
+.SH NAME
+zux \- mDNS-SD visualizer with force-directed graph
+.SH SYNOPSIS
+.B zux
+.RI [ OPTIONS ]
+.SH DESCRIPTION
+zux is an mDNS-SD visualizer. It automatically discovers all services advertised
+on your local network via multicast DNS service discovery (mDNS-SD), then renders
+them as an interactive force-directed graph so you can see at a glance which
+services, instances, hosts and addresses are present and how they relate to one
+another.
+.SH OPTIONS
+.TP
+.BI \-I , \-\-include\-non\-link\-local\-ipv6
+Include non-link-local IPv6 addresses (global and ULA)
+.TP
+.BI \-\-log\-level\ LOG_LEVEL
+Set log level [default: info] [possible values: trace, debug, info, warn, error]
+.TP
+.BI \-\-log\-to\-file
+Enable logging to file
+.TP
+.BI \-d , \-\-disable\-dmabuf\-renderer
+Disable dmabuf renderer (Linux only), useful when having rendering issues
+.TP
+.BI \-e , \-\-disable\-nv\-explicit\-sync
+Disable NVIDIA explicit sync even if NVIDIA is not detected (Linux only)
+.TP
+.BI \-n , \-\-no\-nvidia\-workaround
+Disable all NVIDIA workarounds entirely (Linux only)
+.TP
+.BI \-v , \-\-nvidia\-workaround\-verbose
+Print diagnostic notes when applying an NVIDIA workaround (Linux only)
+.TP
+.BI \-h , \-\-help
+Print help
+.TP
+.BI \-V , \-\-version
+Print version
+.SH LOGGING
+If enabled with --log-to-file, a log file will be created in a platform-specific location:
+.nf
+Linux: $XDG_DATA_HOME/com.github.hrzlgnm.zux/logs or $HOME/.local/share/com.github.hrzlgnm.zux/logs
+macOS: ~/Library/Logs/com.github.hrzlgnm.zux
+Windows: %LOCALAPPDATA%\\com.github.hrzlgnm.zux\\logs
+.fi
+The log file will be named zux.log and will contain log messages with a log-level having at least the level specified by the log-level option.
+.SH ENVIRONMENT
+.TP
+.B WEBKIT2GTK_NVIDIA_QUIRK_VERBOSE
+Controls diagnostic output of the underlying
+.B webkit2gtk\-nvidia\-quirk
+crate (Linux only).
+Set it to
+.B debug
+(or
+.BR trace ,
+.BR verbose ,
+or
+.B 2 )
+to print a full detection summary \(em session type, whether the primary GPU
+and NVIDIA driver are in use, the detected compositor, and the chosen
+workaround \(em in addition to the per\-workaround note printed by
+.B \-v /\-\-nvidia\-workaround\-verbose .
+See https://docs.rs/webkit2gtk-nvidia-quirk for the full list of accepted values.
+.SH REPORTING ISSUES
+Report bugs or issues at https://github.com/hrzlgnm/zux/issues

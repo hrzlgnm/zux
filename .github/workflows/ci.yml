@@ -16,12 +16,16 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       branch: ${{ steps.branch.outputs.branch }}
-      code: ${{ steps.filter.outputs.code }}
+      rust: ${{ steps.filter.outputs.rust }}
       aur: ${{ steps.filter.outputs.aur }}
       fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
+      prettier: ${{ steps.filter.outputs.prettier }}
       tests: ${{ steps.filter.outputs.tests }}
+      svelte-check: ${{ steps.filter.outputs.svelte-check }}
+      signer: ${{ steps.filter.outputs.signer }}
       winget: ${{ steps.filter.outputs.winget }}
+      e2e: ${{ steps.filter.outputs.e2e }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -32,20 +36,55 @@ jobs:
               - '.github/workflows/aur-reusable.yml'
               - '.github/actions/latest-release-info/action.yml'
               - 'packaging/aur/**'
-            code:
-              - 'src/**'
+            rust:
               - 'src-tauri/**'
-              - 'package.json'
-              - 'package-lock.json'
               - '.github/workflows/ci.yml'
             fmt:
               - 'src-tauri/**'
             lint:
+              - 'src/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'eslint.config.js'
+              - 'jsconfig.json'
+              - 'svelte.config.js'
               - '.github/workflows/ci.yml'
-              - '_typos.toml'
+            prettier:
+              - 'src/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'eslint.config.js'
+              - 'jsconfig.json'
+              - 'svelte.config.js'
+              - 'vite.config.js'
+              - '.prettierrc'
+              - '.prettierignore'
+              - '.github/workflows/ci.yml'
             tests:
               - 'src-tauri/**'
+              - '.github/workflows/ci.yml'
+            svelte-check:
               - 'src/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'jsconfig.json'
+              - 'svelte.config.js'
+              - '.github/workflows/ci.yml'
+            e2e:
+              - 'src/**'
+              - 'e2e/**'
+              - 'playwright.config.js'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'vite.config.js'
+              - 'svelte.config.js'
+              - 'jsconfig.json'
+              - '.github/workflows/ci.yml'
+            signer:
+              - 'src-tauri/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - '.github/workflows/ci.yml'
             winget:
               - '.github/workflows/winget-reusable.yml'
               - '.github/actions/latest-release-info/action.yml'
@@ -77,17 +116,17 @@ jobs:
   typos:
     name: 📝 Check typos
     if: always()
-    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@8984a8157c97612f08eb5363a6995e9497eee7fe # v2.5.5
+    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@1847f299d36e715acd93d4bc496b9faab29a4c94 # v2.6.0
 
   actionlint:
     name: 🔬 Check workflows
     if: always()
-    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@8984a8157c97612f08eb5363a6995e9497eee7fe # v2.5.5
+    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@1847f299d36e715acd93d4bc496b9faab29a4c94 # v2.6.0
 
   clippy:
     name: "🔍 Clippy"
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     env:
       RUSTFLAGS: "-D warnings"
@@ -131,21 +170,70 @@ jobs:
         run: cargo fmt --check
         working-directory: src-tauri
 
-  svelte-check:
-    name: "🔍 Svelte check"
+  prettier:
+    name: "🎨 Prettier"
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.prettier == 'true'
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: ⚡ Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 24
+          persist-credentials: false
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
       - name: 📦 Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+      - name: 🎨 Check formatting
+        run: pnpm run format:check
+
+  eslint:
+    name: "🧹 Lint"
+    needs: [changes]
+    if: needs.changes.outputs.lint == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 🧹 Lint
+        run: pnpm run lint
+
+  svelte-check:
+    name: "🔍 Svelte check"
+    needs: [changes]
+    if: needs.changes.outputs.svelte-check == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: 🔍 Check
-        run: npm run check
+        run: pnpm run check
 
   tests:
     name: "🧪 Tests"
@@ -194,24 +282,59 @@ jobs:
           include_passed: true
           check_name: "JUnit Report"
 
+  e2e:
+    name: "🎭 E2E tests"
+    needs: [changes]
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 🎭 Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: 🧪 Run Playwright tests
+        run: pnpm run test:e2e
+      - name: 📋 Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   signer-check:
     name: "🔐 Signer check"
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.signer == 'true'
     env:
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: ⚡ Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
-          node-version: 24
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
       - name: 📦 Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: 🔍 Check
-        run: npm run tauri signer sign package.json
+        run: pnpm run tauri signer sign package.json
 
   cache-tools:
     needs: [clippy, fmt, svelte-check, signer-check]
@@ -221,7 +344,7 @@ jobs:
 
   alls-green:
     if: always()
-    needs: [changes, actionlint, aur, typos, clippy, fmt, tests, svelte-check, signer-check, cache-tools, winget]
+    needs: [changes, actionlint, aur, typos, clippy, fmt, prettier, eslint, tests, svelte-check, signer-check, cache-tools, winget, e2e]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
@@ -230,9 +353,12 @@ jobs:
             aur,
             clippy,
             fmt,
+            prettier,
+            eslint,
             tests,
             svelte-check,
             signer-check,
             cache-tools,
             winget,
+            e2e,
           jobs: ${{ toJSON(needs) }}

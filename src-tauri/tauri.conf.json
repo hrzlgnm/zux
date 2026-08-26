@@ -4,19 +4,12 @@
   "version": "0.1.0",
   "identifier": "com.github.hrzlgnm.zux",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "pnpm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "pnpm run build",
     "frontendDist": "../build"
   },
   "app": {
-    "windows": [
-      {
-        "title": "zux — mDNS-SD Visualizer",
-        "width": 1200,
-        "height": 800
-      }
-    ],
     "security": {
       "csp": null
     }
@@ -43,16 +36,29 @@
     "createUpdaterArtifacts": true,
     "linux": {
       "deb": {
+        "changelog": "../CHANGELOG.md",
         "files": {
-          "/usr/share/licenses/zux/LICENSE": "../LICENSE",
-          "/usr/share/doc/zux/copyright": "../LICENSE"
+          "/usr/share/man/man1/zux.1": "../docs/zux.1"
         }
       },
       "rpm": {
+        "compression": {
+          "type": "xz",
+          "level": 6
+        },
         "files": {
-          "/usr/share/licenses/zux/LICENSE": "../LICENSE"
+          "/usr/share/doc/zux/changelog": "../CHANGELOG.md",
+          "/usr/share/man/man1/zux.1": "../docs/zux.1"
         }
       }
+    },
+    "windows": {
+      "certificateThumbprint": "4f3cc75f545c898d57c5cc4349873a3bff8d4527",
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com"
+    },
+    "macOS": {
+      "signingIdentity": "-"
     }
   },
   "plugins": {

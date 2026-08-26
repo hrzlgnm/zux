@@ -1,12 +1,15 @@
-use mdns_sd::{IfKind, ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
+use mdns_sd::{Error, IfKind, ResolvedService, ScopedIp, ServiceDaemon, ServiceEvent};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tauri::async_runtime::spawn;
 use tokio::sync::broadcast;
 use url::Url;
 
 const EVENT_CHANNEL_CAPACITY: usize = 8192;
+const BROWSE_RETRY_DELAY: Duration = Duration::from_millis(20);
+const BROWSE_RETRY_ATTEMPTS: usize = 100;
 
 #[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct AddressInfo {
@@ -43,7 +46,7 @@ pub struct MdnsBrowser {
     tx: broadcast::Sender<MdnsEvent>,
     active_browses: Arc<Mutex<HashMap<String, bool>>>,
     seen_instances: Arc<Mutex<HashMap<String, ServiceDiscovered>>>,
-    filter_non_link_local: bool,
+    link_local_only: bool,
 }
 
 impl MdnsBrowser {
@@ -54,14 +57,14 @@ impl MdnsBrowser {
         Ok(())
     }
 
-    pub fn new(filter_non_link_local: bool) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(link_local_only: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         Ok(Self {
             daemon: None,
             tx,
             active_browses: Arc::new(Mutex::new(HashMap::new())),
             seen_instances: Arc::new(Mutex::new(HashMap::new())),
-            filter_non_link_local,
+            link_local_only,
         })
     }
 
@@ -81,8 +84,8 @@ impl MdnsBrowser {
         self.daemon = Some(daemon);
         let (tx, _) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
         self.tx = tx;
-        self.active_browses.lock().unwrap().clear();
-        self.seen_instances.lock().unwrap().clear();
+        self.active_browses = Arc::new(Mutex::new(HashMap::new()));
+        self.seen_instances = Arc::new(Mutex::new(HashMap::new()));
         Ok(())
     }
 
@@ -95,7 +98,7 @@ impl MdnsBrowser {
         let daemon = daemon.clone();
         let active_browses = self.active_browses.clone();
         let seen_instances = self.seen_instances.clone();
-        let filter_non_link_local = self.filter_non_link_local;
+        let link_local_only = self.link_local_only;
 
         spawn(async move {
             while let Ok(event) = enum_rx.recv_async().await {
@@ -138,59 +141,85 @@ impl MdnsBrowser {
                         continue;
                     }
 
-                    match daemon.browse(&service_type) {
-                        Ok(type_rx) => {
-                            let tx2 = tx.clone();
-                            let seen = seen_instances.clone();
-                            let filter = filter_non_link_local;
-                            spawn(async move {
-                                while let Ok(ev) = type_rx.recv_async().await {
-                                    match ev {
-                                        ServiceEvent::ServiceResolved(svc) => {
-                                            let discovered = resolved_to_discovered(&svc, filter);
-                                            let id = discovered.id.clone();
-                                            let mut cache = seen.lock().unwrap();
-                                            if let Some(prev) = cache.get(&id)
-                                                && *prev == discovered
-                                            {
-                                                log::debug!("unchanged: {}", discovered.name);
-                                                continue;
-                                            }
-                                            log::debug!("resolved: {}", discovered.name);
-                                            cache.insert(id, discovered.clone());
-                                            drop(cache);
-                                            let _ = tx2.send(MdnsEvent::Added(discovered));
-                                        }
-                                        ServiceEvent::ServiceRemoved(st, fullname) => {
-                                            log::debug!("removed: {fullname}");
-                                            let id = extract_instance_id(&fullname);
-                                            if let Some(ref instid) = id {
-                                                seen.lock().unwrap().remove(instid);
-                                            }
-                                            let _ = tx2.send(MdnsEvent::Removed {
-                                                id: id.unwrap_or(fullname),
-                                                service_type: st,
-                                            });
-                                        }
-                                        ServiceEvent::SearchStopped(_) => {
-                                            break;
-                                        }
-                                        _ => {}
+                    let tx2 = tx.clone();
+                    let seen = seen_instances.clone();
+                    let active = active_browses.clone();
+                    let daemon2 = daemon.clone();
+                    spawn(async move {
+                        let type_rx = match browse_with_retry(&daemon2, &service_type).await {
+                            Ok(rx) => rx,
+                            Err(_) => {
+                                active.lock().unwrap().remove(&service_type);
+                                return;
+                            }
+                        };
+                        while let Ok(ev) = type_rx.recv_async().await {
+                            match ev {
+                                ServiceEvent::ServiceResolved(svc) => {
+                                    let discovered = resolved_to_discovered(&svc, link_local_only);
+                                    let id = discovered.id.clone();
+                                    let mut cache = seen.lock().unwrap();
+                                    if let Some(prev) = cache.get(&id)
+                                        && *prev == discovered
+                                    {
+                                        log::debug!("unchanged: {}", discovered.name);
+                                        continue;
                                     }
+                                    log::debug!("resolved: {}", discovered.name);
+                                    cache.insert(id, discovered.clone());
+                                    drop(cache);
+                                    let _ = tx2.send(MdnsEvent::Added(discovered));
                                 }
-                                log::debug!("browse task for {service_type} ended");
-                            });
+                                ServiceEvent::ServiceRemoved(st, fullname) => {
+                                    log::debug!("removed: {fullname}");
+                                    let id = extract_instance_id(&fullname);
+                                    if let Some(ref instid) = id {
+                                        seen.lock().unwrap().remove(instid);
+                                    }
+                                    let _ = tx2.send(MdnsEvent::Removed {
+                                        id: id.unwrap_or(fullname),
+                                        service_type: st,
+                                    });
+                                }
+                                ServiceEvent::SearchStopped(_) => {
+                                    break;
+                                }
+                                _ => {}
+                            }
                         }
-                        Err(e) => {
-                            log::error!("browse error for {}: {}", service_type, e);
-                        }
-                    }
+                        log::debug!("browse task for {service_type} ended");
+                    });
                 }
             }
             log::debug!("enum service types task ended");
         });
 
         Ok(())
+    }
+}
+
+async fn browse_with_retry(
+    daemon: &ServiceDaemon,
+    service_type: &str,
+) -> Result<mdns_sd::Receiver<ServiceEvent>, Error> {
+    let mut calls = 0;
+    loop {
+        calls += 1;
+        match daemon.browse(service_type) {
+            Ok(rx) => return Ok(rx),
+            Err(Error::Again) if calls < BROWSE_RETRY_ATTEMPTS => {
+                log::warn!(
+                    "[mdns] browse {service_type} failed, retrying ({calls}/{BROWSE_RETRY_ATTEMPTS})"
+                );
+                tokio::time::sleep(BROWSE_RETRY_DELAY).await;
+            }
+            Err(e) => {
+                log::error!(
+                    "[mdns] giving up browsing {service_type} after {calls} browse attempts: {e}"
+                );
+                return Err(e);
+            }
+        }
     }
 }
 
@@ -239,6 +268,25 @@ fn clean_hostname(hostname: &str) -> String {
         .to_string()
 }
 
+fn url_hostname(hostname: &str) -> String {
+    let host = clean_hostname(hostname);
+    let host = host.strip_suffix(".local").unwrap_or(&host);
+    format!("{host}.local")
+}
+
+fn format_url(scheme: &str, host: &str, port: u16, path: &str) -> String {
+    let default_port = match scheme {
+        "http" => Some(80),
+        "https" => Some(443),
+        _ => None,
+    };
+    if default_port == Some(port) {
+        format!("{scheme}://{host}{path}")
+    } else {
+        format!("{scheme}://{host}:{port}{path}")
+    }
+}
+
 fn derive_urls(
     info: &ResolvedService,
     txt: &HashMap<String, String>,
@@ -263,8 +311,8 @@ fn derive_urls(
         } else {
             "http"
         };
-        let host = clean_hostname(info.get_hostname());
-        urls.push(format!("{scheme}://{host}:{port}{path}"));
+        let host = url_hostname(info.get_hostname());
+        urls.push(format_url(scheme, &host, port, path));
         for a in addresses {
             let ip = &a.ip;
             if ip.starts_with("fe80:") || ip.starts_with("FE80:") {
@@ -275,7 +323,7 @@ fn derive_urls(
             } else {
                 ip.to_string()
             };
-            let u = format!("{scheme}://{addr_str}:{port}{path}");
+            let u = format_url(scheme, &addr_str, port, path);
             if !urls.contains(&u) {
                 urls.push(u);
             }
@@ -297,10 +345,7 @@ fn derive_urls(
     urls
 }
 
-fn resolved_to_discovered(
-    info: &ResolvedService,
-    filter_non_link_local: bool,
-) -> ServiceDiscovered {
+fn resolved_to_discovered(info: &ResolvedService, link_local_only: bool) -> ServiceDiscovered {
     let fullname = info.get_fullname();
     let suffix = info.ty_domain.trim_end_matches('.');
     let name = fullname
@@ -317,7 +362,7 @@ fn resolved_to_discovered(
     let addresses: Vec<AddressInfo> = info
         .get_addresses()
         .iter()
-        .filter(|s| !filter_non_link_local || keep_address(s))
+        .filter(|s| !link_local_only || keep_address(s))
         .map(|s| {
             let interfaces: Vec<String> = match s {
                 ScopedIp::V4(v4) => v4
@@ -357,4 +402,51 @@ fn keep_address(ip: &ScopedIp) -> bool {
 
 fn extract_instance_id(fullname: &str) -> Option<String> {
     fullname.split('.').next().map(|s| s.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format_url_omits_default_port() {
+        assert_eq!(
+            format_url("http", "printer.local", 80, "/ipp"),
+            "http://printer.local/ipp"
+        );
+        assert_eq!(
+            format_url("https", "printer.local", 443, "/"),
+            "https://printer.local/"
+        );
+    }
+
+    #[test]
+    fn format_url_keeps_non_default_port() {
+        assert_eq!(
+            format_url("http", "printer.local", 8080, "/"),
+            "http://printer.local:8080/"
+        );
+        assert_eq!(
+            format_url("https", "printer.local", 8443, "/ipp"),
+            "https://printer.local:8443/ipp"
+        );
+    }
+
+    #[test]
+    fn format_url_brackets_ipv6() {
+        assert_eq!(format_url("https", "[::1]", 443, "/"), "https://[::1]/");
+        assert_eq!(format_url("http", "[::1]", 8080, "/"), "http://[::1]:8080/");
+    }
+
+    #[test]
+    fn clean_hostname_strips_local_domain() {
+        assert_eq!(clean_hostname("printer.local."), "printer");
+        assert_eq!(clean_hostname("printer.local"), "printer.local");
+    }
+
+    #[test]
+    fn url_hostname_keeps_local_domain() {
+        assert_eq!(url_hostname("printer.local."), "printer.local");
+        assert_eq!(url_hostname("printer.local"), "printer.local");
+    }
 }

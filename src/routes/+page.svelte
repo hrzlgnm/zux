@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
+  import '@fontsource-variable/inter'
   import { isTauri, invoke } from '@tauri-apps/api/core'
+  import type { UnlistenFn } from '@tauri-apps/api/event'
   import { confirm } from '@tauri-apps/plugin-dialog'
   import { relaunch } from '@tauri-apps/plugin-process'
   import { check } from '@tauri-apps/plugin-updater'
@@ -9,13 +11,35 @@
   import Sidebar from '$lib/Sidebar.svelte'
   import NodeDetail from '$lib/NodeDetail.svelte'
 
-  onMount(() => {
+  let unlisten: UnlistenFn | null = null
+  let mounted = true
+
+  onMount(async () => {
     if (isTauri()) {
-      setupEventListeners()
+      try {
+        const fn = await setupEventListeners()
+        if (mounted) {
+          unlisten = fn
+        } else {
+          fn()
+        }
+      } catch (e) {
+        console.log('[zux] failed to subscribe to mdns events:', e)
+      }
+      if (!mounted) return
       clearGraph()
       invoke('start_discovery').catch(() => {})
+      checkForUpdates()
     } else {
       seedPreviewData()
+    }
+  })
+
+  onDestroy(() => {
+    mounted = false
+    if (unlisten) {
+      unlisten()
+      unlisten = null
     }
   })
 
@@ -24,14 +48,14 @@
       const canUpdate = await invoke<boolean>('can_auto_update')
       if (!canUpdate) return
       if (/Android/i.test(navigator.userAgent)) {
-        const update = await invoke<UpdateMeta | null>('fetch_update')
+        const update = await invoke<UpdateMeta | null>('plugin:android-update|check')
         if (!update) return
         const confirmed = await confirm(
           `A new version of zux (${update.version}) is available. Open the release page to download it?`,
           { title: 'Update available', kind: 'info' },
         )
         if (confirmed) {
-          await invoke('install_update')
+          await invoke('plugin:android-update|download_and_install')
         }
         return
       }
@@ -58,10 +82,6 @@
     version: string
     currentVersion: string
   }
-
-  $effect(() => {
-    checkForUpdates()
-  })
 </script>
 
 <div class="layout">
@@ -78,6 +98,12 @@
     padding: 0;
     overflow: hidden;
     background: #1a1a2e;
+    font-family:
+      'Inter Variable',
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      sans-serif;
   }
   .layout {
     display: flex;

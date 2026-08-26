@@ -13,26 +13,57 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+    permissions:
+      contents: write # to create draft releases and upload the changelog artifact
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - name: 🏷️ Get version from tag
         shell: bash
         id: get_version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: 🚀 Ensure draft release exists
+      - name: 🧹 Delete pre-existing draft releases
+        uses: hugo19941994/delete-draft-releases@3f19a25abf2ce87850c2268938f98f14e4d3d1f1 # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Install git-cliff
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: git-cliff
+          version: 2.13.1
+          locked: true
+
+      - name: 📝 Generate CHANGELOG.md with git-cliff
+        run: |
+          git-cliff --config .github/cliff.toml --output CHANGELOG.md
+
+      - name: 📤 Upload versioned changelog artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: changelog
+          path: CHANGELOG.md
+
+      - name: 🗒️ Generate release body with git-cliff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
+
+      - name: 🚀 Create draft release
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          TITLE="zux ${GITHUB_REF_NAME}"
-          if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --title "$TITLE" --notes "" \
-              || echo "Release may have been created by parallel job, continuing..."
-          fi
+          gh release create "$TAG_NAME" \
+            --title "zux $TAG_NAME" \
+            --notes-file release-body.md \
+            --draft \
+            --latest=false
 
   release:
     needs: [draft-release]
@@ -60,10 +91,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: ⚡ Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
-          node-version: 24
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
 
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
@@ -77,7 +111,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: 📦 Install frontend dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: 🔧 Install cargo-edit
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
@@ -101,8 +135,22 @@ jobs:
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
-          artifact-name: "sbom.${{ matrix.os }}.spdx.json"
+          artifact-name: "sbom.${{ matrix.os }}.spdx.json.gz"
           current-version: ${{ needs.draft-release.outputs.version }}
+
+      - name: 🔑 Import windows signing certificate (windows only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+          Remove-Item -Path certificate -Recurse -Force
 
       - name: 🏗️ Build and publish plain binary
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
@@ -115,9 +163,36 @@ jobs:
           releaseName: "zux ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: false
           uploadPlainBinary: true
           args: ${{ matrix.args }} --no-bundle
+
+      - name: 🛡️ Attest build provenance (plain binary)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            src-tauri/target/**/release/zux
+            src-tauri/target/**/release/zux.exe
+
+      - name: 🛡️ Attest SBOM (plain binary)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            src-tauri/target/**/release/zux
+            src-tauri/target/**/release/zux.exe
+          sbom-path: sbom.spdx.json
+
+      - name: 📥 Download versioned changelog (linux bundles only)
+        if: matrix.os == 'ubuntu-22.04'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: changelog
+          path: changelog-artifact
+
+      - name: 📝 Replace CHANGELOG.md with the versioned changelog
+        if: matrix.os == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          cp changelog-artifact/CHANGELOG.md CHANGELOG.md
 
       - name: 📦 Build and publish bundles
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
@@ -130,10 +205,41 @@ jobs:
           releaseName: "zux ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: true
           args: ${{ matrix.args }}
 
-      - name: 🛡️ Attest build provenance
+      - name: ✅ Verify Windows bundle signatures (windows only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $certThumbprint = "4f3cc75f545c898d57c5cc4349873a3bff8d4527"
+          $targets = @(
+            Get-ChildItem -Path "src-tauri/target/release/bundle/msi" -Filter "*.msi" -File -Recurse
+            Get-ChildItem -Path "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File
+          )
+          if ($targets.Count -eq 0) {
+            throw "No Windows bundle executables found to verify"
+          }
+          foreach ($target in $targets) {
+            $sig = Get-AuthenticodeSignature -FilePath $target.FullName
+            if ($sig.Status -in @("HashMismatch", "NotSigned", "NotSupported", "Incompatible")) {
+              throw "$($target.FullName) signature is $($sig.Status): $($sig.StatusMessage)"
+            }
+            if ($sig.Status -eq "UnknownError" -and $sig.StatusMessage -notmatch "trusted by the trust provider") {
+              throw "$($target.FullName) signature is $($sig.Status): $($sig.StatusMessage)"
+            }
+            if ($sig.SignerCertificate.Thumbprint -ne $certThumbprint) {
+              throw "$($target.FullName) signed by unexpected certificate $($sig.SignerCertificate.Thumbprint)"
+            }
+            Write-Output "OK: $($target.FullName) ($($sig.Status))"
+          }
+
+      - name: ✅ Verify macOS bundle signature (macos only)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/zux.app"
+
+      - name: 🛡️ Attest build provenance (bundles)
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
@@ -142,16 +248,6 @@ jobs:
             src-tauri/target/**/release/bundle/deb/*.deb
             src-tauri/target/**/release/bundle/rpm/*.rpm
             src-tauri/target/**/release/bundle/msi/*
-            src-tauri/target/**/release/zux
-            src-tauri/target/**/release/zux.exe
-
-      - name: 🛡️ Attest SBOM
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: |
-            src-tauri/target/**/release/zux
-            src-tauri/target/**/release/zux.exe
-          sbom-path: sbom.spdx.json
 
   android-release:
     needs: [draft-release]
@@ -187,10 +283,13 @@ jobs:
           fi
           echo "Android signing secrets are configured"
 
-      - name: ⚡ Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - name: ⚡ Setup pnpm and Node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
-          node-version: 24
+          version: 11.22.0
+          runtime: node@24
+          cache: true
+          install: false
 
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
@@ -198,7 +297,7 @@ jobs:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
       - name: ☕ Setup Java
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
         with:
           distribution: zulu
           java-version: "17"
@@ -217,7 +316,7 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: 🔧 Install cargo-edit
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
@@ -241,15 +340,15 @@ jobs:
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
-          artifact-name: "sbom.android.spdx.json"
+          artifact-name: "sbom.android.spdx.json.gz"
           current-version: ${{ needs.draft-release.outputs.version }}
 
       - name: 🏗️ Build Android app bundle
         shell: bash
         run: |
-          npm run tauri android init
-          npm run tauri icon src-tauri/icons/icon.png
-          npm run tauri android build
+          pnpm run tauri android init
+          pnpm run tauri icon src-tauri/icons/icon.png
+          pnpm run tauri android build
 
       - name: 🔑 Extract Android signing keystore
         shell: bash
@@ -301,17 +400,6 @@ jobs:
       actions: read # to access workflow run information and secrets
     name: 🔢 Generate Source Checksums
     uses: ./.github/workflows/source-checksums-reusable.yml
-    secrets: inherit
-    with:
-      tagName: ${{ github.ref_name }}
-
-  publish_sbom:
-    needs: [draft-release, release, android-release, source_checksums]
-    permissions:
-      contents: write # to update release with sboms
-      actions: read # to download workflow artifacts
-    name: 📰📜 Publish SBOM
-    uses: ./.github/workflows/publish-sbom-reusable.yml
     secrets: inherit
     with:
       tagName: ${{ github.ref_name }}
