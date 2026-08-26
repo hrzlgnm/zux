@@ -186,8 +186,18 @@ jobs:
         with:
           version: 11.23.0
           runtime: node@24
-          cache: true
+          cache: false
           install: false
+      - name: 📍 Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+      - name: 💾 Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.job }}-${{ github.run_id }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 🎨 Check formatting
@@ -209,8 +219,18 @@ jobs:
         with:
           version: 11.23.0
           runtime: node@24
-          cache: true
+          cache: false
           install: false
+      - name: 📍 Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+      - name: 💾 Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.job }}-${{ github.run_id }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 🧹 Lint
@@ -228,8 +248,18 @@ jobs:
         with:
           version: 11.23.0
           runtime: node@24
-          cache: true
+          cache: false
           install: false
+      - name: 📍 Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+      - name: 💾 Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.job }}-${{ github.run_id }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 🔍 Check
@@ -298,8 +328,18 @@ jobs:
         with:
           version: 11.23.0
           runtime: node@24
-          cache: true
+          cache: false
           install: false
+      - name: 📍 Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+      - name: 💾 Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.job }}-${{ github.run_id }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 🎭 Install Playwright browsers
@@ -329,8 +369,18 @@ jobs:
         with:
           version: 11.23.0
           runtime: node@24
-          cache: true
+          cache: false
           install: false
+      - name: 📍 Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+      - name: 💾 Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.job }}-${{ github.run_id }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 🔍 Check
