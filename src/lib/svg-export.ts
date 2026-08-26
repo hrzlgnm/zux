@@ -129,39 +129,99 @@ function labelEl(n: Node, x: number, y: number): string {
   return `<text x="${x}" y="${yBaseline}" text-anchor="middle" font-family="'Inter Variable', Arial, sans-serif" font-size="${f.size}" fill="${f.color}">${esc(n.label ?? '')}</text>`
 }
 
-interface GraphBody {
-  data?: {
-    nodes?: { get(): Node[] }
-    edges?: { get(): Edge[] }
-  }
-  edges?: Record<string, { edgeType?: { getViaNode?(): Position } }>
+interface VisBody {
+  nodes?: Record<string, { id: IdType; group?: string; options?: Record<string, unknown> }>
+  edges?: Record<
+    string,
+    {
+      id: IdType
+      fromId: IdType
+      toId: IdType
+      options?: Record<string, unknown>
+      edgeType?: { getViaNode?(): Position }
+    }
+  >
 }
 
-type PositionedNode = Node & { id: IdType }
-type PositionedEdge = Edge & { id: IdType; from: IdType; to: IdType }
+type RawNode = Node & { id: IdType }
+type RawEdge = Omit<Edge, 'dashes'> & {
+  id: IdType
+  from: IdType
+  to: IdType
+  dashes?: boolean | string
+}
+
+function extractNodeData(n: {
+  id: IdType
+  group?: string
+  options?: Record<string, unknown>
+}): RawNode {
+  const o = n.options ?? {}
+  return {
+    id: n.id,
+    group: (o.group as string | undefined) ?? n.group,
+    hidden: o.hidden as boolean | undefined,
+    shape: o.shape as string | undefined,
+    color: o.color as Node['color'],
+    size: o.size as number | undefined,
+    borderWidth: o.borderWidth as number | undefined,
+    label: o.label as string | undefined,
+    font: o.font as Node['font'],
+  }
+}
+
+function extractEdgeData(e: {
+  id: IdType
+  fromId: IdType
+  toId: IdType
+  options?: Record<string, unknown>
+}): RawEdge {
+  const o = e.options ?? {}
+  let color: string | undefined
+  if (typeof o.color === 'string') color = o.color
+  else if (o.color && typeof o.color === 'object') color = (o.color as { color?: string }).color
+  let dashes: boolean | string | undefined
+  if (Array.isArray(o.dashes)) dashes = o.dashes.join(' ')
+  else if (typeof o.dashes === 'boolean') dashes = o.dashes
+  return {
+    id: e.id,
+    from: e.fromId,
+    to: e.toId,
+    dashes,
+    color,
+    width: o.width as number | undefined,
+  }
+}
 
 export async function exportGraphSvg(network: Network) {
-  const body = network as unknown as GraphBody
-  const nodes = body?.data?.nodes?.get() as PositionedNode[] | undefined
-  if (!nodes || nodes.length === 0) return
-  const edges = (body?.data?.edges?.get() as PositionedEdge[] | undefined) ?? []
-  const pos: Record<string, Position | undefined> = network.getPositions()
+  const body = (network as unknown as { body?: VisBody }).body
+  if (!body?.nodes || Object.keys(body.nodes).length === 0) return
 
-  const visible = new Set<IdType>()
+  const pos: Record<string, Position | undefined> = network.getPositions()
+  const posKeys = Object.keys(pos)
+  if (posKeys.length === 0) return
+
+  const visible = new Set<string>()
+  for (const id of posKeys) {
+    const raw = body.nodes?.[id]
+    const hidden = raw?.options?.hidden
+    if (hidden === true) continue
+    visible.add(id)
+  }
+  if (visible.size === 0) return
+
   let minX = Infinity,
     minY = Infinity,
     maxX = -Infinity,
     maxY = -Infinity
-  for (const n of nodes) {
-    const p = pos[n.id]
-    if (!p || n.hidden) continue
-    visible.add(n.id)
+  for (const id of visible) {
+    const p = pos[id]
+    if (!p) continue
     minX = Math.min(minX, p.x)
     maxX = Math.max(maxX, p.x)
     minY = Math.min(minY, p.y)
     maxY = Math.max(maxY, p.y)
   }
-  if (visible.size === 0) return
 
   const pad = 60
   minX -= pad
@@ -172,27 +232,37 @@ export async function exportGraphSvg(network: Network) {
   const h = Math.max(100, maxY - minY)
 
   const edgeEls: string[] = []
-  for (const e of edges) {
-    if (!visible.has(e.from) || !visible.has(e.to)) continue
-    const pf = pos[e.from],
-      pt = pos[e.to]
-    if (!pf || !pt) continue
-    const via = body.edges?.[e.id]?.edgeType?.getViaNode?.()
-    const d = via
-      ? `M ${pf.x} ${pf.y} Q ${via.x} ${via.y} ${pt.x} ${pt.y}`
-      : `M ${pf.x} ${pf.y} L ${pt.x} ${pt.y}`
-    const dashes = e.dashes ? ' stroke-dasharray="5 5"' : ''
-    const color = typeof e.color === 'string' ? e.color : '#78909c'
-    edgeEls.push(
-      `<path d="${d}" stroke="${color}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`,
-    )
+  if (body.edges) {
+    for (const rawEdge of Object.values(body.edges)) {
+      if (!visible.has(String(rawEdge.fromId)) || !visible.has(String(rawEdge.toId))) continue
+      const e = extractEdgeData(rawEdge)
+      const pf = pos[e.from],
+        pt = pos[e.to]
+      if (!pf || !pt) continue
+      const via = rawEdge.edgeType?.getViaNode?.()
+      const d = via
+        ? `M ${pf.x} ${pf.y} Q ${via.x} ${via.y} ${pt.x} ${pt.y}`
+        : `M ${pf.x} ${pf.y} L ${pt.x} ${pt.y}`
+      const dashes =
+        typeof e.dashes === 'string'
+          ? ` stroke-dasharray="${e.dashes}"`
+          : e.dashes
+            ? ' stroke-dasharray="5 5"'
+            : ''
+      const color = typeof e.color === 'string' ? e.color : '#78909c'
+      edgeEls.push(
+        `<path d="${d}" stroke="${color}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`,
+      )
+    }
   }
 
   const nodeEls: string[] = []
   const labelEls: string[] = []
-  for (const n of nodes) {
-    const p = pos[n.id]
-    if (!p || !visible.has(n.id)) continue
+  for (const rawNode of Object.values(body.nodes)) {
+    if (!visible.has(String(rawNode.id))) continue
+    const p = pos[String(rawNode.id)]
+    if (!p) continue
+    const n = extractNodeData(rawNode)
     nodeEls.push(shapeEl(n, p.x, p.y))
     labelEls.push(labelEl(n, p.x, p.y))
   }

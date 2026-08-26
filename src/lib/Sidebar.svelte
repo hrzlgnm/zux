@@ -9,12 +9,14 @@
 
   async function exportSvg() {
     const network = get(graphNetwork)
-    if (network) {
-      try {
-        await exportGraphSvg(network)
-      } catch (e) {
-        console.log('[zux] export failed:', e)
-      }
+    if (!network) {
+      console.error('[zux] export failed: graphNetwork is null')
+      return
+    }
+    try {
+      await exportGraphSvg(network)
+    } catch (e) {
+      console.error('[zux] export failed:', e)
     }
   }
 
