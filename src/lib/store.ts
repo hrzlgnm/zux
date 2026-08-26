@@ -94,6 +94,10 @@ export async function initPhysicsConfig() {
   }
 }
 
+export function resetPhysicsConfig() {
+  physicsConfig.set({ ...defaultPhysicsConfig })
+}
+
 export function clearGraph() {
   graphNodes.set(new Map())
   graphEdges.set(new Map())

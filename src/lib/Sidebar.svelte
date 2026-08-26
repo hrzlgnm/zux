@@ -1,7 +1,14 @@
 <script lang="ts">
   import { get } from 'svelte/store'
   import pkg from '../../package.json'
-  import { stats, physicsConfig, filterQuery, disabledGroups, graphNetwork } from './store'
+  import {
+    stats,
+    physicsConfig,
+    filterQuery,
+    disabledGroups,
+    graphNetwork,
+    resetPhysicsConfig,
+  } from './store'
   import { exportGraphSvg } from './svg-export'
   import type { Solver } from './types'
 
@@ -163,6 +170,9 @@
             }}
           />
         </label>
+        <button class="reset-btn" type="button" onclick={resetPhysicsConfig}>
+          Reset to defaults
+        </button>
       </div>
     {/if}
   </div>
@@ -370,6 +380,21 @@
   .export-btn:hover {
     background: #16213e;
     border-color: #4fc3f7;
+  }
+  .reset-btn {
+    margin-top: 2px;
+    padding: 6px;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    background: #1a1a2e;
+    color: #b0bec5;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .reset-btn:hover {
+    background: #16213e;
+    border-color: #4fc3f7;
+    color: #4fc3f7;
   }
   @media (max-width: 768px) {
     .sidebar {
