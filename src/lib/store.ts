@@ -26,14 +26,46 @@ export const physicsConfig = writable<PhysicsConfig>(defaultPhysicsConfig)
 
 const PHYSICS_STORE_FILE = 'physics-config.json'
 const PHYSICS_CONFIG_KEY = 'physicsConfig'
+const SAVE_DEBOUNCE_MS = 300
 const SOLVERS: Solver[] = ['forceAtlas2Based', 'barnesHut', 'repulsion', 'hierarchicalRepulsion']
 
 function loadPhysicsStore() {
   return Store.load(PHYSICS_STORE_FILE)
 }
 
-async function savePhysicsConfig(cfg: PhysicsConfig) {
+function sanitizePhysicsConfig(raw: unknown): PhysicsConfig {
+  const out: PhysicsConfig = { ...defaultPhysicsConfig }
+  if (!raw || typeof raw !== 'object') return out
+  const r = raw as Record<string, unknown>
+  if (typeof r.solver === 'string' && SOLVERS.includes(r.solver as Solver)) {
+    out.solver = r.solver as Solver
+  }
+  const num = (
+    key: 'gravitationalConstant' | 'centralGravity' | 'springLength' | 'springConstant' | 'damping',
+  ) => {
+    const v = r[key]
+    if (typeof v === 'number' && Number.isFinite(v)) out[key] = v
+  }
+  num('gravitationalConstant')
+  num('centralGravity')
+  num('springLength')
+  num('springConstant')
+  num('damping')
+  return out
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+function savePhysicsConfig(cfg: PhysicsConfig) {
   if (!isTauri()) return
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    void persistPhysicsConfig(cfg)
+  }, SAVE_DEBOUNCE_MS)
+}
+
+async function persistPhysicsConfig(cfg: PhysicsConfig) {
   try {
     const store = await loadPhysicsStore()
     await store.set(PHYSICS_CONFIG_KEY, cfg)
@@ -48,12 +80,15 @@ export async function initPhysicsConfig() {
   try {
     const store = await loadPhysicsStore()
     const saved = await store.get<PhysicsConfig>(PHYSICS_CONFIG_KEY)
-    if (saved) {
-      const merged: PhysicsConfig = { ...defaultPhysicsConfig, ...saved }
-      if (!SOLVERS.includes(merged.solver)) merged.solver = defaultPhysicsConfig.solver
-      physicsConfig.set(merged)
-    }
-    physicsConfig.subscribe((cfg) => void savePhysicsConfig(cfg))
+    if (saved) physicsConfig.set(sanitizePhysicsConfig(saved))
+    let firstEmit = true
+    physicsConfig.subscribe((cfg) => {
+      if (firstEmit) {
+        firstEmit = false
+        return
+      }
+      savePhysicsConfig(cfg)
+    })
   } catch (e) {
     console.log('[zux] failed to load physics config:', e)
   }
