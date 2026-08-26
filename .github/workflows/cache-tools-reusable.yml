@@ -6,9 +6,6 @@ on:
 
 jobs:
   cache-tools:
-    concurrency:
-      group: cache-tools-${{ github.repository }}
-      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
@@ -57,9 +54,3 @@ jobs:
           crate: git-cliff
           version: 2.13.1
           locked: true
-
-      - name: 🔧 Warm grype DB cache
-        if: matrix.os == 'ubuntu-24.04'
-        uses: anchore/scan-action/download-grype@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
-        with:
-          cache-db: true
