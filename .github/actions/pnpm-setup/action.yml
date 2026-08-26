@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: "⚡ Setup pnpm and Node"
-      uses: "pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2"
+      uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
       with:
         version: "11.23.0"
         runtime: "node@24"
@@ -15,7 +15,7 @@ runs:
       shell: "bash"
       run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
     - name: "💾 Cache pnpm store"
-      uses: "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4"
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ steps.pnpm-store.outputs.path }}
         key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.job }}-${{ github.run_id }}
