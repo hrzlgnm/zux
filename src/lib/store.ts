@@ -1,7 +1,9 @@
 import { writable, derived, get } from 'svelte/store'
+import { isTauri } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { Store } from '@tauri-apps/plugin-store'
 import type { Network } from 'vis-network'
-import type { GraphNode, GraphEdge, PhysicsConfig, MdnsEvent } from './types'
+import type { GraphNode, GraphEdge, PhysicsConfig, MdnsEvent, Solver } from './types'
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map())
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map())
@@ -11,14 +13,103 @@ export const serviceTypes = writable<Set<string>>(new Set())
 export const filterQuery = writable<string>('')
 export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
 
-export const physicsConfig = writable<PhysicsConfig>({
+export const defaultPhysicsConfig: PhysicsConfig = {
   solver: 'repulsion',
   gravitationalConstant: -100,
   centralGravity: 0.005,
   springLength: 75,
   springConstant: 0.05,
   damping: 0.4,
-})
+}
+
+export const physicsConfig = writable<PhysicsConfig>(defaultPhysicsConfig)
+
+const PHYSICS_STORE_FILE = 'physics-config.json'
+const PHYSICS_CONFIG_KEY = 'physicsConfig'
+const SAVE_DEBOUNCE_MS = 300
+const SOLVERS: Solver[] = ['forceAtlas2Based', 'barnesHut', 'repulsion', 'hierarchicalRepulsion']
+
+function loadPhysicsStore() {
+  return Store.load(PHYSICS_STORE_FILE)
+}
+
+function sanitizePhysicsConfig(raw: unknown): PhysicsConfig {
+  const out: PhysicsConfig = { ...defaultPhysicsConfig }
+  if (!raw || typeof raw !== 'object') return out
+  const r = raw as Record<string, unknown>
+  if (typeof r.solver === 'string' && SOLVERS.includes(r.solver as Solver)) {
+    out.solver = r.solver as Solver
+  }
+  const num = (
+    key: 'gravitationalConstant' | 'centralGravity' | 'springLength' | 'springConstant' | 'damping',
+  ) => {
+    const v = r[key]
+    if (typeof v === 'number' && Number.isFinite(v)) out[key] = v
+  }
+  num('gravitationalConstant')
+  num('centralGravity')
+  num('springLength')
+  num('springConstant')
+  num('damping')
+  return out
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+function savePhysicsConfig(cfg: PhysicsConfig) {
+  if (!isTauri()) return
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    void persistPhysicsConfig(cfg)
+  }, SAVE_DEBOUNCE_MS)
+}
+
+async function persistPhysicsConfig(cfg: PhysicsConfig) {
+  try {
+    const store = await loadPhysicsStore()
+    await store.set(PHYSICS_CONFIG_KEY, cfg)
+    await store.save()
+  } catch (e) {
+    console.log('[zux] failed to save physics config:', e)
+  }
+}
+
+function configEquals(a: PhysicsConfig, b: PhysicsConfig): boolean {
+  return (
+    a.solver === b.solver &&
+    a.gravitationalConstant === b.gravitationalConstant &&
+    a.centralGravity === b.centralGravity &&
+    a.springLength === b.springLength &&
+    a.springConstant === b.springConstant &&
+    a.damping === b.damping
+  )
+}
+
+export async function initPhysicsConfig() {
+  if (!isTauri()) return
+  let firstEmit = true
+  physicsConfig.subscribe((cfg) => {
+    if (firstEmit) {
+      firstEmit = false
+      return
+    }
+    savePhysicsConfig(cfg)
+  })
+  try {
+    const store = await loadPhysicsStore()
+    const saved = await store.get<PhysicsConfig>(PHYSICS_CONFIG_KEY)
+    if (saved && configEquals(get(physicsConfig), defaultPhysicsConfig)) {
+      physicsConfig.set(sanitizePhysicsConfig(saved))
+    }
+  } catch (e) {
+    console.log('[zux] failed to load physics config:', e)
+  }
+}
+
+export function resetPhysicsConfig() {
+  physicsConfig.set({ ...defaultPhysicsConfig })
+}
 
 export function clearGraph() {
   graphNodes.set(new Map())
