@@ -4,7 +4,8 @@
 
 - Work on a typed branch (`feat/...`, `fix/...`, `chore/...`, etc.) and land changes through a pull request; direct pushes to `main` are blocked.
 - Treat every task as authorizing commits unless the user opts out. Commit each complete logical unit as soon as its applicable checks pass; never leave completed work uncommitted.
-- Pause for genuine forks: design tradeoffs, scope cuts, UX or performance changes, and unforeseen correctness problems. Present the viable options and a recommendation. Proceed without asking when a choice is mechanical and has one sensible answer.
+- Pause for genuine forks: design tradeoffs, scope cuts, and UX or performance changes. Present the viable options and a recommendation; proceed without asking when a choice is mechanical and has one sensible answer.
+- Treat every unforeseen bug, race, wrong assumption, or unhandled case as a fork. Raise it before designing or writing a fix, even when the fix seems mechanical.
 - A known race, corruption risk, or correctness bug requires a real fix. If no feasible fix exists, state that directly instead of presenting the bug as an option.
 - Optimize for a readable final design, not the smallest diff. Make and commit a behavior-preserving preparatory refactor first when it clarifies the behavior change; avoid speculative abstractions and redundant work.
 
@@ -61,9 +62,9 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 ## Commits
 
 - Use conventional commit subjects (`feat:`, `fix:`, `chore:`, etc.) and `vMAJOR.MINOR.PATCH` tags.
-- Keep commits meaningful, self-contained, and as small as practical. Commit preparatory refactors before behavior changes; include a behavior's tests with that behavior.
+- Keep commits meaningful, self-contained, and as small as practical. Include a behavior's tests with that behavior.
 - Explain why in the commit message rather than paraphrasing the diff. Wrap body lines at 72 characters; subjects should normally stay within 80.
-- Add both trailers to every regular commit and every `amend!` replacement with `--trailer`; never use `--author` or `--committer` for attribution:
+- Add both trailers to every regular commit and every `amend!` replacement with `--trailer`; plain `fixup!` messages are discarded and need no trailers. Never use `--author` or `--committer` for attribution:
 
   ```text
   Co-authored-by: opencode <noreply@opencode.ai>
