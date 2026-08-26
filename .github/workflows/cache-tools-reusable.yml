@@ -6,6 +6,9 @@ on:
 
 jobs:
   cache-tools:
+    concurrency:
+      group: cache-tools-${{ github.repository }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
