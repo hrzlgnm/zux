@@ -144,7 +144,12 @@ interface VisBody {
 }
 
 type RawNode = Node & { id: IdType }
-type RawEdge = Edge & { id: IdType; from: IdType; to: IdType }
+type RawEdge = Omit<Edge, 'dashes'> & {
+  id: IdType
+  from: IdType
+  to: IdType
+  dashes?: boolean | string
+}
 
 function extractNodeData(n: {
   id: IdType
@@ -172,12 +177,18 @@ function extractEdgeData(e: {
   options?: Record<string, unknown>
 }): RawEdge {
   const o = e.options ?? {}
+  let color: string | undefined
+  if (typeof o.color === 'string') color = o.color
+  else if (o.color && typeof o.color === 'object') color = (o.color as { color?: string }).color
+  let dashes: boolean | string | undefined
+  if (Array.isArray(o.dashes)) dashes = o.dashes.join(' ')
+  else if (typeof o.dashes === 'boolean') dashes = o.dashes
   return {
     id: e.id,
     from: e.fromId,
     to: e.toId,
-    dashes: o.dashes as boolean | undefined,
-    color: o.color as string | undefined,
+    dashes,
+    color,
     width: o.width as number | undefined,
   }
 }
@@ -190,12 +201,20 @@ export async function exportGraphSvg(network: Network) {
   const posKeys = Object.keys(pos)
   if (posKeys.length === 0) return
 
-  const visible = new Set<string>(posKeys)
+  const visible = new Set<string>()
+  for (const id of posKeys) {
+    const raw = body.nodes?.[id]
+    const hidden = raw?.options?.hidden
+    if (hidden === true) continue
+    visible.add(id)
+  }
+  if (visible.size === 0) return
+
   let minX = Infinity,
     minY = Infinity,
     maxX = -Infinity,
     maxY = -Infinity
-  for (const id of posKeys) {
+  for (const id of visible) {
     const p = pos[id]
     if (!p) continue
     minX = Math.min(minX, p.x)
@@ -224,7 +243,12 @@ export async function exportGraphSvg(network: Network) {
       const d = via
         ? `M ${pf.x} ${pf.y} Q ${via.x} ${via.y} ${pt.x} ${pt.y}`
         : `M ${pf.x} ${pf.y} L ${pt.x} ${pt.y}`
-      const dashes = e.dashes ? ' stroke-dasharray="5 5"' : ''
+      const dashes =
+        typeof e.dashes === 'string'
+          ? ` stroke-dasharray="${e.dashes}"`
+          : e.dashes
+            ? ' stroke-dasharray="5 5"'
+            : ''
       const color = typeof e.color === 'string' ? e.color : '#78909c'
       edgeEls.push(
         `<path d="${d}" stroke="${color}" stroke-width="${e.width ?? 2}" fill="none"${dashes}/>`,
