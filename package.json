@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "lint": "svelte-kit sync && eslint src",
     "lint:fix": "svelte-kit sync && eslint src --fix",
+    "test:e2e": "playwright test",
     "tauri": "tauri"
   },
   "license": "MIT",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
     "@sveltejs/adapter-static": "3.0.10",
     "@sveltejs/kit": "2.70.3",
     "@sveltejs/vite-plugin-svelte": "7.3.0",
