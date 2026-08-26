@@ -25,7 +25,7 @@
           fn()
         }
       } catch (e) {
-        console.log('[zux] failed to subscribe to mdns events:', e)
+        console.error('[zux] failed to subscribe to mdns events:', e)
       }
       if (!mounted) return
       clearGraph()
@@ -75,7 +75,7 @@
         await update.close()
       }
     } catch (e) {
-      console.log('[zux] update check failed:', e)
+      console.warn('[zux] update check failed:', e)
     }
   }
 

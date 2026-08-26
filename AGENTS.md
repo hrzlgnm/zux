@@ -134,7 +134,7 @@ When a task could be implemented either by tacking onto existing code or by firs
 
 ## Logging
 
-- Rust: `log::debug!("message")`. Frontend: `console.log('[zux] ...')`.
+- Rust: `log::debug!("message")`. Frontend: prefix every log with `console.<level>('[zux] ...')`, where `level` matches severity — `console.debug` for one-time startup/diagnostic noise, `console.warn` for non-fatal caught errors, `console.error` for genuine failures. Avoid `console.log` in committed code.
 
 ## Code Review
 

@@ -73,7 +73,8 @@
           {#each node.urls as url (url)}
             <button
               class="url-link"
-              onclick={() => openUrl(url).catch((e) => console.log('[zux] failed to open URL:', e))}
+              onclick={() =>
+                openUrl(url).catch((e) => console.warn('[zux] failed to open URL:', e))}
               >{url}</button
             >
           {/each}

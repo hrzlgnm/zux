@@ -71,7 +71,7 @@ async function persistPhysicsConfig(cfg: PhysicsConfig) {
     await store.set(PHYSICS_CONFIG_KEY, cfg)
     await store.save()
   } catch (e) {
-    console.log('[zux] failed to save physics config:', e)
+    console.error('[zux] failed to save physics config:', e)
   }
 }
 
@@ -103,7 +103,7 @@ export async function initPhysicsConfig() {
       physicsConfig.set(sanitizePhysicsConfig(saved))
     }
   } catch (e) {
-    console.log('[zux] failed to load physics config:', e)
+    console.error('[zux] failed to load physics config:', e)
   }
 }
 
@@ -216,7 +216,6 @@ function cascadeOffline() {
 }
 
 function handleMdnsEvent(p: MdnsEvent) {
-  console.log('[zux] event:', JSON.stringify(p).slice(0, 200))
   switch (p.type) {
     case 'service-type-added': {
       const st = p.data.service_type
@@ -400,7 +399,7 @@ function handleMdnsEvent(p: MdnsEvent) {
 }
 
 export function setupEventListeners(): Promise<UnlistenFn> {
-  console.log('[zux] setting up event listeners')
+  console.debug('[zux] setting up event listeners')
   return listen<MdnsEvent | MdnsEvent[]>('mdns-event', (event) => {
     const payload = event.payload
     if (Array.isArray(payload)) {
@@ -524,7 +523,7 @@ const PREVIEW_SERVICES: PreviewService[] = [
 ]
 
 export function seedPreviewData() {
-  console.log('[zux] seeding preview data')
+  console.debug('[zux] seeding preview data')
   for (const st of PREVIEW_SERVICE_TYPES) {
     handleMdnsEvent({ type: 'service-type-added', data: { service_type: st } })
   }
