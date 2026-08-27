@@ -5,13 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.7.1...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.9.1...HEAD)
+
+### Changed
+
+- Streamline agent conventions ([#216](https://github.com/hrzlgnm/zux/pull/216))
+
+### Fixed
+
+- Eliminate benign cache-collision CI annotations ([#214](https://github.com/hrzlgnm/zux/pull/214))
+
+- Drop dead grype DB warm and broken cache-tools concurrency ([#215](https://github.com/hrzlgnm/zux/pull/215))
+
+## [1.9.1] - 2026-08-26 [compare](https://github.com/hrzlgnm/zux/compare/v1.9.0...v1.9.1)
+
+### Fixed
+
+- Reduce frontend log noise, stop logging incoming tauri events ([#213](https://github.com/hrzlgnm/zux/pull/213))
+
+## [1.9.0] - 2026-08-26 [compare](https://github.com/hrzlgnm/zux/compare/v1.8.0...v1.9.0)
+
+### Added
+
+- Persist physics config across restarts ([#211](https://github.com/hrzlgnm/zux/pull/211))
+
+### Changed
+
+- Add playwright e2e for SVG export ([#207](https://github.com/hrzlgnm/zux/pull/207))
+
+### Dependencies
+
+- *(deps)* Update pnpm to v11.23.0 ([#208](https://github.com/hrzlgnm/zux/pull/208))
+
+- *(deps)* Update actions/upload-artifact digest to ea165f8 ([#209](https://github.com/hrzlgnm/zux/pull/209))
+
+- *(deps)* Update actions/upload-artifact action to v7 ([#210](https://github.com/hrzlgnm/zux/pull/210))
+
+## [1.8.0] - 2026-08-26 [compare](https://github.com/hrzlgnm/zux/compare/v1.7.1...v1.8.0)
 
 ### Added
 
 - Gzip the SBOM workflow artifacts on publish ([#201](https://github.com/hrzlgnm/zux/pull/201))
 
 - Trigger snap release after a release is published ([#202](https://github.com/hrzlgnm/zux/pull/202))
+
+- Enable devtools in release builds ([#206](https://github.com/hrzlgnm/zux/pull/206))
+
+### Fixed
+
+- Use vis-network internals instead of broken DataSet API for SVG export ([#205](https://github.com/hrzlgnm/zux/pull/205))
 
 ## [1.7.1] - 2026-08-25 [compare](https://github.com/hrzlgnm/zux/compare/v1.7.0...v1.7.1)
 
