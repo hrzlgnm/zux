@@ -221,18 +221,30 @@
       host: c.hostFont,
       address: c.addressFont,
     }
-    const colorMap: Record<string, string> = {
-      'service-type': c.serviceTypeBg,
-      instance: c.instanceBg,
-      host: c.hostBg,
-      address: c.addressBg,
+    const colorMap: Record<string, { background: string; border: string }> = {
+      'service-type': { background: c.serviceTypeBg, border: c.serviceTypeBorder },
+      instance: { background: c.instanceBg, border: c.instanceBorder },
+      host: { background: c.hostBg, border: c.hostBorder },
+      address: { background: c.addressBg, border: c.addressBorder },
     }
-    const updates: { id: string; color: string; font: { color: string } }[] = []
+    const updates: {
+      id: string
+      color: { background: string; border: string }
+      font: { color: string }
+    }[] = []
     for (const n of get(graphNodes).values()) {
-      const fc = fontMap[n.group]
-      const bg = colorMap[n.group]
-      if (fc && bg) {
-        updates.push({ id: n.id, color: bg, font: { color: fc } })
+      if (n.offline) {
+        updates.push({
+          id: n.id,
+          color: { background: c.offlineBg, border: c.offlineBorder },
+          font: { color: c.offlineFont },
+        })
+      } else {
+        const fc = fontMap[n.group]
+        const bg = colorMap[n.group]
+        if (fc && bg) {
+          updates.push({ id: n.id, color: bg, font: { color: fc } })
+        }
       }
     }
     if (updates.length > 0) visNodes.updateOnly(updates)
