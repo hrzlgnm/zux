@@ -3,19 +3,26 @@ import { isTauri, invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
 // Embed the font so exported SVGs render labels with the same metrics used for measurement
 import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url&inline'
+import { themeColors } from './store'
 
-const GROUP_COLORS: Record<string, string> = {
-  'service-type': '#4fc3f7',
-  instance: '#81c784',
-  host: '#ffb74d',
-  address: '#ce93d8',
+function groupColors(): Record<string, string> {
+  const c = themeColors()
+  return {
+    'service-type': c.serviceTypeBg,
+    instance: c.instanceBg,
+    host: c.hostBg,
+    address: c.addressBg,
+  }
 }
 
-const GROUP_FONTS: Record<string, { color: string; size: number }> = {
-  'service-type': { color: '#e1f5fe', size: 13 },
-  instance: { color: '#e8f5e9', size: 12 },
-  host: { color: '#fff3e0', size: 12 },
-  address: { color: '#f3e5f5', size: 11 },
+function groupFonts(): Record<string, { color: string; size: number }> {
+  const c = themeColors()
+  return {
+    'service-type': { color: c.serviceTypeFont, size: 13 },
+    instance: { color: c.instanceFont, size: 12 },
+    host: { color: c.hostFont, size: 12 },
+    address: { color: c.addressFont, size: 11 },
+  }
 }
 
 function esc(s: string): string {
@@ -72,14 +79,14 @@ function nodeColors(n: Node): { background: string; border: string } {
   const c = n.color
   if (c && typeof c === 'object' && c.background)
     return { background: c.background, border: c.border ?? darken(c.background) }
-  const bg = GROUP_COLORS[n.group ?? ''] ?? '#e0e0e0'
+  const bg = groupColors()[n.group ?? ''] ?? '#e0e0e0'
   return { background: bg, border: darken(bg) }
 }
 
 function nodeFontInfo(n: Node): { color: string; size: number } {
   const f = n.font
   if (f && typeof f === 'object') return { color: f.color ?? '#e0e0e0', size: f.size ?? 12 }
-  return GROUP_FONTS[n.group ?? ''] ?? { color: '#e0e0e0', size: 12 }
+  return groupFonts()[n.group ?? ''] ?? { color: '#e0e0e0', size: 12 }
 }
 
 function shapeEl(n: Node, x: number, y: number): string {
@@ -269,7 +276,7 @@ export async function exportGraphSvg(network: Network) {
 
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`,
-    `<rect width="${w}" height="${h}" fill="#1a1a2e"/>`,
+    `<rect width="${w}" height="${h}" fill="${themeColors().bgPrimary}"/>`,
     '<defs>',
     `<style>@font-face{font-family:'Inter Variable';src:url(${interFont}) format('woff2')}</style>`,
     '<filter id="zux-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/></filter>',

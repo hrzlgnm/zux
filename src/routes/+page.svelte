@@ -6,7 +6,13 @@
   import { confirm } from '@tauri-apps/plugin-dialog'
   import { relaunch } from '@tauri-apps/plugin-process'
   import { check } from '@tauri-apps/plugin-updater'
-  import { setupEventListeners, clearGraph, seedPreviewData, initPhysicsConfig } from '$lib/store'
+  import {
+    setupEventListeners,
+    clearGraph,
+    seedPreviewData,
+    initPhysicsConfig,
+    initTheme,
+  } from '$lib/store'
   import ServiceGraph from '$lib/ServiceGraph.svelte'
   import Sidebar from '$lib/Sidebar.svelte'
   import NodeDetail from '$lib/NodeDetail.svelte'
@@ -17,6 +23,7 @@
   onMount(async () => {
     if (isTauri()) {
       void initPhysicsConfig()
+      void initTheme()
       try {
         const fn = await setupEventListeners()
         if (mounted) {
@@ -32,6 +39,7 @@
       invoke('start_discovery').catch(() => {})
       checkForUpdates()
     } else {
+      void initTheme()
       seedPreviewData()
     }
   })
@@ -98,7 +106,7 @@
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background: #1a1a2e;
+    background: var(--bg-primary);
     font-family:
       'Inter Variable',
       system-ui,

@@ -92,11 +92,11 @@
     width: 640px;
     max-height: calc(100vh - 20px);
     overflow-y: auto;
-    background: #16213e;
-    border: 1px solid #0f3460;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
     border-radius: 8px;
     padding: 20px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     z-index: 10;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   }
@@ -106,14 +106,14 @@
     right: 10px;
     background: none;
     border: none;
-    color: #90a4ae;
+    color: var(--text-tertiary);
     font-size: 20px;
     cursor: pointer;
   }
   h3 {
     margin: 0 0 10px;
     font-size: 20px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     word-break: break-all;
   }
   .meta {
@@ -127,20 +127,20 @@
     font-weight: 600;
   }
   .type-service-type {
-    background: #0288d1;
-    color: #e1f5fe;
+    background: var(--service-type-border);
+    color: var(--service-type-font);
   }
   .type-instance {
-    background: #388e3c;
-    color: #e8f5e9;
+    background: var(--instance-border);
+    color: var(--instance-font);
   }
   .type-host {
-    background: #f57c00;
-    color: #fff3e0;
+    background: var(--host-border);
+    color: var(--host-font);
   }
   .type-address {
-    background: #ce93d8;
-    color: #1a1a2e;
+    background: var(--address-bg);
+    color: var(--address-font);
   }
   .fields {
     display: flex;
@@ -154,13 +154,13 @@
     gap: 2px;
   }
   .field .label {
-    color: #78909c;
+    color: var(--text-muted);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   .field span {
-    color: #e0e0e0;
+    color: var(--text-primary);
     word-break: break-all;
     font-size: 14px;
   }
@@ -170,16 +170,16 @@
     align-items: baseline;
   }
   .addr-ip {
-    color: #e0e0e0;
+    color: var(--text-primary);
     word-break: break-all;
     font-size: 14px;
   }
   .addr-ifaces {
-    color: #4dd0e1;
+    color: var(--accent);
     font-size: 12px;
   }
   .txt-records {
-    background: #1a1a2e;
+    background: var(--bg-primary);
     border-radius: 4px;
     padding: 6px 8px;
     max-height: 300px;
@@ -187,17 +187,17 @@
   }
   .txt-entry {
     font-size: 13px;
-    color: #b0bec5;
+    color: var(--text-secondary);
     padding: 2px 0;
   }
   .txt-entry em {
-    color: #80cbc4;
+    color: var(--accent);
     font-style: normal;
   }
   .url-link {
     background: none;
     border: none;
-    color: #4fc3f7;
+    color: var(--accent);
     font-size: 13px;
     text-align: left;
     padding: 2px 0;
@@ -206,7 +206,7 @@
     word-break: break-all;
   }
   .url-link:hover {
-    color: #81d4fa;
+    color: var(--accent-hover);
   }
   @media (max-width: 768px) {
     .panel {

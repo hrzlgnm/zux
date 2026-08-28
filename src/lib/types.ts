@@ -59,3 +59,53 @@ export interface PhysicsConfig {
   springConstant: number
   damping: number
 }
+
+export type ThemeName =
+  | 'dark'
+  | 'light'
+  | 'solarized-dark'
+  | 'solarized-light'
+  | 'monokai'
+  | 'catppuccin-latte'
+  | 'catppuccin-frappe'
+  | 'catppuccin-macchiato'
+  | 'catppuccin-mocha'
+
+export interface ThemeColors {
+  bgPrimary: string
+  bgSecondary: string
+  bgTertiary: string
+  borderPrimary: string
+  borderAccent: string
+  textPrimary: string
+  textSecondary: string
+  textMuted: string
+  textTertiary: string
+  textPlaceholder: string
+  accent: string
+  accentHover: string
+  serviceTypeBg: string
+  serviceTypeBorder: string
+  serviceTypeFont: string
+  instanceBg: string
+  instanceBorder: string
+  instanceFont: string
+  hostBg: string
+  hostBorder: string
+  hostFont: string
+  addressBg: string
+  addressBorder: string
+  addressFont: string
+  edgeTypeInstance: string
+  edgeInstanceHost: string
+  edgeHostAddress: string
+  offlineBg: string
+  offlineBorder: string
+  offlineFont: string
+}
+
+export interface ThemePreset {
+  name: ThemeName
+  label: string
+  colors: ThemeColors
+}
