@@ -65,7 +65,6 @@ export type ThemeName =
   | 'light'
   | 'solarized-dark'
   | 'solarized-light'
-  | 'monokai'
   | 'catppuccin-latte'
   | 'catppuccin-frappe'
   | 'catppuccin-macchiato'
