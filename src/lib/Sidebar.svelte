@@ -348,7 +348,7 @@
   .ctrl select {
     appearance: none;
     background: var(--bg-primary)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='%2378909c'/%3E%3C/svg%3E")
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='currentColor'/%3E%3C/svg%3E")
       no-repeat right 6px center;
     color: var(--text-secondary);
     border: 1px solid var(--bg-secondary);

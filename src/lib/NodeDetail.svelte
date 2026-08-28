@@ -127,15 +127,15 @@
     font-weight: 600;
   }
   .type-service-type {
-    background: var(--service-type-border);
+    background: var(--service-type-bg);
     color: var(--service-type-font);
   }
   .type-instance {
-    background: var(--instance-border);
+    background: var(--instance-bg);
     color: var(--instance-font);
   }
   .type-host {
-    background: var(--host-border);
+    background: var(--host-bg);
     color: var(--host-font);
   }
   .type-address {

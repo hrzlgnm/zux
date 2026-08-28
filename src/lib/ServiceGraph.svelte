@@ -227,14 +227,14 @@
       host: { background: c.hostBg, border: c.hostBorder },
       address: { background: c.addressBg, border: c.addressBorder },
     }
-    const updates: {
+    const nodeUpdates: {
       id: string
       color: { background: string; border: string }
       font: { color: string }
     }[] = []
     for (const n of get(graphNodes).values()) {
       if (n.offline) {
-        updates.push({
+        nodeUpdates.push({
           id: n.id,
           color: { background: c.offlineBg, border: c.offlineBorder },
           font: { color: c.offlineFont },
@@ -243,11 +243,24 @@
         const fc = fontMap[n.group]
         const bg = colorMap[n.group]
         if (fc && bg) {
-          updates.push({ id: n.id, color: bg, font: { color: fc } })
+          nodeUpdates.push({ id: n.id, color: bg, font: { color: fc } })
         }
       }
     }
-    if (updates.length > 0) visNodes.updateOnly(updates)
+    if (nodeUpdates.length > 0) visNodes.updateOnly(nodeUpdates)
+
+    const edgeUpdates: { id: string; color: string }[] = []
+    for (const e of get(graphEdges).values()) {
+      const edgeColor = c.edgeTypeInstance
+      if (e.id.startsWith('e:ih:')) {
+        edgeUpdates.push({ id: e.id, color: c.edgeInstanceHost })
+      } else if (e.id.startsWith('e:ha:')) {
+        edgeUpdates.push({ id: e.id, color: c.edgeHostAddress })
+      } else {
+        edgeUpdates.push({ id: e.id, color: edgeColor })
+      }
+    }
+    if (edgeUpdates.length > 0) visEdges.updateOnly(edgeUpdates)
   }
 
   onMount(() => {

@@ -171,13 +171,19 @@ export function themeColors(): ThemeColors {
 const THEME_STORE_FILE = 'theme-config.json'
 const THEME_CONFIG_KEY = 'theme'
 
-function loadThemeStore() {
-  return Store.load(THEME_STORE_FILE)
+let themeStorePromise: Promise<Store> | null = null
+let themeSaveChain: Promise<void> = Promise.resolve()
+
+function loadThemeStore(): Promise<Store> {
+  if (!themeStorePromise) {
+    themeStorePromise = Store.load(THEME_STORE_FILE)
+  }
+  return themeStorePromise
 }
 
 function persistTheme(name: ThemeName) {
   if (!isTauri()) return
-  void (async () => {
+  themeSaveChain = themeSaveChain.then(async () => {
     try {
       const store = await loadThemeStore()
       await store.set(THEME_CONFIG_KEY, name)
@@ -185,7 +191,7 @@ function persistTheme(name: ThemeName) {
     } catch (e) {
       console.error('[zux] failed to save theme config:', e)
     }
-  })()
+  })
 }
 
 export async function initTheme() {
@@ -281,6 +287,7 @@ function applyOnlineStyle(n: GraphNode): GraphNode {
     ...n,
     offline: false,
     color: onlineColor(n.group),
+    font: undefined,
   }
 }
 
