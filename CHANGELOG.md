@@ -5,17 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.9.1...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.9.2...HEAD)
+
+### Dependencies
+
+- *(deps)* Update anchore/scan-action action to v7.4.1 ([#222](https://github.com/hrzlgnm/zux/pull/222))
+
+- *(deps)* Update hrzlgnm/actions action to v2.7.0 ([#223](https://github.com/hrzlgnm/zux/pull/223))
+
+## [1.9.2] - 2026-08-27 [compare](https://github.com/hrzlgnm/zux/compare/v1.9.1...v1.9.2)
 
 ### Changed
 
 - Streamline agent conventions ([#216](https://github.com/hrzlgnm/zux/pull/216))
+
+### Dependencies
+
+- *(deps)* Update pnpm to v11.24.0 ([#218](https://github.com/hrzlgnm/zux/pull/218))
+
+- *(deps)* Update dependency typescript-eslint to v8.68.0 ([#220](https://github.com/hrzlgnm/zux/pull/220))
+
+- *(deps)* Update dependency eslint to v10.9.1 ([#219](https://github.com/hrzlgnm/zux/pull/219))
 
 ### Fixed
 
 - Eliminate benign cache-collision CI annotations ([#214](https://github.com/hrzlgnm/zux/pull/214))
 
 - Drop dead grype DB warm and broken cache-tools concurrency ([#215](https://github.com/hrzlgnm/zux/pull/215))
+
+- Align SPDX identifiers with MIT LICENSE ([#221](https://github.com/hrzlgnm/zux/pull/221))
 
 ## [1.9.1] - 2026-08-26 [compare](https://github.com/hrzlgnm/zux/compare/v1.9.0...v1.9.1)
 
