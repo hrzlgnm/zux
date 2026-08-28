@@ -8,9 +8,12 @@
     disabledGroups,
     graphNetwork,
     resetPhysicsConfig,
+    currentTheme,
+    setTheme,
   } from './store'
+  import { themes } from './themes'
   import { exportGraphSvg } from './svg-export'
-  import type { Solver } from './types'
+  import type { Solver, ThemeName } from './types'
 
   let physicsOpen = $state(false)
 
@@ -51,6 +54,21 @@
 <aside class="sidebar">
   <h2 class="title">zux <span class="version">v{pkg.version}</span></h2>
   <p class="subtitle">mDNS-SD Visualizer</p>
+
+  <label class="ctrl">
+    Theme
+    <select
+      value={$currentTheme}
+      onchange={(e) => {
+        const t = e.target as HTMLSelectElement
+        setTheme(t.value as ThemeName)
+      }}
+    >
+      {#each themes as theme (theme.name)}
+        <option value={theme.name}>{theme.label}</option>
+      {/each}
+    </select>
+  </label>
 
   <div class="stats">
     <div class="stat"><span class="num">{$stats.types}</span> types</div>
@@ -196,31 +214,31 @@
   .sidebar {
     width: 240px;
     height: 100%;
-    background: #16213e;
-    color: #e0e0e0;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
-    border-right: 1px solid #0f3460;
+    border-right: 1px solid var(--border-primary);
     box-sizing: border-box;
   }
   .title {
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #4fc3f7;
+    color: var(--accent);
   }
   .version {
     font-size: 11px;
     font-weight: 400;
-    color: #78909c;
+    color: var(--text-muted);
   }
   .subtitle {
     margin: -8px 0 0;
     font-size: 12px;
-    color: #78909c;
+    color: var(--text-muted);
   }
   .stats {
     display: grid;
@@ -228,18 +246,18 @@
     gap: 6px;
   }
   .stat {
-    background: #1a1a2e;
+    background: var(--bg-primary);
     border-radius: 6px;
     padding: 8px;
     text-align: center;
     font-size: 12px;
-    color: #b0bec5;
+    color: var(--text-secondary);
   }
   .num {
     display: block;
     font-size: 20px;
     font-weight: 700;
-    color: #e0e0e0;
+    color: var(--text-primary);
   }
   .legend {
     margin-top: 4px;
@@ -253,20 +271,20 @@
     cursor: pointer;
   }
   .legend-item input[type='checkbox'] {
-    accent-color: #4fc3f7;
+    accent-color: var(--accent);
     cursor: pointer;
   }
   .legend-count {
     display: none;
     margin-left: auto;
-    color: #4fc3f7;
+    color: var(--accent);
     font-weight: 700;
   }
   .links-row {
     display: none;
   }
   .dot.link-dot {
-    background: #90a4ae;
+    background: var(--text-tertiary);
     border-radius: 2px;
     transform: none;
   }
@@ -277,19 +295,19 @@
     display: inline-block;
   }
   .dot.type {
-    background: #4fc3f7;
+    background: var(--service-type-bg);
     border-radius: 2px;
     transform: rotate(45deg);
   }
   .dot.inst {
-    background: #81c784;
+    background: var(--instance-bg);
   }
   .dot.host {
-    background: #ffb74d;
+    background: var(--host-bg);
     border-radius: 2px;
   }
   .dot.addr {
-    background: #ce93d8;
+    background: var(--address-bg);
     border-radius: 0;
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   }
@@ -299,7 +317,7 @@
   .section-toggle {
     background: none;
     border: none;
-    color: #90a4ae;
+    color: var(--text-tertiary);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -316,7 +334,7 @@
     flex-direction: column;
     gap: 8px;
     padding: 8px;
-    background: #1a1a2e;
+    background: var(--bg-primary);
     border-radius: 6px;
     margin-top: 4px;
   }
@@ -325,15 +343,15 @@
     flex-direction: column;
     gap: 2px;
     font-size: 11px;
-    color: #b0bec5;
+    color: var(--text-secondary);
   }
   .ctrl select {
     appearance: none;
-    background: #1a1a2e
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='%2378909c'/%3E%3C/svg%3E")
+    background: var(--bg-primary)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='currentColor'/%3E%3C/svg%3E")
       no-repeat right 6px center;
-    color: #b0bec5;
-    border: 1px solid #16213e;
+    color: var(--text-secondary);
+    border: 1px solid var(--bg-secondary);
     border-radius: 4px;
     padding: 4px 22px 4px 6px;
     font-size: 11px;
@@ -341,11 +359,11 @@
   }
   .ctrl input[type='range'] {
     width: 100%;
-    accent-color: #4fc3f7;
+    accent-color: var(--accent);
   }
   .val {
     float: right;
-    color: #4fc3f7;
+    color: var(--accent);
     font-weight: 600;
     font-size: 11px;
   }
@@ -353,48 +371,48 @@
     width: 100%;
     box-sizing: border-box;
     padding: 8px;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border-primary);
     border-radius: 4px;
-    background: #1a1a2e;
-    color: #e0e0e0;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 13px;
     outline: none;
   }
   .filter-input::placeholder {
-    color: #546e7a;
+    color: var(--text-placeholder);
   }
   .filter-input:focus {
-    border-color: #4fc3f7;
+    border-color: var(--accent);
   }
   .export-btn {
     width: 100%;
     padding: 8px;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border-primary);
     border-radius: 4px;
-    background: #1a1a2e;
-    color: #4fc3f7;
+    background: var(--bg-primary);
+    color: var(--accent);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
   }
   .export-btn:hover {
-    background: #16213e;
-    border-color: #4fc3f7;
+    background: var(--bg-secondary);
+    border-color: var(--accent);
   }
   .reset-btn {
     margin-top: 2px;
     padding: 6px;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border-primary);
     border-radius: 4px;
-    background: #1a1a2e;
-    color: #b0bec5;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
     font-size: 12px;
     cursor: pointer;
   }
   .reset-btn:hover {
-    background: #16213e;
-    border-color: #4fc3f7;
-    color: #4fc3f7;
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+    color: var(--accent);
   }
   @media (max-width: 768px) {
     .sidebar {
@@ -404,7 +422,7 @@
       max-height: 40dvh;
       padding-top: calc(16px + env(safe-area-inset-top));
       border-right: none;
-      border-bottom: 1px solid #0f3460;
+      border-bottom: 1px solid var(--border-primary);
     }
     .stats {
       display: none;

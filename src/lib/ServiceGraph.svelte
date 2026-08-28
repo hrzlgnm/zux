@@ -12,6 +12,8 @@
     filterQuery,
     disabledGroups,
     graphNetwork,
+    currentTheme,
+    themeColors,
   } from './store'
   import type { GraphNode, GraphEdge, PhysicsConfig } from './types'
 
@@ -40,47 +42,50 @@
     }
   }
 
-  const options: Options = {
-    nodes: {
-      font: { face: 'Inter Variable', size: 12, color: '#e0e0e0' },
-      borderWidth: 2,
-      shadow: { enabled: true, size: 4 },
-    },
-    edges: {
-      width: 2,
-      font: { face: 'Inter Variable', size: 10, color: '#b0bec5', align: 'middle' },
-      smooth: { enabled: true, type: 'continuous', roundness: 0.5 },
-    },
-    groups: {
-      'service-type': {
-        shape: 'diamond',
-        color: { background: '#4fc3f7', border: '#0288d1' },
-        font: { color: '#e1f5fe', size: 13 },
+  function buildGraphOptions(): Options {
+    const c = themeColors()
+    return {
+      nodes: {
+        font: { face: 'Inter Variable', size: 12, color: c.textPrimary },
+        borderWidth: 2,
+        shadow: { enabled: true, size: 4 },
       },
-      instance: {
-        shape: 'dot',
-        color: { background: '#81c784', border: '#388e3c' },
-        font: { color: '#e8f5e9' },
+      edges: {
+        width: 2,
+        font: { face: 'Inter Variable', size: 10, color: c.textSecondary, align: 'middle' },
+        smooth: { enabled: true, type: 'continuous', roundness: 0.5 },
       },
-      host: {
-        shape: 'square',
-        color: { background: '#ffb74d', border: '#f57c00' },
-        font: { color: '#fff3e0' },
+      groups: {
+        'service-type': {
+          shape: 'diamond',
+          color: { background: c.serviceTypeBg, border: c.serviceTypeBorder },
+          font: { color: c.serviceTypeFont, size: 13 },
+        },
+        instance: {
+          shape: 'dot',
+          color: { background: c.instanceBg, border: c.instanceBorder },
+          font: { color: c.instanceFont },
+        },
+        host: {
+          shape: 'square',
+          color: { background: c.hostBg, border: c.hostBorder },
+          font: { color: c.hostFont },
+        },
+        address: {
+          shape: 'triangle',
+          color: { background: c.addressBg, border: c.addressBorder },
+          font: { color: c.addressFont, size: 11 },
+        },
       },
-      address: {
-        shape: 'triangle',
-        color: { background: '#ce93d8', border: '#7b1fa2' },
-        font: { color: '#f3e5f5', size: 11 },
+      interaction: {
+        dragNodes: true,
+        dragView: true,
+        zoomView: true,
+        hover: true,
+        tooltipDelay: 200,
       },
-    },
-    interaction: {
-      dragNodes: true,
-      dragView: true,
-      zoomView: true,
-      hover: true,
-      tooltipDelay: 200,
-    },
-    layout: { improvedLayout: true },
+      layout: { improvedLayout: true },
+    }
   }
 
   function syncGraph() {
@@ -201,9 +206,66 @@
     if (edgeUpdates.length > 0) visEdges.updateOnly(edgeUpdates)
   }
 
+  function applyGraphTheme() {
+    if (!network) return
+    const opts = buildGraphOptions()
+    network.setOptions({
+      nodes: opts.nodes,
+      edges: opts.edges,
+      groups: opts.groups,
+    })
+    const c = themeColors()
+    const fontMap: Record<string, string> = {
+      'service-type': c.serviceTypeFont,
+      instance: c.instanceFont,
+      host: c.hostFont,
+      address: c.addressFont,
+    }
+    const colorMap: Record<string, { background: string; border: string }> = {
+      'service-type': { background: c.serviceTypeBg, border: c.serviceTypeBorder },
+      instance: { background: c.instanceBg, border: c.instanceBorder },
+      host: { background: c.hostBg, border: c.hostBorder },
+      address: { background: c.addressBg, border: c.addressBorder },
+    }
+    const nodeUpdates: {
+      id: string
+      color: { background: string; border: string }
+      font: { color: string }
+    }[] = []
+    for (const n of get(graphNodes).values()) {
+      if (n.offline) {
+        nodeUpdates.push({
+          id: n.id,
+          color: { background: c.offlineBg, border: c.offlineBorder },
+          font: { color: c.offlineFont },
+        })
+      } else {
+        const fc = fontMap[n.group]
+        const bg = colorMap[n.group]
+        if (fc && bg) {
+          nodeUpdates.push({ id: n.id, color: bg, font: { color: fc } })
+        }
+      }
+    }
+    if (nodeUpdates.length > 0) visNodes.updateOnly(nodeUpdates)
+
+    const edgeUpdates: { id: string; color: string }[] = []
+    for (const e of get(graphEdges).values()) {
+      const edgeColor = c.edgeTypeInstance
+      if (e.id.startsWith('e:ih:')) {
+        edgeUpdates.push({ id: e.id, color: c.edgeInstanceHost })
+      } else if (e.id.startsWith('e:ha:')) {
+        edgeUpdates.push({ id: e.id, color: c.edgeHostAddress })
+      } else {
+        edgeUpdates.push({ id: e.id, color: edgeColor })
+      }
+    }
+    if (edgeUpdates.length > 0) visEdges.updateOnly(edgeUpdates)
+  }
+
   onMount(() => {
-    const initialCfg = get(physicsConfig)
-    options.physics = buildPhysicsOpts(initialCfg, true)
+    const options = buildGraphOptions()
+    options.physics = buildPhysicsOpts(get(physicsConfig), true)
     network = new Network(container, { nodes: visNodes, edges: visEdges }, options)
     graphNetwork.set(network)
 
@@ -229,6 +291,7 @@
     const unsub3 = physicsConfig.subscribe(applyPhysics)
     const unsub4 = filterQuery.subscribe(applyVisibility)
     const unsub5 = disabledGroups.subscribe(applyVisibility)
+    const unsub6 = currentTheme.subscribe(applyGraphTheme)
 
     onDestroy(() => {
       unsub1()
@@ -236,6 +299,7 @@
       unsub3()
       unsub4()
       unsub5()
+      unsub6()
       ro.disconnect()
       graphNetwork.set(null)
       network?.destroy()
@@ -249,7 +313,7 @@
   .graph-container {
     position: absolute;
     inset: 0;
-    background: #1a1a2e;
+    background: var(--bg-primary);
   }
   :global(.vis-network) {
     outline: none;

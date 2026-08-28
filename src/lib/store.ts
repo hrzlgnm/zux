@@ -3,7 +3,16 @@ import { isTauri } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { Store } from '@tauri-apps/plugin-store'
 import type { Network } from 'vis-network'
-import type { GraphNode, GraphEdge, PhysicsConfig, MdnsEvent, Solver } from './types'
+import type {
+  GraphNode,
+  GraphEdge,
+  PhysicsConfig,
+  MdnsEvent,
+  Solver,
+  ThemeName,
+  ThemeColors,
+} from './types'
+import { themes, defaultTheme, getThemeByName } from './themes'
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map())
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map())
@@ -111,6 +120,107 @@ export function resetPhysicsConfig() {
   physicsConfig.set({ ...defaultPhysicsConfig })
 }
 
+// ── Theme ──────────────────────────────────────────────────────────────────
+
+export const currentTheme = writable<ThemeName>(defaultTheme)
+
+function applyThemeToCss(colors: ThemeColors) {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  const vars: [string, string][] = [
+    ['--bg-primary', colors.bgPrimary],
+    ['--bg-secondary', colors.bgSecondary],
+    ['--bg-tertiary', colors.bgTertiary],
+    ['--border-primary', colors.borderPrimary],
+    ['--border-accent', colors.borderAccent],
+    ['--text-primary', colors.textPrimary],
+    ['--text-secondary', colors.textSecondary],
+    ['--text-muted', colors.textMuted],
+    ['--text-tertiary', colors.textTertiary],
+    ['--text-placeholder', colors.textPlaceholder],
+    ['--accent', colors.accent],
+    ['--accent-hover', colors.accentHover],
+    ['--service-type-bg', colors.serviceTypeBg],
+    ['--service-type-border', colors.serviceTypeBorder],
+    ['--service-type-font', colors.serviceTypeFont],
+    ['--instance-bg', colors.instanceBg],
+    ['--instance-border', colors.instanceBorder],
+    ['--instance-font', colors.instanceFont],
+    ['--host-bg', colors.hostBg],
+    ['--host-border', colors.hostBorder],
+    ['--host-font', colors.hostFont],
+    ['--address-bg', colors.addressBg],
+    ['--address-border', colors.addressBorder],
+    ['--address-font', colors.addressFont],
+    ['--edge-type-instance', colors.edgeTypeInstance],
+    ['--edge-instance-host', colors.edgeInstanceHost],
+    ['--edge-host-address', colors.edgeHostAddress],
+    ['--offline-bg', colors.offlineBg],
+    ['--offline-border', colors.offlineBorder],
+    ['--offline-font', colors.offlineFont],
+  ]
+  for (const [prop, val] of vars) {
+    root.style.setProperty(prop, val)
+  }
+}
+
+export function themeColors(): ThemeColors {
+  return getThemeByName(get(currentTheme)).colors
+}
+
+const THEME_STORE_FILE = 'theme-config.json'
+const THEME_CONFIG_KEY = 'theme'
+
+let themeStorePromise: Promise<Store> | null = null
+let themeSaveChain: Promise<void> = Promise.resolve()
+
+function loadThemeStore(): Promise<Store> {
+  if (!themeStorePromise) {
+    themeStorePromise = Store.load(THEME_STORE_FILE)
+  }
+  return themeStorePromise
+}
+
+function persistTheme(name: ThemeName) {
+  if (!isTauri()) return
+  themeSaveChain = themeSaveChain.then(async () => {
+    try {
+      const store = await loadThemeStore()
+      await store.set(THEME_CONFIG_KEY, name)
+      await store.save()
+    } catch (e) {
+      console.error('[zux] failed to save theme config:', e)
+    }
+  })
+}
+
+export async function initTheme() {
+  applyThemeToCss(themeColors())
+  let firstEmit = true
+  currentTheme.subscribe((name) => {
+    applyThemeToCss(getThemeByName(name).colors)
+    if (firstEmit) {
+      firstEmit = false
+      return
+    }
+    persistTheme(name)
+  })
+  if (!isTauri()) return
+  try {
+    const store = await loadThemeStore()
+    const saved = await store.get<ThemeName>(THEME_CONFIG_KEY)
+    if (saved && themes.some((t) => t.name === saved)) {
+      currentTheme.set(saved)
+    }
+  } catch (e) {
+    console.error('[zux] failed to load theme config:', e)
+  }
+}
+
+export function setTheme(name: ThemeName) {
+  currentTheme.set(name)
+}
+
 export function clearGraph() {
   graphNodes.set(new Map())
   graphEdges.set(new Map())
@@ -145,24 +255,38 @@ function addrId(a: string) {
   return `addr:${a}`
 }
 
-const OFFLINE_COLOR = { background: '#616161', border: '#424242' }
-const OFFLINE_FONT = { color: '#9e9e9e' }
+function offlineColor() {
+  const c = themeColors()
+  return { background: c.offlineBg, border: c.offlineBorder }
+}
 
-const ONLINE_COLORS: Record<string, string> = {
-  instance: '#81c784',
-  host: '#ffb74d',
-  address: '#ce93d8',
+function offlineFont() {
+  return { color: themeColors().offlineFont }
+}
+
+function onlineColor(group: string): string {
+  const c = themeColors()
+  switch (group) {
+    case 'instance':
+      return c.instanceBg
+    case 'host':
+      return c.hostBg
+    case 'address':
+      return c.addressBg
+    default:
+      return c.textPrimary
+  }
 }
 
 function applyOfflineStyle(n: GraphNode): GraphNode {
-  return { ...n, offline: true, color: OFFLINE_COLOR, font: OFFLINE_FONT }
+  return { ...n, offline: true, color: offlineColor(), font: offlineFont() }
 }
 
 function applyOnlineStyle(n: GraphNode): GraphNode {
   return {
     ...n,
     offline: false,
-    color: ONLINE_COLORS[n.group] || '#e0e0e0',
+    color: onlineColor(n.group),
     font: undefined,
   }
 }
@@ -232,7 +356,7 @@ function handleMdnsEvent(p: MdnsEvent) {
             group: 'service-type',
             shape: 'diamond',
             size: 25,
-            color: '#4fc3f7',
+            color: themeColors().serviceTypeBg,
           })
         }
         return m
@@ -254,7 +378,7 @@ function handleMdnsEvent(p: MdnsEvent) {
             group: 'instance',
             shape: 'dot',
             size: 15,
-            color: '#81c784',
+            color: themeColors().instanceBg,
             serviceType: d.service_type,
             subType: d.sub_type ?? undefined,
             hostname: d.hostname,
@@ -283,7 +407,7 @@ function handleMdnsEvent(p: MdnsEvent) {
             group: 'host',
             shape: 'square',
             size: 20,
-            color: '#ffb74d',
+            color: themeColors().hostBg,
             hostname: d.hostname,
             addresses: d.addresses,
           })
@@ -311,7 +435,7 @@ function handleMdnsEvent(p: MdnsEvent) {
                 group: 'address',
                 shape: 'triangle',
                 size: 12,
-                color: '#ce93d8',
+                color: themeColors().addressBg,
                 interfaces: sorted,
               })
             } else {
@@ -329,13 +453,13 @@ function handleMdnsEvent(p: MdnsEvent) {
           from: tId,
           to: nId,
           dashes: true,
-          color: '#90a4ae',
+          color: themeColors().edgeTypeInstance,
         })
         m.set(`e:ih:${nId}:${hId}`, {
           id: `e:ih:${nId}:${hId}`,
           from: nId,
           to: hId,
-          color: '#78909c',
+          color: themeColors().edgeInstanceHost,
         })
         if (d.addresses) {
           for (const a of d.addresses) {
@@ -346,7 +470,7 @@ function handleMdnsEvent(p: MdnsEvent) {
                 id: edgeId,
                 from: hId,
                 to: aId,
-                color: '#b39ddb',
+                color: themeColors().edgeHostAddress,
               })
             }
           }
