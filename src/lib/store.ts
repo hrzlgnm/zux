@@ -12,7 +12,7 @@ import type {
   ThemeName,
   ThemeColors,
 } from './types'
-import { themes, defaultTheme, getThemeByName } from './themes'
+import { themes, defaultTheme, getThemeByName, cssVarMap, isDarkTheme } from './themes'
 
 export const graphNodes = writable<Map<string, GraphNode>>(new Map())
 export const graphEdges = writable<Map<string, GraphEdge>>(new Map())
@@ -124,48 +124,50 @@ export function resetPhysicsConfig() {
 
 export const currentTheme = writable<ThemeName>(defaultTheme)
 
-function applyThemeToCss(colors: ThemeColors) {
+function detectSystemTheme(): 'dark' | 'light' {
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 'dark'
+}
+
+export const systemTheme = writable<'dark' | 'light'>(detectSystemTheme())
+
+export const resolvedTheme = derived([currentTheme, systemTheme], ([$curr, $sys]) => {
+  if ($curr === 'system') return getThemeByName($sys)
+  return getThemeByName($curr)
+})
+
+export const resolvedThemeColors = derived(resolvedTheme, ($t) => $t.colors)
+
+function applyThemeToCss(colors: ThemeColors, resolvedName: string) {
   if (typeof document === 'undefined') return
   const root = document.documentElement
-  const vars: [string, string][] = [
-    ['--bg-primary', colors.bgPrimary],
-    ['--bg-secondary', colors.bgSecondary],
-    ['--bg-tertiary', colors.bgTertiary],
-    ['--border-primary', colors.borderPrimary],
-    ['--border-accent', colors.borderAccent],
-    ['--text-primary', colors.textPrimary],
-    ['--text-secondary', colors.textSecondary],
-    ['--text-muted', colors.textMuted],
-    ['--text-tertiary', colors.textTertiary],
-    ['--text-placeholder', colors.textPlaceholder],
-    ['--accent', colors.accent],
-    ['--accent-hover', colors.accentHover],
-    ['--service-type-bg', colors.serviceTypeBg],
-    ['--service-type-border', colors.serviceTypeBorder],
-    ['--service-type-font', colors.serviceTypeFont],
-    ['--instance-bg', colors.instanceBg],
-    ['--instance-border', colors.instanceBorder],
-    ['--instance-font', colors.instanceFont],
-    ['--host-bg', colors.hostBg],
-    ['--host-border', colors.hostBorder],
-    ['--host-font', colors.hostFont],
-    ['--address-bg', colors.addressBg],
-    ['--address-border', colors.addressBorder],
-    ['--address-font', colors.addressFont],
-    ['--edge-type-instance', colors.edgeTypeInstance],
-    ['--edge-instance-host', colors.edgeInstanceHost],
-    ['--edge-host-address', colors.edgeHostAddress],
-    ['--offline-bg', colors.offlineBg],
-    ['--offline-border', colors.offlineBorder],
-    ['--offline-font', colors.offlineFont],
-  ]
-  for (const [prop, val] of vars) {
-    root.style.setProperty(prop, val)
+  for (const [key, varName] of Object.entries(cssVarMap) as [keyof ThemeColors, string][]) {
+    root.style.setProperty(varName, colors[key])
   }
+  root.style.colorScheme = isDarkTheme(resolvedName) ? 'dark' : 'light'
 }
 
 export function themeColors(): ThemeColors {
-  return getThemeByName(get(currentTheme)).colors
+  return get(resolvedTheme).colors
+}
+
+async function syncWindowTheme(resolvedName: string) {
+  if (!isTauri()) return
+  const target: 'dark' | 'light' = isDarkTheme(resolvedName) ? 'dark' : 'light'
+  try {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    await getCurrentWindow().setTheme(target)
+  } catch (e) {
+    console.warn('[zux] failed to sync window theme:', e)
+  }
+  try {
+    const { setTheme } = await import('@tauri-apps/api/app')
+    await setTheme(target)
+  } catch {
+    // app theme is best-effort; window theme is primary
+  }
 }
 
 const THEME_STORE_FILE = 'theme-config.json'
@@ -194,11 +196,47 @@ function persistTheme(name: ThemeName) {
   })
 }
 
+let systemListenerCleanup: (() => void) | null = null
+
+function setupSystemThemeListener() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+  if (systemListenerCleanup) return
+  const media = window.matchMedia('(prefers-color-scheme: dark)')
+  const handler = (e: MediaQueryListEvent | MediaQueryList) => {
+    const isDark = 'matches' in e ? e.matches : (e as MediaQueryList).matches
+    systemTheme.set(isDark ? 'dark' : 'light')
+  }
+  if (typeof media.addEventListener === 'function') {
+    const listener = (e: MediaQueryListEvent) => handler(e)
+    media.addEventListener('change', listener)
+    systemListenerCleanup = () => media.removeEventListener('change', listener)
+  } else if (
+    typeof (media as unknown as { addListener: (cb: (m: MediaQueryList) => void) => void })
+      .addListener === 'function'
+  ) {
+    const m = media as unknown as {
+      addListener: (cb: (m: MediaQueryList) => void) => void
+      removeListener: (cb: (m: MediaQueryList) => void) => void
+    }
+    const listener = (m: MediaQueryList) => handler(m)
+    m.addListener(listener)
+    systemListenerCleanup = () => m.removeListener(listener)
+  }
+}
+
 export async function initTheme() {
-  applyThemeToCss(themeColors())
+  setupSystemThemeListener()
+  const initialResolved = get(resolvedTheme)
+  applyThemeToCss(initialResolved.colors, initialResolved.name)
+  void syncWindowTheme(initialResolved.name)
+
+  resolvedTheme.subscribe((preset) => {
+    applyThemeToCss(preset.colors, preset.name)
+    void syncWindowTheme(preset.name)
+  })
+
   let firstEmit = true
   currentTheme.subscribe((name) => {
-    applyThemeToCss(getThemeByName(name).colors)
     if (firstEmit) {
       firstEmit = false
       return
@@ -209,7 +247,9 @@ export async function initTheme() {
   try {
     const store = await loadThemeStore()
     const saved = await store.get<ThemeName>(THEME_CONFIG_KEY)
-    if (saved && themes.some((t) => t.name === saved)) {
+    const isValid =
+      saved === 'system' || (typeof saved === 'string' && themes.some((t) => t.name === saved))
+    if (isValid && saved) {
       currentTheme.set(saved)
     }
   } catch (e) {

@@ -9,6 +9,7 @@
     graphNetwork,
     resetPhysicsConfig,
     currentTheme,
+    systemTheme,
     setTheme,
   } from './store'
   import { themes } from './themes'
@@ -16,6 +17,16 @@
   import type { Solver, ThemeName } from './types'
 
   let physicsOpen = $state(false)
+
+  const sortedThemes = (() => {
+    const byName = new Map(themes.map((t) => [t.name, t]))
+    const dark = byName.get('dark')
+    const light = byName.get('light')
+    const rest = themes
+      .filter((t) => t.name !== 'dark' && t.name !== 'light')
+      .sort((a, b) => a.label.localeCompare(b.label))
+    return [dark, light, ...rest].filter((t): t is (typeof themes)[number] => Boolean(t))
+  })()
 
   async function exportSvg() {
     const network = get(graphNetwork)
@@ -64,7 +75,8 @@
         setTheme(t.value as ThemeName)
       }}
     >
-      {#each themes as theme (theme.name)}
+      <option value="system">{$systemTheme === 'dark' ? 'System (Dark)' : 'System (Light)'}</option>
+      {#each sortedThemes as theme (theme.name)}
         <option value={theme.name}>{theme.label}</option>
       {/each}
     </select>

@@ -9,6 +9,9 @@
     "core:event:default",
     "dialog:allow-confirm",
     "dialog:allow-save",
-    "store:default"
+    "store:default",
+    "core:window:allow-set-theme",
+    "core:window:allow-theme",
+    "core:app:allow-set-app-theme"
   ]
 }

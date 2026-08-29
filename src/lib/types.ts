@@ -60,7 +60,7 @@ export interface PhysicsConfig {
   damping: number
 }
 
-export type ThemeName =
+export type PresetName =
   | 'dark'
   | 'light'
   | 'solarized-dark'
@@ -69,6 +69,8 @@ export type ThemeName =
   | 'catppuccin-frappe'
   | 'catppuccin-macchiato'
   | 'catppuccin-mocha'
+
+export type ThemeName = PresetName | 'system'
 
 export interface ThemeColors {
   bgPrimary: string
@@ -104,7 +106,7 @@ export interface ThemeColors {
 }
 
 export interface ThemePreset {
-  name: ThemeName
+  name: PresetName
   label: string
   colors: ThemeColors
 }
