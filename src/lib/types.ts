@@ -106,7 +106,7 @@ export interface ThemeColors {
 }
 
 export interface ThemePreset {
-  name: ThemeName
+  name: PresetName
   label: string
   colors: ThemeColors
 }
