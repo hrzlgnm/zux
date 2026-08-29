@@ -5,13 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.9.2...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.10.0...HEAD)
+
+### Dependencies
+
+- *(deps)* Update anchore/scan-action action to v7.4.2 ([#228](https://github.com/hrzlgnm/zux/pull/228))
+
+- *(deps)* Update pnpm/setup action to v2.1.0 ([#230](https://github.com/hrzlgnm/zux/pull/230))
+
+- *(deps)* Update hrzlgnm/actions action to v2.8.1 ([#229](https://github.com/hrzlgnm/zux/pull/229))
+
+## [1.10.0] - 2026-08-28 [compare](https://github.com/hrzlgnm/zux/compare/v1.9.2...v1.10.0)
+
+### Added
+
+- Add theming support with 8 theme presets ([#227](https://github.com/hrzlgnm/zux/pull/227))
 
 ### Dependencies
 
 - *(deps)* Update anchore/scan-action action to v7.4.1 ([#222](https://github.com/hrzlgnm/zux/pull/222))
 
 - *(deps)* Update hrzlgnm/actions action to v2.7.0 ([#223](https://github.com/hrzlgnm/zux/pull/223))
+
+- *(deps)* Update mikepenz/action-junit-report digest to a9170d5 ([#225](https://github.com/hrzlgnm/zux/pull/225))
+
+- *(deps)* Update hrzlgnm/actions action to v2.8.0 ([#226](https://github.com/hrzlgnm/zux/pull/226))
 
 ## [1.9.2] - 2026-08-27 [compare](https://github.com/hrzlgnm/zux/compare/v1.9.1...v1.9.2)
 
