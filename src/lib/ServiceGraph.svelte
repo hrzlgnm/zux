@@ -12,7 +12,7 @@
     filterQuery,
     disabledGroups,
     graphNetwork,
-    currentTheme,
+    resolvedTheme,
     themeColors,
   } from './store'
   import type { GraphNode, GraphEdge, PhysicsConfig } from './types'
@@ -291,7 +291,7 @@
     const unsub3 = physicsConfig.subscribe(applyPhysics)
     const unsub4 = filterQuery.subscribe(applyVisibility)
     const unsub5 = disabledGroups.subscribe(applyVisibility)
-    const unsub6 = currentTheme.subscribe(applyGraphTheme)
+    const unsub6 = resolvedTheme.subscribe(applyGraphTheme)
 
     onDestroy(() => {
       unsub1()

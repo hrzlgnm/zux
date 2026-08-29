@@ -1,4 +1,4 @@
-import type { ThemePreset } from './types'
+import type { ThemeColors, ThemePreset } from './types'
 
 const dark: ThemePreset = {
   name: 'dark',
@@ -307,8 +307,53 @@ export const themes: ThemePreset[] = [
   catppuccinMocha,
 ]
 
-export const defaultTheme = 'dark'
+export const defaultTheme: import('./types').ThemeName = 'system'
 
 export function getThemeByName(name: string): ThemePreset {
   return themes.find((t) => t.name === name) ?? themes[0]
+}
+
+export const cssVarMap: Record<keyof ThemeColors, string> = {
+  bgPrimary: '--bg-primary',
+  bgSecondary: '--bg-secondary',
+  bgTertiary: '--bg-tertiary',
+  borderPrimary: '--border-primary',
+  borderAccent: '--border-accent',
+  textPrimary: '--text-primary',
+  textSecondary: '--text-secondary',
+  textMuted: '--text-muted',
+  textTertiary: '--text-tertiary',
+  textPlaceholder: '--text-placeholder',
+  accent: '--accent',
+  accentHover: '--accent-hover',
+  serviceTypeBg: '--service-type-bg',
+  serviceTypeBorder: '--service-type-border',
+  serviceTypeFont: '--service-type-font',
+  instanceBg: '--instance-bg',
+  instanceBorder: '--instance-border',
+  instanceFont: '--instance-font',
+  hostBg: '--host-bg',
+  hostBorder: '--host-border',
+  hostFont: '--host-font',
+  addressBg: '--address-bg',
+  addressBorder: '--address-border',
+  addressFont: '--address-font',
+  edgeTypeInstance: '--edge-type-instance',
+  edgeInstanceHost: '--edge-instance-host',
+  edgeHostAddress: '--edge-host-address',
+  offlineBg: '--offline-bg',
+  offlineBorder: '--offline-border',
+  offlineFont: '--offline-font',
+}
+
+const darkThemeNames = new Set<string>([
+  'dark',
+  'solarized-dark',
+  'catppuccin-frappe',
+  'catppuccin-macchiato',
+  'catppuccin-mocha',
+])
+
+export function isDarkTheme(name: string): boolean {
+  return darkThemeNames.has(name)
 }
