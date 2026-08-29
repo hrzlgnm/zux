@@ -69,6 +69,10 @@ export type PresetName =
   | 'catppuccin-frappe'
   | 'catppuccin-macchiato'
   | 'catppuccin-mocha'
+  | 'dracula'
+  | 'nord'
+  | 'tokyo-night'
+  | 'gruvbox-dark'
 
 export type ThemeName = PresetName | 'system'
 
