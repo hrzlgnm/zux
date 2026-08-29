@@ -9,6 +9,7 @@
     graphNetwork,
     resetPhysicsConfig,
     currentTheme,
+    systemTheme,
     setTheme,
   } from './store'
   import { themes } from './themes'
@@ -64,6 +65,7 @@
         setTheme(t.value as ThemeName)
       }}
     >
+      <option value="system">{$systemTheme === 'dark' ? 'System (Dark)' : 'System (Light)'}</option>
       {#each themes as theme (theme.name)}
         <option value={theme.name}>{theme.label}</option>
       {/each}
