@@ -1,4 +1,4 @@
-import type { ThemeColors, ThemePreset } from './types'
+import type { ThemeColors, ThemePreset, ThemeName } from './types'
 
 const dark: ThemePreset = {
   name: 'dark',
@@ -307,7 +307,7 @@ export const themes: ThemePreset[] = [
   catppuccinMocha,
 ]
 
-export const defaultTheme: import('./types').ThemeName = 'system'
+export const defaultTheme: ThemeName = 'system'
 
 export function getThemeByName(name: string): ThemePreset {
   return themes.find((t) => t.name === name) ?? themes[0]
