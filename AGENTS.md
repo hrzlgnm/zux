@@ -25,6 +25,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 
 - Install the Playwright browser once with `pnpm exec playwright install chromium` if needed.
 - After changing a workflow, run `actionlint` in addition to its matching checks.
+- After changing `.github/renovate.json5`, validate the config with `docker run --rm --volume=$(pwd)/.github/renovate.json5:/github/renovate.json5:ro --workdir=/github kokuwaio/renovate-config-validator:latest`.
 - Every commit must compile, pass its tests, and be format- and lint-clean. Do not create WIP commits that depend on a later commit to become green.
 
 ## GitHub Actions
