@@ -1,5 +1,10 @@
 name: "Setup pnpm and cache store"
 description: "Install pnpm on Node 24 and restore the pnpm store via actions/cache using a per-job/per-run key so parallel jobs don't collide on the same cache save."
+inputs:
+  cache:
+    description: "Whether to restore/save pnpm store via actions/cache"
+    required: false
+    default: "true"
 runs:
   using: "composite"
   steps:
@@ -11,10 +16,12 @@ runs:
         cache: false
         install: false
     - name: "📍 Get pnpm store path"
+      if: inputs.cache == 'true'
       id: "pnpm-store"
       shell: "bash"
       run: echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
     - name: "💾 Cache pnpm store"
+      if: inputs.cache == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.pnpm-store.outputs.path }}
