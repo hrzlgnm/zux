@@ -134,6 +134,7 @@ jobs:
         with:
           artifact-name: "sbom.${{ matrix.os }}.spdx.json.gz"
           current-version: ${{ needs.draft-release.outputs.version }}
+          cache-db: "false"
 
       - name: 🔑 Import windows signing certificate (windows only)
         if: matrix.os == 'windows-latest'
@@ -336,6 +337,7 @@ jobs:
         with:
           artifact-name: "sbom.android.spdx.json.gz"
           current-version: ${{ needs.draft-release.outputs.version }}
+          cache-db: "false"
 
       - name: 🏗️ Build Android app bundle
         shell: bash
