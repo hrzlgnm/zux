@@ -49,6 +49,7 @@ jobs:
               - 'jsconfig.json'
               - 'svelte.config.js'
               - '.github/workflows/ci.yml'
+              - '.github/actions/pnpm-setup/action.yml'
             prettier:
               - 'src/**'
               - 'package.json'
@@ -60,6 +61,7 @@ jobs:
               - '.prettierrc'
               - '.prettierignore'
               - '.github/workflows/ci.yml'
+              - '.github/actions/pnpm-setup/action.yml'
             tests:
               - 'src-tauri/**'
               - '.github/workflows/ci.yml'
@@ -70,6 +72,7 @@ jobs:
               - 'jsconfig.json'
               - 'svelte.config.js'
               - '.github/workflows/ci.yml'
+              - '.github/actions/pnpm-setup/action.yml'
             e2e:
               - 'src/**'
               - 'e2e/**'
@@ -80,11 +83,13 @@ jobs:
               - 'svelte.config.js'
               - 'jsconfig.json'
               - '.github/workflows/ci.yml'
+              - '.github/actions/pnpm-setup/action.yml'
             signer:
               - 'src-tauri/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - '.github/workflows/ci.yml'
+              - '.github/actions/pnpm-setup/action.yml'
             winget:
               - '.github/workflows/winget-reusable.yml'
               - '.github/actions/latest-release-info/action.yml'
