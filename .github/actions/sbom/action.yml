@@ -11,6 +11,10 @@ inputs:
   current-version:
     description: "The version to generate the report for"
     required: true
+  cache-db:
+    description: "Whether to cache grype DB via actions/cache"
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -42,7 +46,7 @@ runs:
       with:
         sbom: "sbom.spdx.json"
         severity-cutoff: medium
-        cache-db: true
+        cache-db: ${{ inputs.cache-db == 'true' }}
 
     - name: 🔍 Inspect SARIF report
       if: ${{ runner.os != 'Windows' }}
