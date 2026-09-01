@@ -6,6 +6,7 @@
 [![AUR Version](https://img.shields.io/aur/version/zux-bin)](https://aur.archlinux.org/packages/zux-bin)
 [![WinGet Version](https://img.shields.io/winget/v/hrzlgnm.zux)](https://winget.run/hrzlgnm.zux)
 [![FlatPark Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fflatpark%2Fflatpark%2Fmain%2Fregistry%2Fio.github.hrzlgnm.zux%2Fio.github.hrzlgnm.zux.yml&search=download%2Fv%3F%28%3F%3Cversion%3E%5B0-9.%5D%2B%29%2F&replace=%24%3Cversion%3E&label=FlatPark&color=blue)](https://flatpark.org/apps/io.github.hrzlgnm.zux)
+[![zux-viz](https://snapcraft.io/zux-viz/badge.svg)](https://snapcraft.io/zux-viz)
 [![License: MIT](https://img.shields.io/github/license/hrzlgnm/zux)](https://github.com/hrzlgnm/zux/blob/main/LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/hrzlgnm/zux/ci.yml)](https://github.com/hrzlgnm/zux/actions)
 
@@ -65,6 +66,7 @@ services from a terminal, take a look at
         - [GitHub Releases](#github-releases)
         - [WinGet installation](#winget-installation)
         - [Arch Linux (AUR)](#arch-linux-aur)
+        - [Snap (Linux)](#snap-linux)
         - [Homebrew (macOS)](#homebrew-macos)
         - [Flatpak (FlatPark)](#flatpak-flatpark)
         - [Android](#android)
@@ -186,6 +188,19 @@ Alternatively using the -bin package:
 ```console
 paru -S zux-bin
 ```
+
+### Snap (Linux)
+
+To install the strictly-confined snap from the Snap Store, run:
+
+```console
+sudo snap install zux-viz
+```
+
+The snap is packaged from the prebuilt `zux_linux_x64` release binary; its
+SLSA build provenance is verified before packaging. Updates are delivered
+via `snap refresh`. The packaging repository is
+[hrzlgnm/zux-snap](https://github.com/hrzlgnm/zux-snap).
 
 ### Homebrew (macOS)
 
