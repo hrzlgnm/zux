@@ -5,11 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.11.0...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.11.3...HEAD)
+
+### Dependencies
+
+- *(deps)* Update dependency svelte to v5.57.0 ([#252](https://github.com/hrzlgnm/zux/pull/252))
+
+## [1.11.3] - 2026-08-31 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.2...v1.11.3)
+
+### Changed
+
+- Ensure tests are finished before running cache tools ([#250](https://github.com/hrzlgnm/zux/pull/250))
+
+### Dependencies
+
+- *(deps)* Update archlinux:base-devel docker digest to 84cd9ef ([#251](https://github.com/hrzlgnm/zux/pull/251))
+
+### Maintenance
+
+- *(ci)* Disable pnpm store cache on release to match sccache ([#247](https://github.com/hrzlgnm/zux/pull/247))
+
+- *(ci)* Disable grype DB cache on release to match pnpm/sccache ([#248](https://github.com/hrzlgnm/zux/pull/248))
+
+- *(ci)* Share rust cache and only save on main to cut ~65% size ([#249](https://github.com/hrzlgnm/zux/pull/249))
+
+## [1.11.2] - 2026-08-31 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.1...v1.11.2)
+
+### Changed
+
+- Skip update unreleased changelog when drafting a release ([#243](https://github.com/hrzlgnm/zux/pull/243))
+
+### Dependencies
+
+- *(deps)* Update rust crate tauri-plugin-log to v2.9.1 ([#240](https://github.com/hrzlgnm/zux/pull/240))
+
+- *(deps)* Update rust crate tauri-plugin-dialog to v2.7.3 ([#239](https://github.com/hrzlgnm/zux/pull/239))
+
+- *(deps)* Update rust crate tauri-plugin-updater to v2.11.0 ([#242](https://github.com/hrzlgnm/zux/pull/242))
+
+- *(deps)* Update rust crate tauri-plugin-opener to v2.5.5 ([#241](https://github.com/hrzlgnm/zux/pull/241))
+
+- *(deps)* Update tauri monorepo ([#245](https://github.com/hrzlgnm/zux/pull/245))
+
+### Fixed
+
+- *(renovate)* Align Tauri npm and Cargo updates ([#244](https://github.com/hrzlgnm/zux/pull/244))
+
+- *(pnpm)* Exclude Tauri packages from minimumReleaseAge ([#246](https://github.com/hrzlgnm/zux/pull/246))
+
+## [1.11.1] - 2026-08-31 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.0...v1.11.1)
 
 ### Dependencies
 
 - *(deps)* Lock file maintenance ([#236](https://github.com/hrzlgnm/zux/pull/236))
+
+- *(deps)* Update rust crate mdns-sd to v0.21.1 ([#238](https://github.com/hrzlgnm/zux/pull/238))
 
 ## [1.11.0] - 2026-08-29 [compare](https://github.com/hrzlgnm/zux/compare/v1.10.0...v1.11.0)
 
