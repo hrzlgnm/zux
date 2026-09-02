@@ -8,6 +8,7 @@
 - Treat every unforeseen bug, race, wrong assumption, or unhandled case as a fork. Raise it before designing or writing a fix, even when the fix seems mechanical.
 - A known race, corruption risk, or correctness bug requires a real fix. If no feasible fix exists, state that directly instead of presenting the bug as an option.
 - Optimize for a readable final design, not the smallest diff. Make and commit a behavior-preserving preparatory refactor first when it clarifies the behavior change; avoid speculative abstractions and redundant work.
+- Do not consider work complete until Validation and the two-axis Code Review (see below) have both passed; pushing or opening a PR without the review is a violation.
 
 ## Validation
 
@@ -86,6 +87,24 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 
 ## Code Review
 
-- Before treating a change as complete, use the `code-review` skill to run two parallel reviews: **Standards** checks this file and the Fowler smell baseline; **Spec** checks the originating issue or request for omissions, scope creep, and incorrect behavior.
-- Report the axes separately, aggregate their findings, and fix defects before pushing and opening the pull request.
-- After adding changes to an open pull request, update its description so the summary, issue references, and testing cover the cumulative branch.
+This is a mandatory gate. Do not push, do not open a PR, and do not
+declare a task complete until the two-axis review has run and its
+findings are fixed.
+
+- **When:** after Validation passes on the final commit(s), before
+  `git push` and before `gh pr create`. Re-run after every fixup that
+  touches `src/`, `src-tauri/`, or docs.
+- **How:** load the `code-review` skill (skill tool `name: "code-review"`).
+  Pin the fixed point to `main` (use `origin/main` if `main` is stale)
+  and pass `git diff main...HEAD` (three-dot, merge-base) plus
+  `git log main..HEAD --oneline`. The skill spawns two parallel
+  sub-agents — **Standards** (this file plus the Fowler smell baseline
+  defined in the skill) and **Spec** (originating issue/spec/request;
+  reports "no spec available" if none exists) — then aggregates.
+- **Report:** paste both axes verbatim under `## Standards` / `## Spec`,
+  do not merge or rerank them. End with a one-line summary: total
+  findings per axis and the worst issue within each axis. Fix defects
+  before pushing.
+- After adding changes to an open pull request, update its description
+  so the summary, issue references, and testing cover the cumulative
+  branch.
