@@ -16,6 +16,8 @@
   import { exportGraphSvg } from './svg-export'
   import type { Solver, ThemeName } from './types'
 
+  let { open = false, onClose = () => {} }: { open?: boolean; onClose?: () => void } = $props()
+
   let physicsOpen = $state(false)
 
   const sortedThemes = (() => {
@@ -62,8 +64,13 @@
   }
 </script>
 
-<aside class="sidebar">
-  <h2 class="title">zux <span class="version">v{pkg.version}</span></h2>
+<aside id="app-sidebar" class="sidebar" class:open aria-label="Filters and settings">
+  <div class="drawer-header-row">
+    <h2 class="title">zux <span class="version">v{pkg.version}</span></h2>
+    <button class="drawer-close" type="button" aria-label="Close menu" onclick={onClose}
+      >&times;</button
+    >
+  </div>
   <p class="subtitle">mDNS-SD Visualizer</p>
 
   <label class="ctrl">
@@ -252,6 +259,25 @@
     font-size: 12px;
     color: var(--text-muted);
   }
+  .drawer-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .drawer-close {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .drawer-close:hover {
+    color: var(--text-primary);
+  }
   .stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -428,20 +454,34 @@
   }
   @media (max-width: 768px) {
     .sidebar {
-      width: 100%;
-      height: auto;
-      max-height: 40vh;
-      max-height: 40dvh;
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: min(84vw, 320px);
+      height: 100dvh;
+      max-height: none;
       padding-top: calc(16px + env(safe-area-inset-top));
-      border-right: none;
-      border-bottom: 1px solid var(--border-primary);
+      padding-bottom: env(safe-area-inset-bottom);
+      border-right: 1px solid var(--border-primary);
+      border-bottom: none;
+      z-index: 30;
+      transform: translateX(-100%);
+      transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
     }
-    .stats {
-      display: none;
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .drawer-close {
+      display: block;
     }
     .legend-count,
     .links-row {
       display: flex;
+    }
+  }
+  @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+    .sidebar {
+      transition: none;
     }
   }
 </style>
