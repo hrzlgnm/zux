@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.11.3...HEAD)
 
+### Changed
+
+- Document snap installation via zux-viz ([#256](https://github.com/hrzlgnm/zux/pull/256))
+
 ### Dependencies
 
-- *(deps)* Update dependency svelte to v5.57.0 ([#252](https://github.com/hrzlgnm/zux/pull/252))
+- *(deps)* Update dependency git-cliff to v2.14.1 ([#254](https://github.com/hrzlgnm/zux/pull/254))
 
-## [1.11.3] - 2026-08-31 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.2...v1.11.3)
+- *(deps)* Update pnpm to v11.25.0 ([#255](https://github.com/hrzlgnm/zux/pull/255))
+
+## [1.11.3] - 2026-09-01 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.2...v1.11.3)
 
 ### Changed
 
@@ -20,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dependencies
 
 - *(deps)* Update archlinux:base-devel docker digest to 84cd9ef ([#251](https://github.com/hrzlgnm/zux/pull/251))
+
+- *(deps)* Update dependency svelte to v5.57.0 ([#252](https://github.com/hrzlgnm/zux/pull/252))
 
 ### Maintenance
 
