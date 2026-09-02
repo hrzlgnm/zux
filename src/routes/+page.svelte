@@ -27,18 +27,22 @@
 
   function closeDrawer() {
     drawerOpen = false
+    hamburgerEl?.focus()
   }
 
   function toggleDrawer() {
     drawerOpen = !drawerOpen
   }
 
+  let prevSelectedNodeId: string | null = $state(null)
+
   $effect(() => {
     const id = $selectedNodeId
-    if (id && drawerOpen) {
+    if (id !== null && id !== prevSelectedNodeId && drawerOpen) {
       const isMobile = window.matchMedia('(max-width: 768px)').matches
       if (isMobile) drawerOpen = false
     }
+    prevSelectedNodeId = id
   })
 
   $effect(() => {
