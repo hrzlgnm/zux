@@ -25,7 +25,7 @@ services from a terminal, take a look at
 
 ## Screenshots
 
-![zux](./doc/assets/screenshot.png)
+![zux](./docs/assets/screenshot.png)
 
 ## Features
 

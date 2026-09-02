@@ -4,7 +4,7 @@ package/
 node_modules/
 src-tauri/
 packaging/
-doc/
+docs/
 static/
 .github/
 pnpm-lock.yaml
