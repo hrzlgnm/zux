@@ -87,6 +87,10 @@ fn can_auto_update() -> bool {
 #[cfg(mobile)]
 #[tauri::command]
 fn can_auto_update() -> bool {
+    if tauri::is_dev() || cfg!(debug_assertions) {
+        log::debug!("dev/debug build, auto-update disabled");
+        return false;
+    }
     true
 }
 
