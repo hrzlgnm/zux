@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.11.3...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.0...HEAD)
+
+### Changed
+
+- Join doc and docs into docs ([#261](https://github.com/hrzlgnm/zux/pull/261))
+
+- Make two-axis code review a mandatory gate ([#262](https://github.com/hrzlgnm/zux/pull/262))
+
+## [1.12.0] - 2026-09-02 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.3...v1.12.0)
+
+### Added
+
+- Use overlay drawer for sidebar on mobile ([#259](https://github.com/hrzlgnm/zux/pull/259))
 
 ### Changed
 
@@ -16,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(deps)* Update dependency git-cliff to v2.14.1 ([#254](https://github.com/hrzlgnm/zux/pull/254))
 
 - *(deps)* Update pnpm to v11.25.0 ([#255](https://github.com/hrzlgnm/zux/pull/255))
+
+- *(deps)* Update hrzlgnm/actions action to v2.8.2 ([#258](https://github.com/hrzlgnm/zux/pull/258))
+
+### Fixed
+
+- Disable auto-update check on mobile dev builds ([#260](https://github.com/hrzlgnm/zux/pull/260))
 
 ## [1.11.3] - 2026-09-01 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.2...v1.11.3)
 
