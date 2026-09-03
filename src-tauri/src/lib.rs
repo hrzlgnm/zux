@@ -295,7 +295,7 @@ pub fn run() {
 #[cfg(mobile)]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run_mobile() {
-    let browser = MdnsBrowser::new(true).expect("failed to create mDNS browser");
+    let browser = MdnsBrowser::new(false).expect("failed to create mDNS browser");
 
     tauri::Builder::default()
         .plugin(
