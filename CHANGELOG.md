@@ -5,13 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.0...HEAD)
+## [1.12.1] - 2026-09-03 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.0...v1.12.1)
+
+### Added
+
+- Enable non-link-local IPv6 by default on Android ([#265](https://github.com/hrzlgnm/zux/pull/265))
 
 ### Changed
 
 - Join doc and docs into docs ([#261](https://github.com/hrzlgnm/zux/pull/261))
 
 - Make two-axis code review a mandatory gate ([#262](https://github.com/hrzlgnm/zux/pull/262))
+
+### Dependencies
+
+- *(deps)* Update dependency typescript-eslint to v8.69.0 ([#267](https://github.com/hrzlgnm/zux/pull/267))
+
+- *(deps)* Update dtolnay/rust-toolchain digest to 6bed076 ([#266](https://github.com/hrzlgnm/zux/pull/266))
 
 ## [1.12.0] - 2026-09-02 [compare](https://github.com/hrzlgnm/zux/compare/v1.11.3...v1.12.0)
 
