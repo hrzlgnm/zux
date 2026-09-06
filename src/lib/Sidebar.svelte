@@ -218,6 +218,10 @@
     type="text"
     class="filter-input"
     placeholder="Filter nodes..."
+    autocapitalize="none"
+    autocomplete="off"
+    autocorrect="off"
+    spellcheck="false"
     bind:value={$filterQuery}
     onkeydown={(e) => {
       if (e.key === 'Escape') {

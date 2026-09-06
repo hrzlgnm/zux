@@ -60,6 +60,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 - Build graph stores with `writable`, `derived`, and `get` from `svelte/store`; use `Map` and `Set` rather than plain objects for graph data.
 - Pin devDependencies exactly (`"3.0.10"`) and runtime dependencies with a caret (`"^2"`).
 - Prefix frontend logs with `[zux]`. Use `console.debug` for startup diagnostics, `console.warn` for caught non-fatal errors, and `console.error` for failures; do not commit `console.log` calls.
+- Text inputs (`<input type="text|search|email|url">`, `<textarea>`) must include `autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false"` unless capitalization is explicitly desired (e.g., name fields).
 
 ## Commits
 
