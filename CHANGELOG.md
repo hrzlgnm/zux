@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.2...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.3...HEAD)
+
+### Dependencies
+
+- *(deps)* Update pnpm to v12.3.2 ([#276](https://github.com/hrzlgnm/zux/pull/276))
+
+- *(deps)* Lock file maintenance ([#277](https://github.com/hrzlgnm/zux/pull/277))
+
+## [1.12.3] - 2026-09-06 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.2...v1.12.3)
+
+### Added
+
+- Disable autocapitalization for text inputs ([#275](https://github.com/hrzlgnm/zux/pull/275))
 
 ### Dependencies
 
