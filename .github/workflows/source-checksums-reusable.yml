@@ -47,16 +47,25 @@ jobs:
         algorithm: [sha256]
     steps:
       - name: 📥🔢☑️
-        run: |
-          set -o errexit
-          mkdir -p downloads && cd downloads
-          curl -sLO https://github.com/hrzlgnm/zux/archive/refs/tags/${{ needs.tag.outputs.tag }}.tar.gz
-          curl -sLO https://github.com/hrzlgnm/zux/archive/refs/tags/${{ needs.tag.outputs.tag }}.zip
-          for file in *; do
-            if [ -f "$file" ] && [[ "$file" != *.sha* ]]; then
-              ${{ matrix.algorithm }}sum "$file" > "$file.${{ matrix.algorithm }}"
-            fi
-          done
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        env:
+          TAG: ${{ needs.tag.outputs.tag }}
+          ALGORITHM: ${{ matrix.algorithm }}
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            set -o errexit
+            mkdir -p downloads && cd downloads
+            curl -f -sL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 -O "https://github.com/hrzlgnm/zux/archive/refs/tags/${TAG}.tar.gz"
+            curl -f -sL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 -O "https://github.com/hrzlgnm/zux/archive/refs/tags/${TAG}.zip"
+            for file in *; do
+              if [ -f "$file" ] && [[ "$file" != *.sha* ]]; then
+                "${ALGORITHM}sum" "$file" > "$file.${ALGORITHM}"
+              fi
+            done
       - name: 📤
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -79,17 +88,22 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
 
       - name: 📰🔢☑️
-        shell: bash
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ needs.tag.outputs.tag }}
-        run: |
-          CHECKSUMS=()
-          while IFS= read -r -d '' file; do
-            CHECKSUMS+=("$file")
-          done < <(find . -type f -name '*.sha*' -not -path './.git/*' -print0)
-          if [ "${#CHECKSUMS[@]}" -eq 0 ]; then
-            echo "No checksum files to upload"
-            exit 1
-          fi
-          gh release upload "$TAG_NAME" "${CHECKSUMS[@]}" --clobber
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            CHECKSUMS=()
+            while IFS= read -r -d '' file; do
+              CHECKSUMS+=("$file")
+            done < <(find . -type f -name '*.sha*' -not -path './.git/*' -print0)
+            if [ "${#CHECKSUMS[@]}" -eq 0 ]; then
+              echo "No checksum files to upload"
+              exit 1
+            fi
+            gh release upload "$TAG_NAME" "${CHECKSUMS[@]}" --clobber

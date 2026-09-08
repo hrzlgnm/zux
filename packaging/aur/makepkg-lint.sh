@@ -24,4 +24,14 @@ fi
 echo ">>> Namcap clean."
 
 echo ">>> Verifying sources with makepkg..."
-makepkg --verifysource -o
+for attempt in 1 2 3 4 5; do
+    if makepkg --verifysource -o; then
+        break
+    fi
+    echo "::warning::makepkg --verifysource attempt $attempt/5 failed, retrying..."
+    if [ "$attempt" -eq 5 ]; then
+        echo "::error::makepkg --verifysource failed after 5 attempts"
+        exit 1
+    fi
+    sleep $((attempt * 5))
+done
