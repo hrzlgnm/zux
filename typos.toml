@@ -1,3 +1,10 @@
+[files]
+extend-exclude = [".github/cliff.toml", ".github/cliff-release.toml"]
+
 [default]
 # Pinned Arch-published AUR SSH host key fingerprints must stay byte-exact
 extend-ignore-re = ["AUR_SSH_FPS=\"[^\"]*\""]
+
+[default.extend-words]
+# alls-green is a GitHub Actions status check for branch protection
+alls = "alls"
