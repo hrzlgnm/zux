@@ -56,39 +56,51 @@ jobs:
 
       - name: 🧰 Setup build environment
         run: |
-          pacman -Syu --noconfirm --needed \
-            appmenu-gtk-module \
-            cargo \
-            cargo-auditable \
-            cargo-edit \
-            coreutils \
-            desktop-file-utils \
-            gdk-pixbuf2 \
-            git \
-            glib2 \
-            github-cli \
-            gtk3 \
-            jq \
-            libappindicator-gtk3 \
-            librsvg \
-            libsoup3 \
-            namcap \
-            nodejs \
-            pnpm \
-            openssh \
-            patchelf \
-            rust \
-            rust-wasm \
-            sudo \
-            trunk \
-            webkit2gtk-4.1 \
-            wget
+          for attempt in 1 2 3 4 5; do
+            echo "Attempt $attempt/5: pacman -Syu..."
+            if pacman -Syu --noconfirm --needed \
+              appmenu-gtk-module \
+              cargo \
+              cargo-auditable \
+              cargo-edit \
+              coreutils \
+              desktop-file-utils \
+              gdk-pixbuf2 \
+              git \
+              glib2 \
+              github-cli \
+              gtk3 \
+              jq \
+              libappindicator-gtk3 \
+              librsvg \
+              libsoup3 \
+              namcap \
+              nodejs \
+              pnpm \
+              openssh \
+              patchelf \
+              rust \
+              rust-wasm \
+              sudo \
+              trunk \
+              webkit2gtk-4.1 \
+              wget; then
+              break
+            fi
+            echo "::warning::pacman attempt $attempt/5 failed, retrying..."
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::pacman -Syu failed after 5 attempts"
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
           useradd -m -G wheel -s /bin/bash runner
           echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
           chown -R runner:runner .
 
       - name: 🧮 Compute SHA256 sums
         id: sha256sums
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           URL: ${{ matrix.package.checksum_url }}
           URL_DEB: ${{ matrix.package.checksum_url_deb }}
@@ -96,23 +108,28 @@ jobs:
           NEEDS_EXE: ${{ matrix.package.needs_exe }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ needs.release-info.outputs.tagName }}
-        run: |
-          if [[ "$NEEDS_EXE" == "true" ]]; then
-            DEB_NAME="zux_${TAG_NAME#v}_amd64.deb"
-            EXE_NAME="zux_linux_x64"
-            ASSETS=$(gh release view "$TAG_NAME" --repo hrzlgnm/zux --json assets --jq '.assets | map(select(.name | test("\\.sha256$") | not))')
-            SUM_DEB=$(echo "$ASSETS" | jq -r --arg name "$DEB_NAME" '.[] | select(.name == $name) | .digest')
-            SUM_EXE=$(echo "$ASSETS" | jq -r --arg name "$EXE_NAME" '.[] | select(.name == $name) | .digest')
-            if [[ -z "$SUM_DEB" || -z "$SUM_EXE" ]]; then
-              echo "Error: Failed to get checksums from GitHub API for release $TAG_NAME"
-              exit 1
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            if [[ "$NEEDS_EXE" == "true" ]]; then
+              DEB_NAME="zux_${TAG_NAME#v}_amd64.deb"
+              EXE_NAME="zux_linux_x64"
+              ASSETS=$(gh release view "$TAG_NAME" --repo hrzlgnm/zux --json assets --jq '.assets | map(select(.name | test("\\.sha256$") | not))')
+              SUM_DEB=$(echo "$ASSETS" | jq -r --arg name "$DEB_NAME" '.[] | select(.name == $name) | .digest')
+              SUM_EXE=$(echo "$ASSETS" | jq -r --arg name "$EXE_NAME" '.[] | select(.name == $name) | .digest')
+              if [[ -z "$SUM_DEB" || -z "$SUM_EXE" ]]; then
+                echo "Error: Failed to get checksums from GitHub API for release $TAG_NAME"
+                exit 1
+              fi
+              echo "sha256_deb=$SUM_DEB" >> "$GITHUB_OUTPUT"
+              echo "sha256_exe=$SUM_EXE" >> "$GITHUB_OUTPUT"
+            else
+              SUM=$(curl -LfsS --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 "$URL" | sha256sum | cut -f1 -d ' ')
+              echo "sha256=$SUM" >> "$GITHUB_OUTPUT"
             fi
-            echo "sha256_deb=$SUM_DEB" >> "$GITHUB_OUTPUT"
-            echo "sha256_exe=$SUM_EXE" >> "$GITHUB_OUTPUT"
-          else
-            SUM=$(curl -LfsS "$URL" | sha256sum | cut -f1 -d ' ')
-            echo "sha256=$SUM" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         if: matrix.package.name == 'zux'
@@ -124,6 +141,7 @@ jobs:
           sed -i "s/^version = .*/version = \"$VERSION\"/" src-tauri/Cargo.toml
 
       - name: 🧹 Lint generated PKGBUILD
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -131,19 +149,24 @@ jobs:
           SHA256_DEB: ${{ steps.sha256sums.outputs.sha256_deb }}
           SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
           NEEDS_EXE: ${{ matrix.package.needs_exe }}
-        run: |
-          su runner -c "
-            set -o errexit
-            mkdir -p ~/lint
-            o=\$(pwd)
-            if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
-              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/lint/PKGBUILD
-            else
-              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/lint/PKGBUILD
-            fi
-            cd ~/lint
-            \"\$o/packaging/aur/makepkg-lint.sh\"
-          "
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            su runner -c "
+              set -o errexit
+              mkdir -p ~/lint
+              o=\$(pwd)
+              if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
+                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/lint/PKGBUILD
+              else
+                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/lint/PKGBUILD
+              fi
+              cd ~/lint
+              \"\$o/packaging/aur/makepkg-lint.sh\"
+            "
 
       - name: 🔒 Verify AUR deploy key secret is configured
         if: github.event.release.tag_name
@@ -157,30 +180,42 @@ jobs:
 
       - name: 🔑 Setup deployment keys
         if: github.event.release.tag_name
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
-        run: |
-          chown -R runner:runner .
-          su runner -c "
-            set -o errexit
-            mkdir -p ~/.ssh
-            printf '%s\n' \"\$AUR_DEPLOY_KEY\" > ~/.ssh/aur
-            chmod 600 ~/.ssh/aur
-            echo 'Host aur.archlinux.org' >> ~/.ssh/config
-            echo '  IdentityFile ~/.ssh/aur' >> ~/.ssh/config
-            echo '  User aur' >> ~/.ssh/config
-            ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
-          "
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            chown -R runner:runner .
+            su runner -c "
+              set -o errexit
+              mkdir -p ~/.ssh
+              printf '%s\n' \"\$AUR_DEPLOY_KEY\" > ~/.ssh/aur
+              chmod 600 ~/.ssh/aur
+              echo 'Host aur.archlinux.org' >> ~/.ssh/config
+              echo '  IdentityFile ~/.ssh/aur' >> ~/.ssh/config
+              echo '  User aur' >> ~/.ssh/config
+              ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
+            "
 
       - name: 📥 Clone AUR repo
         if: github.event.release.tag_name
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           PKGNAME: ${{ matrix.package.name }}
-        run: |
-          su runner -c "
-            set -o errexit
-            git clone --depth=1 \"ssh://aur@aur.archlinux.org/$PKGNAME.git\" ~/aur
-          "
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            su runner -c "
+              set -o errexit
+              git clone --depth=1 \"ssh://aur@aur.archlinux.org/$PKGNAME.git\" ~/aur
+            "
 
       - name: 🔍 Check version
         if: github.event.release.tag_name
@@ -205,6 +240,7 @@ jobs:
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -212,26 +248,31 @@ jobs:
           SHA256_DEB: ${{ steps.sha256sums.outputs.sha256_deb }}
           SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
           NEEDS_EXE: ${{ matrix.package.needs_exe }}
-        run: |
-          su runner -c "
-            set -o errexit
-            o=\$(pwd)
-            if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
-              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/aur/PKGBUILD
-            else
-              \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/aur/PKGBUILD
-            fi
-            cd ~/aur
-            if [[ -z \$(git status --porcelain) ]]; then
-              echo 'No changes'
-              exit 0
-            fi
-            makepkg --printsrcinfo > .SRCINFO
-            makepkg
-            makepkg --install --noconfirm
-            git config user.name 'hrzlgnm'
-            git config user.email 'hrzlgnm@users.noreply.github.com'
-            git add PKGBUILD .SRCINFO
-            git commit -m 'New upstream release $VERSION'
-            git push origin master
-          "
+        with:
+          timeout_minutes: 15
+          max_attempts: 5
+          retry_wait_seconds: 15
+          warning_on_retry: true
+          command: |
+            su runner -c "
+              set -o errexit
+              o=\$(pwd)
+              if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
+                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/aur/PKGBUILD
+              else
+                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/aur/PKGBUILD
+              fi
+              cd ~/aur
+              if [[ -z \$(git status --porcelain) ]]; then
+                echo 'No changes'
+                exit 0
+              fi
+              makepkg --printsrcinfo > .SRCINFO
+              makepkg
+              makepkg --install --noconfirm
+              git config user.name 'hrzlgnm'
+              git config user.email 'hrzlgnm@users.noreply.github.com'
+              git add PKGBUILD .SRCINFO
+              git commit -m 'New upstream release $VERSION'
+              git push origin master
+            "
