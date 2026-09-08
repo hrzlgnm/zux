@@ -103,7 +103,7 @@ jobs:
           sed -i "s/^version = .*/version = \"$VERSION\"/" src-tauri/Cargo.toml
 
       - name: 🧹 Lint generated PKGBUILD
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -142,7 +142,7 @@ jobs:
 
       - name: 🔑 Setup deployment keys
         if: github.event.release.tag_name
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
         with:
@@ -182,7 +182,7 @@ jobs:
 
       - name: 📥 Clone AUR repo
         if: github.event.release.tag_name
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           PKGNAME: ${{ matrix.package.name }}
         with:
@@ -220,7 +220,7 @@ jobs:
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}

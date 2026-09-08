@@ -54,7 +54,7 @@ jobs:
           git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
 
       - name: 🚀 Create draft release
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.ref_name }}
@@ -108,12 +108,12 @@ jobs:
 
       - name: 🧰 Install dependencies (ubuntu)
         if: matrix.os == 'ubuntu-22.04'
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: 📦 Install frontend dependencies
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         with:
           command: pnpm install --frozen-lockfile
 
@@ -310,7 +310,7 @@ jobs:
           cmdline-tools-version: 15859902
 
       - name: ⚙️ Install NDK
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         with:
           timeout_minutes: 10
           command: android sdk install "ndk;$NDK_VERSION"
@@ -320,7 +320,7 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         with:
           command: pnpm install --frozen-lockfile
 
@@ -380,7 +380,7 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        uses: ./.github/actions/retry
+        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           VERSION: ${{ needs.draft-release.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
