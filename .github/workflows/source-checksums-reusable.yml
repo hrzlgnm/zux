@@ -47,11 +47,15 @@ jobs:
         algorithm: [sha256]
     steps:
       - name: 📥🔢☑️
-        uses: ./.github/actions/retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           TAG: ${{ needs.tag.outputs.tag }}
           ALGORITHM: ${{ matrix.algorithm }}
         with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
           command: |
             set -o errexit
             mkdir -p downloads && cd downloads
@@ -84,11 +88,15 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
 
       - name: 📰🔢☑️
-        uses: ./.github/actions/retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ needs.tag.outputs.tag }}
         with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
           command: |
             CHECKSUMS=()
             while IFS= read -r -d '' file; do
