@@ -64,11 +64,15 @@ jobs:
           retry_wait_seconds: 10
           warning_on_retry: true
           command: |
-            gh release create "$TAG_NAME" \
-              --title "zux $TAG_NAME" \
-              --notes-file release-body.md \
-              --draft \
-              --latest=false
+            if gh release view "$TAG_NAME" --repo hrzlgnm/zux >/dev/null 2>&1; then
+              echo "Release $TAG_NAME already exists, skipping create"
+            else
+              gh release create "$TAG_NAME" \
+                --title "zux $TAG_NAME" \
+                --notes-file release-body.md \
+                --draft \
+                --latest=false
+            fi
 
   release:
     needs: [draft-release]

@@ -75,6 +75,8 @@ jobs:
 
       - name: 💾 Commit & Push to Tap
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        env:
+          VERSION: ${{ needs.release-info.outputs.version }}
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -84,9 +86,10 @@ jobs:
             cd homebrew-tap
             git add Casks/zux.rb
             if ! git diff --cached --quiet; then
-              git commit -m "chore: update zux to v${{ needs.release-info.outputs.version }}"
-              git push
+              git commit -m "chore: update zux to v$VERSION"
             else
-              echo "No changes to commit"
+              echo "No staged changes (already committed on previous retry or no update needed)"
             fi
+            # Always attempt push to handle retry after commit (idempotent)
+            git push
 
