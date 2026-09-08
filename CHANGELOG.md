@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(deps)* Lock file maintenance ([#277](https://github.com/hrzlgnm/zux/pull/277))
 
+- *(deps)* Update pnpm to v12.3.3 ([#279](https://github.com/hrzlgnm/zux/pull/279))
+
+- *(deps)* Update pnpm to v12.3.4 ([#280](https://github.com/hrzlgnm/zux/pull/280))
+
+- *(deps)* Update dependency eslint to v10.10.0 ([#281](https://github.com/hrzlgnm/zux/pull/281))
+
+- *(deps)* Update dependency @playwright/test to v1.63.0 ([#282](https://github.com/hrzlgnm/zux/pull/282))
+
 ## [1.12.3] - 2026-09-06 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.2...v1.12.3)
 
 ### Added
