@@ -1,0 +1,3 @@
+[default]
+# Pinned Arch-published AUR SSH host key fingerprints must stay byte-exact
+extend-ignore-re = ["AUR_SSH_FPS=\"[^\"]*\""]
