@@ -55,6 +55,7 @@ jobs:
           fetch-depth: 1
 
       - name: 🧰 Setup build environment
+        # pacman bootstrap cannot use nick-fields/retry (Node not yet installed in archlinux:base-devel)
         run: |
           for attempt in 1 2 3 4 5; do
             echo "Attempt $attempt/5: pacman -Syu..."
@@ -251,7 +252,7 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 5
-          retry_wait_seconds: 15
+          retry_wait_seconds: 10
           warning_on_retry: true
           command: |
             su runner -c "
