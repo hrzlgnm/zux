@@ -108,19 +108,9 @@ jobs:
 
       - name: 🧰 Install dependencies (ubuntu)
         if: matrix.os == 'ubuntu-22.04'
-        run: |
-          for attempt in 1 2 3 4 5; do
-            echo "Attempt $attempt/5: apt-get update & install..."
-            if sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf; then
-              break
-            fi
-            echo "::warning::apt-get attempt $attempt/5 failed, retrying..."
-            if [ "$attempt" -eq 5 ]; then
-              echo "::error::apt-get install failed after 5 attempts"
-              exit 1
-            fi
-            sleep $((attempt * 5))
-          done
+        uses: ./.github/actions/retry
+        with:
+          command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: 📦 Install frontend dependencies
         uses: ./.github/actions/retry
