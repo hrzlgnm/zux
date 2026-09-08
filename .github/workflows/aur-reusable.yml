@@ -115,6 +115,8 @@ jobs:
           retry_wait_seconds: 10
           warning_on_retry: true
           command: |
+            set -o errexit
+            set -o pipefail
             if [[ "$NEEDS_EXE" == "true" ]]; then
               DEB_NAME="zux_${TAG_NAME#v}_amd64.deb"
               EXE_NAME="zux_linux_x64"

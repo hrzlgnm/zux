@@ -59,8 +59,8 @@ jobs:
           command: |
             set -o errexit
             mkdir -p downloads && cd downloads
-            curl -sL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 -O "https://github.com/hrzlgnm/zux/archive/refs/tags/${TAG}.tar.gz"
-            curl -sL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 -O "https://github.com/hrzlgnm/zux/archive/refs/tags/${TAG}.zip"
+            curl -f -sL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 -O "https://github.com/hrzlgnm/zux/archive/refs/tags/${TAG}.tar.gz"
+            curl -f -sL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 -O "https://github.com/hrzlgnm/zux/archive/refs/tags/${TAG}.zip"
             for file in *; do
               if [ -f "$file" ] && [[ "$file" != *.sha* ]]; then
                 "${ALGORITHM}sum" "$file" > "$file.${ALGORITHM}"
