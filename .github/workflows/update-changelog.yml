@@ -69,14 +69,10 @@ jobs:
 
       - name: 🔁 Create or update Pull Request
         if: steps.changes.outputs.changed == 'true'
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             BRANCH="chore/update-changelog"
             if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')" = "0" ]; then

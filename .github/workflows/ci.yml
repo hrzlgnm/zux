@@ -204,12 +204,8 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
       - name: 🎨 Check formatting
         run: pnpm run format:check
@@ -228,12 +224,8 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
       - name: 🧹 Lint
         run: pnpm run lint
@@ -248,12 +240,8 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run check
@@ -331,20 +319,13 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
       - name: 🎭 Install Playwright browsers
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
           timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm exec playwright install --with-deps chromium
       - name: 🧪 Run Playwright tests
         run: pnpm run test:e2e
@@ -369,12 +350,8 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run tauri signer sign package.json

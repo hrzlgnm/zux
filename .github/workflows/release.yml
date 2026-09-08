@@ -54,15 +54,11 @@ jobs:
           git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
 
       - name: 🚀 Create draft release
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.ref_name }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             if gh release view "$TAG_NAME" --repo hrzlgnm/zux >/dev/null 2>&1; then
               echo "Release $TAG_NAME already exists, skipping create"
@@ -127,12 +123,8 @@ jobs:
           done
 
       - name: 📦 Install frontend dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
 
       - name: 🔧 Install cargo-edit
@@ -328,12 +320,9 @@ jobs:
           cmdline-tools-version: 15859902
 
       - name: ⚙️ Install NDK
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
           timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: android sdk install "ndk;$NDK_VERSION"
 
       - name: 🛠️ Set NDK_HOME
@@ -341,12 +330,8 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: pnpm install --frozen-lockfile
 
       - name: 🔧 Install cargo-edit
@@ -405,15 +390,11 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           VERSION: ${{ needs.draft-release.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             TAG="${GITHUB_REF_NAME}"
             APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"

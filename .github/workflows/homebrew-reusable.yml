@@ -40,15 +40,11 @@ jobs:
           path: homebrew-tap
 
       - name: 📥 Download DMG Checksum
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-info.outputs.tagName }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             CHECKSUM=$(gh release view "$TAG" --repo hrzlgnm/zux --json assets --jq '.assets[] | select(.name | endswith(".dmg")) | select(.name | test("universal"; "i")) | select(.name | test("\\.sha256$") | not) | .digest')
             if [ -z "$CHECKSUM" ]; then
@@ -74,14 +70,10 @@ jobs:
           sed -i "s/sha256 \".*\"/sha256 \"$CHECKSUM\"/" "$CASK_PATH"
 
       - name: 💾 Commit & Push to Tap
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           VERSION: ${{ needs.release-info.outputs.version }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             cd homebrew-tap
             git add Casks/zux.rb
