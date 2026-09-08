@@ -18,6 +18,7 @@ jobs:
       branch: ${{ steps.branch.outputs.branch }}
       rust: ${{ steps.filter.outputs.rust }}
       aur: ${{ steps.filter.outputs.aur }}
+      docker: ${{ steps.filter.outputs.docker }}
       fmt: ${{ steps.filter.outputs.fmt }}
       lint: ${{ steps.filter.outputs.lint }}
       prettier: ${{ steps.filter.outputs.prettier }}
@@ -93,6 +94,8 @@ jobs:
             winget:
               - '.github/workflows/winget-reusable.yml'
               - '.github/actions/latest-release-info/action.yml'
+            docker:
+              - '.github/docker/**'
       - name: 🌿 Output branch name
         id: branch
         env:
@@ -326,6 +329,19 @@ jobs:
     if: always() && ( github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' )
     uses: ./.github/workflows/cache-tools-reusable.yml
 
+  docker:
+    name: "🐳"
+    needs:
+      - changes
+      - actionlint
+    if: needs.changes.outputs.docker == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@a34b0f0febef7a0dcf750dde0e712c294e43fa40 # v2.8.2
+    with:
+      branch: ${{ needs.changes.outputs.branch }}
+
   alls-green:
     if: always()
     needs:
@@ -342,6 +358,7 @@ jobs:
         svelte-check,
         signer-check,
         cache-tools,
+        docker,
         winget,
         e2e,
       ]
@@ -352,6 +369,7 @@ jobs:
           allowed-skips: >-
             aur,
             clippy,
+            docker,
             fmt,
             prettier,
             eslint,

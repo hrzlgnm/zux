@@ -32,7 +32,7 @@ jobs:
       - release-info
     runs-on: ubuntu-24.04
     container:
-      image: archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1
     strategy:
       fail-fast: false
       matrix:
@@ -55,48 +55,7 @@ jobs:
           fetch-depth: 1
 
       - name: 🧰 Setup build environment
-        # pacman bootstrap cannot use nick-fields/retry (Node not yet installed in archlinux:base-devel)
         run: |
-          for attempt in 1 2 3 4 5; do
-            echo "Attempt $attempt/5: pacman -Syu..."
-            if pacman -Syu --noconfirm --needed \
-              appmenu-gtk-module \
-              cargo \
-              cargo-auditable \
-              cargo-edit \
-              coreutils \
-              desktop-file-utils \
-              gdk-pixbuf2 \
-              git \
-              glib2 \
-              github-cli \
-              gtk3 \
-              jq \
-              libappindicator-gtk3 \
-              librsvg \
-              libsoup3 \
-              namcap \
-              nodejs \
-              pnpm \
-              openssh \
-              patchelf \
-              rust \
-              rust-wasm \
-              sudo \
-              trunk \
-              webkit2gtk-4.1 \
-              wget; then
-              break
-            fi
-            echo "::warning::pacman attempt $attempt/5 failed, retrying..."
-            if [ "$attempt" -eq 5 ]; then
-              echo "::error::pacman -Syu failed after 5 attempts"
-              exit 1
-            fi
-            sleep $((attempt * 15))
-          done
-          useradd -m -G wheel -s /bin/bash runner
-          echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
           chown -R runner:runner .
 
       - name: 🧮 Compute SHA256 sums
@@ -144,7 +103,7 @@ jobs:
           sed -i "s/^version = .*/version = \"$VERSION\"/" src-tauri/Cargo.toml
 
       - name: 🧹 Lint generated PKGBUILD
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -154,9 +113,6 @@ jobs:
           NEEDS_EXE: ${{ matrix.package.needs_exe }}
         with:
           timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             su runner -c "
               set -o errexit
@@ -183,14 +139,10 @@ jobs:
 
       - name: 🔑 Setup deployment keys
         if: github.event.release.tag_name
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             chown -R runner:runner .
             su runner -c "
@@ -206,14 +158,10 @@ jobs:
 
       - name: 📥 Clone AUR repo
         if: github.event.release.tag_name
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           PKGNAME: ${{ matrix.package.name }}
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
           command: |
             su runner -c "
               set -o errexit
@@ -243,7 +191,7 @@ jobs:
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
           VERSION: ${{ needs.release-info.outputs.version }}
@@ -252,10 +200,7 @@ jobs:
           SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
           NEEDS_EXE: ${{ matrix.package.needs_exe }}
         with:
-          timeout_minutes: 15
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
+          timeout_minutes: 10
           command: |
             su runner -c "
               set -o errexit
