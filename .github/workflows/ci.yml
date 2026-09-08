@@ -124,12 +124,12 @@ jobs:
   typos:
     name: 📝 Check typos
     if: always()
-    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@a34b0f0febef7a0dcf750dde0e712c294e43fa40 # v2.8.2
+    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@ebaa3094cb2cbb2a9ed504a5dbfe22ea8c797dcb # v2.8.3
 
   actionlint:
     name: 🔬 Check workflows
     if: always()
-    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@a34b0f0febef7a0dcf750dde0e712c294e43fa40 # v2.8.2
+    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@ebaa3094cb2cbb2a9ed504a5dbfe22ea8c797dcb # v2.8.3
 
   clippy:
     name: "🔍 Clippy"
@@ -351,7 +351,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@a34b0f0febef7a0dcf750dde0e712c294e43fa40 # v2.8.2
+    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@ebaa3094cb2cbb2a9ed504a5dbfe22ea8c797dcb # v2.8.3
     with:
       branch: ${{ needs.changes.outputs.branch }}
 
