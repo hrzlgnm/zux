@@ -26,12 +26,18 @@ jobs:
         uses: ./.github/actions/latest-release-info
 
       - name: 🚀 Dispatch Release snap in hrzlgnm/zux-snap
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GH_TOKEN: ${{ secrets.SNAP_REPO_TOKEN }}
           TAG_NAME: ${{ steps.release-info.outputs.tagName }}
-        run: |
-          echo "Dispatching Release snap for ${TAG_NAME}"
-          gh workflow run release.yml \
-            --repo hrzlgnm/zux-snap \
-            --ref main \
-            -f tagName="${TAG_NAME}"
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            echo "Dispatching Release snap for ${TAG_NAME}"
+            gh workflow run release.yml \
+              --repo hrzlgnm/zux-snap \
+              --ref main \
+              -f tagName="${TAG_NAME}"

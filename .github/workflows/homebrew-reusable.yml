@@ -40,18 +40,23 @@ jobs:
           path: homebrew-tap
 
       - name: 📥 Download DMG Checksum
-        shell: bash
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-info.outputs.tagName }}
-        run: |
-          CHECKSUM=$(gh release view "$TAG" --repo hrzlgnm/zux --json assets --jq '.assets[] | select(.name | endswith(".dmg")) | select(.name | test("universal"; "i")) | select(.name | test("\\.sha256$") | not) | .digest')
-          if [ -z "$CHECKSUM" ]; then
-            echo "Error: No checksum found for universal.dmg in release $TAG"
-            exit 1
-          fi
-          CHECKSUM="${CHECKSUM#sha256:}"
-          echo "DMG_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            CHECKSUM=$(gh release view "$TAG" --repo hrzlgnm/zux --json assets --jq '.assets[] | select(.name | endswith(".dmg")) | select(.name | test("universal"; "i")) | select(.name | test("\\.sha256$") | not) | .digest')
+            if [ -z "$CHECKSUM" ]; then
+              echo "Error: No checksum found for universal.dmg in release $TAG"
+              exit 1
+            fi
+            CHECKSUM="${CHECKSUM#sha256:}"
+            echo "DMG_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
 
       - name: 🔑 Configure Git Identity
         run: |
@@ -69,13 +74,19 @@ jobs:
           sed -i "s/sha256 \".*\"/sha256 \"$CHECKSUM\"/" "$CASK_PATH"
 
       - name: 💾 Commit & Push to Tap
-        working-directory: homebrew-tap
-        run: |
-          git add Casks/zux.rb
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update zux to v${{ needs.release-info.outputs.version }}"
-            git push
-          else
-            echo "No changes to commit"
-          fi
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            cd homebrew-tap
+            git add Casks/zux.rb
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: update zux to v${{ needs.release-info.outputs.version }}"
+              git push
+            else
+              echo "No changes to commit"
+            fi
 

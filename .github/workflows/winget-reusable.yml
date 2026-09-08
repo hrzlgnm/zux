@@ -71,23 +71,39 @@ jobs:
           locked: true
 
       - name: 🆙 Sync our fork of winget-pkgs
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          komac sync-fork
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: komac sync-fork
 
       - name: 🆙 Update winget package
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          komac update hrzlgnm.zux \
-            --version "$VERSION" \
-            --urls "$EXE_URL" "$MSI_URL" \
-            --submit
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            komac update hrzlgnm.zux \
+              --version "$VERSION" \
+              --urls "$EXE_URL" "$MSI_URL" \
+              --submit
 
       - name: 🧹 Cleanup merged branches
         if: always()
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          komac cleanup --only-merged
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: komac cleanup --only-merged

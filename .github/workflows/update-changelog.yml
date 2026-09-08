@@ -69,20 +69,26 @@ jobs:
 
       - name: 🔁 Create or update Pull Request
         if: steps.changes.outputs.changed == 'true'
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BRANCH="chore/update-changelog"
-          if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')" = "0" ]; then
-            gh pr create \
-              --title "chore: update unreleased changelog" \
-              --body "Automated update of the \`[Unreleased]\` section in \`CHANGELOG.md\`.
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            BRANCH="chore/update-changelog"
+            if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')" = "0" ]; then
+              gh pr create \
+                --title "chore: update unreleased changelog" \
+                --body "Automated update of the \`[Unreleased]\` section in \`CHANGELOG.md\`.
 
-              This PR is created automatically on a nightly schedule
-          by running \`git-cliff\` without a version tag."
-          fi
+                This PR is created automatically on a nightly schedule
+            by running \`git-cliff\` without a version tag."
+            fi
 
-          gh pr merge "$BRANCH" --auto --squash
+            gh pr merge "$BRANCH" --auto --squash
 
   approve-bot-pr:
     if: needs.update-changelog.outputs.changed == 'true'

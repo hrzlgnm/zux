@@ -159,8 +159,18 @@ jobs:
           echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          for attempt in 1 2 3 4 5; do
+            echo "Attempt $attempt/5: apt-get update & install..."
+            if sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf; then
+              break
+            fi
+            echo "::warning::apt-get attempt $attempt/5 failed, retrying..."
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::apt-get install failed after 5 attempts"
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
       - name: 🔍 Check
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
@@ -194,7 +204,13 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
       - name: 🎨 Check formatting
         run: pnpm run format:check
 
@@ -212,7 +228,13 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
       - name: 🧹 Lint
         run: pnpm run lint
 
@@ -226,7 +248,13 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run check
 
@@ -262,8 +290,18 @@ jobs:
           echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          for attempt in 1 2 3 4 5; do
+            echo "Attempt $attempt/5: apt-get update & install..."
+            if sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf; then
+              break
+            fi
+            echo "::warning::apt-get attempt $attempt/5 failed, retrying..."
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::apt-get install failed after 5 attempts"
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
       - name: ✅ Run tests with nextest
         run: cargo --locked nextest run --profile ci
         working-directory: src-tauri
@@ -293,9 +331,21 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
       - name: 🎭 Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm exec playwright install --with-deps chromium
       - name: 🧪 Run Playwright tests
         run: pnpm run test:e2e
       - name: 📋 Upload Playwright report
@@ -319,7 +369,13 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run tauri signer sign package.json
 

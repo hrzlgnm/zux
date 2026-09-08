@@ -54,16 +54,21 @@ jobs:
           git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
 
       - name: 🚀 Create draft release
-        shell: bash
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.ref_name }}
-        run: |
-          gh release create "$TAG_NAME" \
-            --title "zux $TAG_NAME" \
-            --notes-file release-body.md \
-            --draft \
-            --latest=false
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            gh release create "$TAG_NAME" \
+              --title "zux $TAG_NAME" \
+              --notes-file release-body.md \
+              --draft \
+              --latest=false
 
   release:
     needs: [draft-release]
@@ -104,11 +109,27 @@ jobs:
       - name: 🧰 Install dependencies (ubuntu)
         if: matrix.os == 'ubuntu-22.04'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          for attempt in 1 2 3 4 5; do
+            echo "Attempt $attempt/5: apt-get update & install..."
+            if sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf; then
+              break
+            fi
+            echo "::warning::apt-get attempt $attempt/5 failed, retrying..."
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::apt-get install failed after 5 attempts"
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
 
       - name: 📦 Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
 
       - name: 🔧 Install cargo-edit
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
@@ -303,15 +324,26 @@ jobs:
           cmdline-tools-version: 15859902
 
       - name: ⚙️ Install NDK
-        shell: bash
-        run: android sdk install "ndk;$NDK_VERSION"
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: android sdk install "ndk;$NDK_VERSION"
 
       - name: 🛠️ Set NDK_HOME
         shell: bash
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: pnpm install --frozen-lockfile
 
       - name: 🔧 Install cargo-edit
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
@@ -369,14 +401,19 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        shell: bash
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           VERSION: ${{ needs.draft-release.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
-          gh release upload "$TAG" "$APK" --clobber
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          warning_on_retry: true
+          command: |
+            TAG="${GITHUB_REF_NAME}"
+            APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
+            gh release upload "$TAG" "$APK" --clobber
 
       - name: 🛡️ Attest build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
