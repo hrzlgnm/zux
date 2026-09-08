@@ -26,12 +26,14 @@ jobs:
         uses: ./.github/actions/latest-release-info
 
       - name: 🚀 Dispatch Release snap in hrzlgnm/zux-snap
+        uses: ./.github/actions/retry
         env:
           GH_TOKEN: ${{ secrets.SNAP_REPO_TOKEN }}
           TAG_NAME: ${{ steps.release-info.outputs.tagName }}
-        run: |
-          echo "Dispatching Release snap for ${TAG_NAME}"
-          gh workflow run release.yml \
-            --repo hrzlgnm/zux-snap \
-            --ref main \
-            -f tagName="${TAG_NAME}"
+        with:
+          command: |
+            echo "Dispatching Release snap for ${TAG_NAME}"
+            gh workflow run release.yml \
+              --repo hrzlgnm/zux-snap \
+              --ref main \
+              -f tagName="${TAG_NAME}"

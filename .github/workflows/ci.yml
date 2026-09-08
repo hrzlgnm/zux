@@ -158,9 +158,9 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        uses: ./.github/actions/retry
+        with:
+          command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: 🔍 Check
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
@@ -194,7 +194,9 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/retry
+        with:
+          command: pnpm install --frozen-lockfile
       - name: 🎨 Check formatting
         run: pnpm run format:check
 
@@ -212,7 +214,9 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/retry
+        with:
+          command: pnpm install --frozen-lockfile
       - name: 🧹 Lint
         run: pnpm run lint
 
@@ -226,7 +230,9 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/retry
+        with:
+          command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run check
 
@@ -261,9 +267,9 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        uses: ./.github/actions/retry
+        with:
+          command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: ✅ Run tests with nextest
         run: cargo --locked nextest run --profile ci
         working-directory: src-tauri
@@ -293,9 +299,14 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/retry
+        with:
+          command: pnpm install --frozen-lockfile
       - name: 🎭 Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        uses: ./.github/actions/retry
+        with:
+          timeout_minutes: 10
+          command: pnpm exec playwright install --with-deps chromium
       - name: 🧪 Run Playwright tests
         run: pnpm run test:e2e
       - name: 📋 Upload Playwright report
@@ -319,7 +330,9 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/retry
+        with:
+          command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run tauri signer sign package.json
 

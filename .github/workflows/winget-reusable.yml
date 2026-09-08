@@ -32,6 +32,10 @@ jobs:
     needs: [release-info]
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+
       - name: 🔒 Verify WINGET_TOKEN secret is configured
         shell: bash
         env:
@@ -71,23 +75,28 @@ jobs:
           locked: true
 
       - name: 🆙 Sync our fork of winget-pkgs
+        uses: ./.github/actions/retry
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          komac sync-fork
+        with:
+          command: komac sync-fork
 
       - name: 🆙 Update winget package
+        uses: ./.github/actions/retry
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          komac update hrzlgnm.zux \
-            --version "$VERSION" \
-            --urls "$EXE_URL" "$MSI_URL" \
-            --submit
+        with:
+          timeout_minutes: 10
+          command: |
+            komac update hrzlgnm.zux \
+              --version "$VERSION" \
+              --urls "$EXE_URL" "$MSI_URL" \
+              --submit
 
       - name: 🧹 Cleanup merged branches
         if: always()
+        uses: ./.github/actions/retry
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          komac cleanup --only-merged
+        with:
+          command: komac cleanup --only-merged
