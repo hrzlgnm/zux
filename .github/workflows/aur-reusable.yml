@@ -193,6 +193,7 @@ jobs:
           command: |
             su runner -c "
               set -o errexit
+              rm -rf ~/aur
               git clone --depth=1 \"ssh://aur@aur.archlinux.org/$PKGNAME.git\" ~/aur
             "
 
