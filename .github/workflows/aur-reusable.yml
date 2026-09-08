@@ -58,7 +58,7 @@ jobs:
         run: |
           chown -R runner:runner .
 
-      - name: 🧮 Compute SHA256 sums
+      - name: 🧮 Resolve SHA256 checksums
         id: sha256sums
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
