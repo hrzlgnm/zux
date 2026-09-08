@@ -105,10 +105,8 @@ jobs:
 
   aur:
     name: "🔨 AUR"
-    needs:
-      - changes
-      - docker
-    if: always() && needs.changes.outputs.aur == 'true' && (needs.changes.outputs.docker != 'true' || contains(fromJSON('["success","skipped"]'), needs.docker.result))
+    needs: [changes]
+    if: needs.changes.outputs.aur == 'true'
     permissions:
       contents: read
       packages: read

@@ -32,8 +32,7 @@ jobs:
       - release-info
     runs-on: ubuntu-24.04
     container:
-      # Use dev-latest on PR branches (chicken-egg for new Dockerfile), v1 on main
-      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:${{ github.ref == 'refs/heads/main' && 'v1' || 'dev-latest' }}
+      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1
     strategy:
       fail-fast: false
       matrix:
