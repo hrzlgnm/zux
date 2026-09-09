@@ -32,7 +32,7 @@ jobs:
       - release-info
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:59c97e53938ebc87536d7fe4f90163ef71c7342d17afb439faa1277a48d0a1c6
+      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:66270956c822dfd1445c2e469d4ae22fa0fb263c385390d7552b44e361bdeb59
     strategy:
       fail-fast: false
       matrix:
