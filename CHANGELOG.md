@@ -5,7 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.3...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.5...HEAD)
+
+### Dependencies
+
+- *(deps)* Update archlinux:base-devel docker digest to 61f7de2 ([#295](https://github.com/hrzlgnm/zux/pull/295))
+
+- *(deps)* Update hrzlgnm/actions action to v2.9.0 ([#296](https://github.com/hrzlgnm/zux/pull/296))
+
+## [1.12.5] - 2026-09-08 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.4...v1.12.5)
+
+### Added
+
+- *(docker)* Add zux-arch-aur-builder image and use reusable docker workflow ([#288](https://github.com/hrzlgnm/zux/pull/288))
+
+### Dependencies
+
+- *(deps)* Update docker/setup-buildx-action action to v4 ([#289](https://github.com/hrzlgnm/zux/pull/289))
+
+- *(deps)* Update hrzlgnm/actions action to v2.8.3 ([#290](https://github.com/hrzlgnm/zux/pull/290))
+
+- *(deps)* Update hrzlgnm/actions action to v2.8.4 ([#293](https://github.com/hrzlgnm/zux/pull/293))
+
+### Fixed
+
+- *(aur)* Retry downloads on transient failures ([#286](https://github.com/hrzlgnm/zux/pull/286))
+
+### Maintenance
+
+- *(ci)* Add retry to download steps in other workflows ([#287](https://github.com/hrzlgnm/zux/pull/287))
+
+- *(ci)* Clean ~/aur before clone so retries start fresh ([#292](https://github.com/hrzlgnm/zux/pull/292))
+
+- *(ci)* Verify AUR SSH host key against published fingerprints ([#291](https://github.com/hrzlgnm/zux/pull/291))
+
+- *(ci)* Use shared retry action from hrzlgnm/actions ([#294](https://github.com/hrzlgnm/zux/pull/294))
+
+## [1.12.4] - 2026-09-08 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.3...v1.12.4)
 
 ### Dependencies
 
@@ -20,6 +56,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(deps)* Update dependency eslint to v10.10.0 ([#281](https://github.com/hrzlgnm/zux/pull/281))
 
 - *(deps)* Update dependency @playwright/test to v1.63.0 ([#282](https://github.com/hrzlgnm/zux/pull/282))
+
+- *(deps)* Update rust crate mdns-sd to v0.21.3 ([#284](https://github.com/hrzlgnm/zux/pull/284))
+
+- *(deps)* Lock file maintenance ([#285](https://github.com/hrzlgnm/zux/pull/285))
 
 ## [1.12.3] - 2026-09-06 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.2...v1.12.3)
 
