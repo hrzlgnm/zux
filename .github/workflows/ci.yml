@@ -181,6 +181,10 @@ jobs:
         run: cargo fmt --check
         working-directory: src-tauri
 
+  # Runs first among the pnpm jobs so it saves pnpm/setup's shared
+  # lockfile-verification cache; eslint, svelte-check, e2e, and signer-check
+  # need it for that reason. They then restore-hit and skip their own save
+  # instead of racing it, which warns on a fresh lockfile.
   prettier:
     name: "🎨 Prettier"
     needs: [changes, actionlint]
@@ -203,7 +207,6 @@ jobs:
 
   eslint:
     name: "🧹 Lint"
-    # prettier seeds pnpm/setup's shared lockfile-verification cache first
     needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.lint == 'true'
     permissions:
@@ -224,7 +227,6 @@ jobs:
 
   svelte-check:
     name: "🔍 Svelte check"
-    # prettier seeds pnpm/setup's shared lockfile-verification cache first
     needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.svelte-check == 'true'
     runs-on: ubuntu-24.04
@@ -290,7 +292,6 @@ jobs:
 
   e2e:
     name: "🎭 E2E tests"
-    # prettier seeds pnpm/setup's shared lockfile-verification cache first
     needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-24.04
@@ -323,7 +324,6 @@ jobs:
 
   signer-check:
     name: "🔐 Signer check"
-    # prettier seeds pnpm/setup's shared lockfile-verification cache first
     needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.signer == 'true'
     env:
