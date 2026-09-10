@@ -258,13 +258,6 @@ jobs:
           crate: cargo-nextest
           version: 0.9.143
           locked: true
-      # EXP: rust-cache disabled to measure sccache-only cold/warm behavior.
-      # - name: 📦 Cache Rust builds
-      #   uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
-      #   with:
-      #     workspaces: src-tauri
-      #     shared-key: "stable-ubuntu-24.04"
-      #     save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: 🛠️ Setup sccache
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
       - name: 🔗 Enable sccache for cargo
