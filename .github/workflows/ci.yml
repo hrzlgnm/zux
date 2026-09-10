@@ -151,13 +151,6 @@ jobs:
           workspaces: src-tauri
           shared-key: "stable-ubuntu-24.04"
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - name: 🛠️ Setup sccache
-        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
-      - name: 🔗 Enable sccache for cargo
-        shell: bash
-        run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
         uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         with:
@@ -264,8 +257,14 @@ jobs:
           workspaces: src-tauri
           shared-key: "stable-ubuntu-24.04"
           save-if: ${{ github.ref == 'refs/heads/main' }}
+      # Warm runs legitimately report 0 sccache hits: rust-cache restores
+      # target/, so only the workspace's own crates recompile — and those are
+      # uncacheable by design (cdylib/bin/test outputs invoke the system
+      # linker). sccache serves cold builds (dependency rlibs).
       - name: 🛠️ Setup sccache
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+        with:
+          version: "v0.17.0"
       - name: 🔗 Enable sccache for cargo
         shell: bash
         run: |
