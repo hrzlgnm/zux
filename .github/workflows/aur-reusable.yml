@@ -6,6 +6,11 @@ name: Arch Linux AUR
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Republish AUR packages for an existing release tag (must be the latest release). Empty runs checks only."
+        required: false
+        default: ""
   release:
     types: [released]
 
@@ -131,7 +136,7 @@ jobs:
             "
 
       - name: 🔒 Verify AUR deploy key secret is configured
-        if: github.event.release.tag_name
+        if: github.event.release.tag_name || inputs.tag_name
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
         run: |
@@ -141,7 +146,7 @@ jobs:
           fi
 
       - name: 🔑 Setup deployment keys
-        if: github.event.release.tag_name
+        if: github.event.release.tag_name || inputs.tag_name
         uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
@@ -188,7 +193,7 @@ jobs:
             "
 
       - name: 📥 Clone AUR repo
-        if: github.event.release.tag_name
+        if: github.event.release.tag_name || inputs.tag_name
         uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           PKGNAME: ${{ matrix.package.name }}
@@ -205,7 +210,7 @@ jobs:
             "
 
       - name: 🔍 Check version
-        if: github.event.release.tag_name
+        if: github.event.release.tag_name || inputs.tag_name
         env:
           VERSION: ${{ needs.release-info.outputs.version }}
         run: |
@@ -226,7 +231,7 @@ jobs:
           "
 
       - name: 🚀 Generate PKGBUILD update and publish
-        if: github.event.release.tag_name
+        if: github.event.release.tag_name || inputs.tag_name
         uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
         env:
           SCRIPT: ${{ matrix.package.generate_script }}
