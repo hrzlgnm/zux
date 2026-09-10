@@ -7,6 +7,10 @@
   import { relaunch } from '@tauri-apps/plugin-process'
   import { check } from '@tauri-apps/plugin-updater'
   import {
+    check as checkAndroidUpdate,
+    downloadAndInstall as installAndroidUpdate,
+  } from 'tauri-plugin-android-update-api'
+  import {
     setupEventListeners,
     clearGraph,
     seedPreviewData,
@@ -118,14 +122,14 @@
       const canUpdate = await invoke<boolean>('can_auto_update')
       if (!canUpdate) return
       if (/Android/i.test(navigator.userAgent)) {
-        const update = await invoke<UpdateMeta | null>('plugin:android-update|check')
+        const update = await checkAndroidUpdate()
         if (!update) return
         const confirmed = await confirm(
           `A new version of zux (${update.version}) is available. Open the release page to download it?`,
           { title: 'Update available', kind: 'info' },
         )
         if (confirmed) {
-          await invoke('plugin:android-update|download_and_install')
+          await installAndroidUpdate()
         }
         return
       }
@@ -146,11 +150,6 @@
     } catch (e) {
       console.warn('[zux] update check failed:', e)
     }
-  }
-
-  interface UpdateMeta {
-    version: string
-    currentVersion: string
   }
 </script>
 
