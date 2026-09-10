@@ -106,7 +106,7 @@ jobs:
 
   aur:
     name: "🔨 AUR"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.aur == 'true'
     permissions:
       contents: read
@@ -134,7 +134,7 @@ jobs:
 
   clippy:
     name: "🔍 Clippy"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     env:
@@ -168,7 +168,7 @@ jobs:
 
   fmt:
     name: "🎨 Format"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.fmt == 'true'
     runs-on: ubuntu-24.04
     steps:
@@ -183,7 +183,7 @@ jobs:
 
   prettier:
     name: "🎨 Prettier"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.prettier == 'true'
     permissions:
       contents: read
@@ -203,7 +203,7 @@ jobs:
 
   eslint:
     name: "🧹 Lint"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.lint == 'true'
     permissions:
       contents: read
@@ -223,7 +223,7 @@ jobs:
 
   svelte-check:
     name: "🔍 Svelte check"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.svelte-check == 'true'
     runs-on: ubuntu-24.04
     steps:
@@ -239,7 +239,7 @@ jobs:
 
   tests:
     name: "🧪 Tests"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.tests == 'true'
     runs-on: ubuntu-24.04
     permissions:
@@ -288,7 +288,7 @@ jobs:
 
   e2e:
     name: "🎭 E2E tests"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-24.04
     permissions:
@@ -320,7 +320,7 @@ jobs:
 
   signer-check:
     name: "🔐 Signer check"
-    needs: [changes]
+    needs: [changes, actionlint]
     if: needs.changes.outputs.signer == 'true'
     env:
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
