@@ -168,6 +168,7 @@ jobs:
                 echo "::error::ssh-keyscan returned no host keys for aur.archlinux.org"
                 exit 1
               fi
+              verified=0
               while read -r host type key; do
                 case "\$host" in '#'*|"") continue;; esac
                 fp=\$(printf '%s %s' "\$type" "\$key" | ssh-keygen -lf /dev/stdin -E sha256 | awk '{print \$2}')
@@ -175,7 +176,13 @@ jobs:
                   *" \$fp "*) ;;
                   *) echo "::error::AUR host key \$type fingerprint \$fp not in Arch-published set, refusing" ; exit 1 ;;
                 esac
+                echo "Verified AUR host key \$type \$fp"
+                verified=\$((verified+1))
               done < ~/.ssh/aur-known-hosts.tmp
+              if [ "\$verified" -eq 0 ]; then
+                echo "::error::ssh-keyscan returned no verifiable host keys for aur.archlinux.org"
+                exit 1
+              fi
               cat ~/.ssh/aur-known-hosts.tmp >> ~/.ssh/known_hosts
               rm -f ~/.ssh/aur-known-hosts.tmp
             "
