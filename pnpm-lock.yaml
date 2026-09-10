@@ -130,6 +130,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: ^2.10.1
         version: 2.11.0
+      tauri-plugin-android-update-api:
+        specifier: ^0.2.0
+        version: 0.2.0
       vis-data:
         specifier: ^8.0.4
         version: 8.0.5(uuid@14.0.2)(vis-util@6.0.2(@egjs/hammerjs@2.0.17)(component-emitter@2.0.0))
@@ -1151,6 +1154,9 @@ packages:
     resolution: {integrity: sha512-NdbDn7fl4be1ViUG0oq/lvG6OZy3oENolV2ONjiqqsfVoeAfzaQAKUcEX3MrQod/Bebv1PgwET9rfXhgn9s4Kg==}
     engines: {node: '>=18'}
 
+  tauri-plugin-android-update-api@0.2.0:
+    resolution: {integrity: sha512-ANhxVQpVVWqip9uID8rcVMhlUtTpE8Nz+iyVIFyMB7nhQ4jjJ9E8r7GdNKJ2o+dU+r5l5BAucXrCQO2gF38JPQ==}
+
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
@@ -2146,6 +2152,10 @@ snapshots:
       zimmerframe: 1.1.5
     transitivePeerDependencies:
       - '@typescript-eslint/types'
+
+  tauri-plugin-android-update-api@0.2.0:
+    dependencies:
+      '@tauri-apps/api': 2.11.1
 
   tinyglobby@0.2.17:
     dependencies:
