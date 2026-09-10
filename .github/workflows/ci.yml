@@ -249,7 +249,7 @@ jobs:
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
           crate: cargo-nextest
-          version: 0.9.143
+          version: 0.9.144
           locked: true
       - name: 📦 Cache Rust builds
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
