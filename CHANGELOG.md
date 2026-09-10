@@ -5,15 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.5...HEAD)
-
-### Dependencies
-
-- *(deps)* Update archlinux:base-devel docker digest to 61f7de2 ([#295](https://github.com/hrzlgnm/zux/pull/295))
-
-- *(deps)* Update hrzlgnm/actions action to v2.9.0 ([#296](https://github.com/hrzlgnm/zux/pull/296))
-
-## [1.12.5] - 2026-09-08 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.4...v1.12.5)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.4...HEAD)
 
 ### Added
 
@@ -26,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(deps)* Update hrzlgnm/actions action to v2.8.3 ([#290](https://github.com/hrzlgnm/zux/pull/290))
 
 - *(deps)* Update hrzlgnm/actions action to v2.8.4 ([#293](https://github.com/hrzlgnm/zux/pull/293))
+
+- *(deps)* Update archlinux:base-devel docker digest to 61f7de2 ([#295](https://github.com/hrzlgnm/zux/pull/295))
+
+- *(deps)* Update hrzlgnm/actions action to v2.9.0 ([#296](https://github.com/hrzlgnm/zux/pull/296))
+
+- *(deps)* Update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 6627095 ([#298](https://github.com/hrzlgnm/zux/pull/298))
+
+- *(deps)* Update actions/setup-java digest to de7274f ([#299](https://github.com/hrzlgnm/zux/pull/299))
 
 ### Fixed
 
@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(ci)* Verify AUR SSH host key against published fingerprints ([#291](https://github.com/hrzlgnm/zux/pull/291))
 
 - *(ci)* Use shared retry action from hrzlgnm/actions ([#294](https://github.com/hrzlgnm/zux/pull/294))
+
+- *(ci)* Ensure grouping so main pushes are built sequentially ([#300](https://github.com/hrzlgnm/zux/pull/300))
 
 ## [1.12.4] - 2026-09-08 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.3...v1.12.4)
 
