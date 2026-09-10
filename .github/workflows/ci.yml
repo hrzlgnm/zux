@@ -203,7 +203,8 @@ jobs:
 
   eslint:
     name: "🧹 Lint"
-    needs: [changes, actionlint]
+    # prettier seeds pnpm/setup's shared lockfile-verification cache first
+    needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.lint == 'true'
     permissions:
       contents: read
@@ -223,7 +224,8 @@ jobs:
 
   svelte-check:
     name: "🔍 Svelte check"
-    needs: [changes, actionlint]
+    # prettier seeds pnpm/setup's shared lockfile-verification cache first
+    needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.svelte-check == 'true'
     runs-on: ubuntu-24.04
     steps:
@@ -288,7 +290,8 @@ jobs:
 
   e2e:
     name: "🎭 E2E tests"
-    needs: [changes, actionlint]
+    # prettier seeds pnpm/setup's shared lockfile-verification cache first
+    needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-24.04
     permissions:
@@ -320,7 +323,8 @@ jobs:
 
   signer-check:
     name: "🔐 Signer check"
-    needs: [changes, actionlint]
+    # prettier seeds pnpm/setup's shared lockfile-verification cache first
+    needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.signer == 'true'
     env:
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
