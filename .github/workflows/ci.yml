@@ -338,7 +338,7 @@ jobs:
         run: pnpm run tauri signer sign package.json
 
   cache-tools:
-    needs: [clippy, fmt, prettier, eslint, tests, svelte-check, signer-check, e2e]
+    needs: [actionlint, typos, clippy, fmt, prettier, eslint, tests, svelte-check, signer-check, e2e]
     name: "📦 Cache tools"
     if: always() && ( github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' )
     uses: ./.github/workflows/cache-tools-reusable.yml
