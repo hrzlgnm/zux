@@ -69,9 +69,6 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: 🧰 Setup build environment
-        run: ./packaging/aur/fix-ownership.sh
-
       - name: 🔢 Resolve SHA256 checksums
         id: sha256sums
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
@@ -92,14 +89,14 @@ jobs:
       - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         if: matrix.package.name == 'zux'
         env:
-          VERSION: ${{ needs.release-info.outputs.version }}
+          RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
         run: ./packaging/aur/sync-version.sh
 
       - name: 🧹 Lint generated PKGBUILD
         uses: hrzlgnm/actions/.github/actions/retry@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
         env:
-          SCRIPT: ${{ matrix.package.generate_script }}
-          VERSION: ${{ needs.release-info.outputs.version }}
+          GENERATE_SCRIPT: ${{ matrix.package.generate_script }}
+          RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
           SHA256: ${{ steps.sha256sums.outputs.sha256 }}
           SHA256_DEB: ${{ steps.sha256sums.outputs.sha256_deb }}
           SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
@@ -119,42 +116,20 @@ jobs:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
         run: ./packaging/aur/check-deploy-key.sh
 
-      - name: 🔑 Setup deployment keys
+      - name: 🛠️ Setup AUR packaging
         if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/retry@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
-        env:
-          AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
+        uses: hrzlgnm/actions/.github/actions/aur-setup@ab90f7412a2c2e04df0a675ec57bc9a68b4ba5bc # v2.12.0
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
-          command: ./packaging/aur/fix-ownership.sh && su runner -c "./packaging/aur/setup-aur-ssh.sh"
-
-      - name: 📥 Clone AUR repo
-        if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/retry@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
-        env:
-          PKGNAME: ${{ matrix.package.name }}
-        with:
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 10
-          warning_on_retry: true
-          command: su runner -c "./packaging/aur/clone-aur-repo.sh"
-
-      - name: 🔍 Check version
-        if: github.event.release.tag_name || inputs.tag_name
-        env:
-          VERSION: ${{ needs.release-info.outputs.version }}
-        run: su runner -c "./packaging/aur/check-aur-version.sh"
+          package-name: ${{ matrix.package.name }}
+          release-version: ${{ needs.release-info.outputs.version }}
+          deploy-key: ${{ secrets.AUR_DEPLOY_KEY }}
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name || inputs.tag_name
         uses: hrzlgnm/actions/.github/actions/retry@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
         env:
-          SCRIPT: ${{ matrix.package.generate_script }}
-          VERSION: ${{ needs.release-info.outputs.version }}
+          GENERATE_SCRIPT: ${{ matrix.package.generate_script }}
+          RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
           SHA256: ${{ steps.sha256sums.outputs.sha256 }}
           SHA256_DEB: ${{ steps.sha256sums.outputs.sha256_deb }}
           SHA256_EXE: ${{ steps.sha256sums.outputs.sha256_exe }}
