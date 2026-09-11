@@ -104,6 +104,11 @@ jobs:
           # HOME/SHELL/USER/LOGNAME, so the script reads inputs from env.
           command: su runner -c "./packaging/aur/lint-pkgbuild.sh"
 
+      - name: 🧹 Check generated PKGBUILD
+        uses: hrzlgnm/actions/.github/actions/aur-makepkg-lint@7977755d8fc1cfe487ec61359b5e876e248d1c1e # v2.13.0
+        with:
+          workdir: ~/lint
+
       - name: 🛠️ Setup AUR packaging
         if: github.event.release.tag_name || inputs.tag_name
         uses: hrzlgnm/actions/.github/actions/aur-setup@a877a13e11e5b8537787be8adc2fb621846144b2 # v2.12.1

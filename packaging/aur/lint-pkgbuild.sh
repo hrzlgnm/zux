@@ -2,7 +2,7 @@
 # Copyright 2026 hrzlgnm
 # SPDX-License-Identifier: MIT
 #
-# Generate the PKGBUILD into ~/lint and run the namcap/source checks on it.
+# Generate the PKGBUILD into ~/lint for the shared aur-makepkg-lint action.
 # Must run from the repository root (GENERATE_SCRIPT is repo-relative).
 #
 # Env:
@@ -21,7 +21,6 @@ set -euo pipefail
 : "${RELEASE_VERSION:?RELEASE_VERSION must be set}"
 : "${NEEDS_EXE:?NEEDS_EXE must be set}"
 
-repo_root="$PWD"
 mkdir -p "${HOME}/lint"
 if [[ "$NEEDS_EXE" == "true" ]]; then
     : "${SHA256_DEB:?SHA256_DEB must be set for binary packages}"
@@ -31,5 +30,3 @@ else
     : "${SHA256:?SHA256 must be set for source packages}"
     "$GENERATE_SCRIPT" "$RELEASE_VERSION" "$SHA256" >"${HOME}/lint/PKGBUILD"
 fi
-cd "${HOME}/lint" || exit 1
-"$repo_root/packaging/aur/makepkg-lint.sh"
