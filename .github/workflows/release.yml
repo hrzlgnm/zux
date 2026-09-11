@@ -26,29 +26,10 @@ jobs:
         id: get_version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: 🛑 Fail if any draft release exists
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          DRAFTS=$(gh api "repos/${REPOSITORY}/releases?per_page=100" --paginate \
-            -q '[.[] | select(.draft == true) | .tag_name] | join(", ")')
-          if [ -n "$DRAFTS" ]; then
-            echo "Error: refusing to clobber existing draft release(s): $DRAFTS" >&2
-            echo "Delete or publish the draft(s) manually, then re-run." >&2
-            exit 1
-          fi
-
-      - name: 🛑 Fail if release already exists for this tag
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.ref_name }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          if gh release view "$TAG_NAME" --repo "${REPOSITORY}" >/dev/null 2>&1; then
-            echo "Error: release '$TAG_NAME' already exists" >&2
-            exit 1
-          fi
+      - name: 🛑 Check release preconditions
+        uses: hrzlgnm/actions/.github/actions/release-preconditions@03af2e8afc34f86696de4e40b92dda980359c866 # v2.14.0
+        with:
+          tag-name: ${{ github.ref_name }}
 
       - name: 🔧 Install git-cliff
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
