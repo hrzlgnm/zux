@@ -33,6 +33,10 @@ if [[ "$NEEDS_EXE" == "true" ]]; then
         echo "Error: Failed to get checksums from GitHub API for release $TAG_NAME" >&2
         exit 1
     fi
+    if [[ ! "$sum_deb" =~ ^(sha256:)?[0-9a-fA-F]{64}$ || ! "$sum_exe" =~ ^(sha256:)?[0-9a-fA-F]{64}$ ]]; then
+        echo "Error: Invalid checksums from GitHub API for release $TAG_NAME" >&2
+        exit 1
+    fi
     echo "sha256_deb=$sum_deb" >>"$GITHUB_OUTPUT"
     echo "sha256_exe=$sum_exe" >>"$GITHUB_OUTPUT"
 else
