@@ -86,12 +86,6 @@ jobs:
           warning_on_retry: true
           command: ./packaging/aur/resolve-sha256.sh
 
-      - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
-        if: matrix.package.name == 'zux'
-        env:
-          RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
-        run: ./packaging/aur/sync-version.sh
-
       - name: 🧹 Lint generated PKGBUILD
         uses: hrzlgnm/actions/.github/actions/retry@dc057d6ab047f38c862870e90c81a192d24ca92e # v2.11.0
         env:
