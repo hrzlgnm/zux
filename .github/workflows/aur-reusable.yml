@@ -31,10 +31,26 @@ jobs:
         id: version
         uses: ./.github/actions/latest-release-info
 
+  lint-scripts:
+    name: "🧹 Lint shell scripts"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+      - name: 🧹 Check shell scripts
+        env:
+          SCRIPTS_DIR: packaging/aur
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck shfmt
+          shellcheck -S warning "$SCRIPTS_DIR"/*.sh
+          shfmt --diff --indent 4 --case-indent --binary-next-line "$SCRIPTS_DIR"/*.sh
+
   update-aur:
     name: "📤 Update AUR"
     needs:
       - release-info
+      - lint-scripts
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:66270956c822dfd1445c2e469d4ae22fa0fb263c385390d7552b44e361bdeb59
@@ -60,8 +76,7 @@ jobs:
           fetch-depth: 1
 
       - name: 🧰 Setup build environment
-        run: |
-          chown -R runner:runner .
+        run: ./packaging/aur/fix-ownership.sh
 
       - name: 🔢 Resolve SHA256 checksums
         id: sha256sums
@@ -78,34 +93,13 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 10
           warning_on_retry: true
-          command: |
-            set -o errexit
-            set -o pipefail
-            if [[ "$NEEDS_EXE" == "true" ]]; then
-              DEB_NAME="zux_${TAG_NAME#v}_amd64.deb"
-              EXE_NAME="zux_linux_x64"
-              ASSETS=$(gh release view "$TAG_NAME" --repo hrzlgnm/zux --json assets --jq '.assets | map(select(.name | test("\\.sha256$") | not))')
-              SUM_DEB=$(echo "$ASSETS" | jq -r --arg name "$DEB_NAME" '.[] | select(.name == $name) | .digest')
-              SUM_EXE=$(echo "$ASSETS" | jq -r --arg name "$EXE_NAME" '.[] | select(.name == $name) | .digest')
-              if [[ -z "$SUM_DEB" || -z "$SUM_EXE" ]]; then
-                echo "Error: Failed to get checksums from GitHub API for release $TAG_NAME"
-                exit 1
-              fi
-              echo "sha256_deb=$SUM_DEB" >> "$GITHUB_OUTPUT"
-              echo "sha256_exe=$SUM_EXE" >> "$GITHUB_OUTPUT"
-            else
-              SUM=$(curl -LfsS --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 15 "$URL" | sha256sum | cut -f1 -d ' ')
-              echo "sha256=$SUM" >> "$GITHUB_OUTPUT"
-            fi
+          command: ./packaging/aur/resolve-sha256.sh
 
       - name: 🔖 Sync version in Cargo.toml and tauri.conf.json
         if: matrix.package.name == 'zux'
         env:
           VERSION: ${{ needs.release-info.outputs.version }}
-        run: |
-          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
-          mv tmp.json src-tauri/tauri.conf.json
-          sed -i "s/^version = .*/version = \"$VERSION\"/" src-tauri/Cargo.toml
+        run: ./packaging/aur/sync-version.sh
 
       - name: 🧹 Lint generated PKGBUILD
         uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
@@ -121,29 +115,15 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 10
           warning_on_retry: true
-          command: |
-            su runner -c "
-              set -o errexit
-              mkdir -p ~/lint
-              o=\$(pwd)
-              if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
-                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/lint/PKGBUILD
-              else
-                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/lint/PKGBUILD
-              fi
-              cd ~/lint
-              \"\$o/packaging/aur/makepkg-lint.sh\"
-            "
+          # su without --login keeps the step env and only resets
+          # HOME/SHELL/USER/LOGNAME, so the script reads inputs from env.
+          command: su runner -c "./packaging/aur/lint-pkgbuild.sh"
 
       - name: 🔒 Verify AUR deploy key secret is configured
         if: github.event.release.tag_name || inputs.tag_name
         env:
           AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
-        run: |
-          if [ -z "$AUR_DEPLOY_KEY" ]; then
-            echo "Error: AUR_DEPLOY_KEY secret is not set. Please configure the AUR SSH deploy key in repository settings."
-            exit 1
-          fi
+        run: ./packaging/aur/check-deploy-key.sh
 
       - name: 🔑 Setup deployment keys
         if: github.event.release.tag_name || inputs.tag_name
@@ -155,42 +135,7 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 10
           warning_on_retry: true
-          command: |
-            chown -R runner:runner .
-            su runner -c "
-              set -o errexit
-              mkdir -p ~/.ssh
-              printf '%s\n' \"\$AUR_DEPLOY_KEY\" > ~/.ssh/aur
-              chmod 600 ~/.ssh/aur
-              echo 'Host aur.archlinux.org' >> ~/.ssh/config
-              echo '  IdentityFile ~/.ssh/aur' >> ~/.ssh/config
-              echo '  User aur' >> ~/.ssh/config
-              # Arch-published AUR SSH host key fingerprints, see
-              # https://archlinux.org/news/aur-migration-new-ssh-hostkeys/
-              AUR_SSH_FPS="SHA256:RFzBCUItH9LZS0cKB5UE6ceAYhBD5C8GeOBip8Z11+4 SHA256:uTa/0PndEgPZTf76e1DFqXKJEXKsn7m9ivhLQtzGOCI SHA256:5s5cIyReIfNNVGRFdDbe3hdYiI5OelHGpw2rOUud3Q8"
-              ssh-keyscan -H aur.archlinux.org > ~/.ssh/aur-known-hosts.tmp
-              if [ ! -s ~/.ssh/aur-known-hosts.tmp ]; then
-                echo "::error::ssh-keyscan returned no host keys for aur.archlinux.org"
-                exit 1
-              fi
-              verified=0
-              while read -r host type key; do
-                case "\$host" in '#'*|"") continue;; esac
-                fp=\$(printf '%s %s' "\$type" "\$key" | ssh-keygen -lf /dev/stdin -E sha256 | awk '{print \$2}')
-                case " \$AUR_SSH_FPS " in
-                  *" \$fp "*) ;;
-                  *) echo "::error::AUR host key \$type fingerprint \$fp not in Arch-published set, refusing" ; exit 1 ;;
-                esac
-                echo "Verified AUR host key \$type \$fp"
-                verified=\$((verified+1))
-              done < ~/.ssh/aur-known-hosts.tmp
-              if [ "\$verified" -eq 0 ]; then
-                echo "::error::ssh-keyscan returned no verifiable host keys for aur.archlinux.org"
-                exit 1
-              fi
-              cat ~/.ssh/aur-known-hosts.tmp >> ~/.ssh/known_hosts
-              rm -f ~/.ssh/aur-known-hosts.tmp
-            "
+          command: ./packaging/aur/fix-ownership.sh && su runner -c "./packaging/aur/setup-aur-ssh.sh"
 
       - name: 📥 Clone AUR repo
         if: github.event.release.tag_name || inputs.tag_name
@@ -202,33 +147,13 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 10
           warning_on_retry: true
-          command: |
-            su runner -c "
-              set -o errexit
-              rm -rf ~/aur
-              git clone --depth=1 \"ssh://aur@aur.archlinux.org/$PKGNAME.git\" ~/aur
-            "
+          command: su runner -c "./packaging/aur/clone-aur-repo.sh"
 
       - name: 🔍 Check version
         if: github.event.release.tag_name || inputs.tag_name
         env:
           VERSION: ${{ needs.release-info.outputs.version }}
-        run: |
-          su runner -c "
-            set -o errexit
-            cd ~/aur
-            if [[ -f PKGBUILD ]]; then
-              CURRENT_VERSION=\$(grep -Po '^pkgver=\K.*' PKGBUILD)
-              if [[ -z \"\$CURRENT_VERSION\" ]]; then
-                echo 'Could not determine current version from PKGBUILD. Exiting.'
-                exit 1
-              fi
-              if [[ \"\$(printf \"%s\n%s\" \"\$CURRENT_VERSION\" \"$VERSION\" | sort -V | head -n1)\" != \"\$CURRENT_VERSION\" ]] || [[ \"\$CURRENT_VERSION\" == \"$VERSION\" ]]; then
-                echo \"New version ($VERSION) is not higher than the current version (\$CURRENT_VERSION). Exiting.\"
-                exit 1
-              fi
-            fi
-          "
+        run: su runner -c "./packaging/aur/check-aur-version.sh"
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name || inputs.tag_name
@@ -245,26 +170,4 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 10
           warning_on_retry: true
-          command: |
-            su runner -c "
-              set -o errexit
-              o=\$(pwd)
-              if [[ \"$NEEDS_EXE\" == \"true\" ]]; then
-                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256_DEB\" \"$SHA256_EXE\" > ~/aur/PKGBUILD
-              else
-                \"\$o/$SCRIPT\" \"$VERSION\" \"$SHA256\" > ~/aur/PKGBUILD
-              fi
-              cd ~/aur
-              if [[ -z \$(git status --porcelain) ]]; then
-                echo 'No changes'
-                exit 0
-              fi
-              makepkg --printsrcinfo > .SRCINFO
-              makepkg
-              makepkg --install --noconfirm
-              git config user.name 'hrzlgnm'
-              git config user.email 'hrzlgnm@users.noreply.github.com'
-              git add PKGBUILD .SRCINFO
-              git commit -m 'New upstream release $VERSION'
-              git push origin master
-            "
+          command: su runner -c "./packaging/aur/publish-aur.sh"
