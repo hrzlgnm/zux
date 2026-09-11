@@ -5,11 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.12.4...HEAD)
+## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.13.0...HEAD)
+
+### Dependencies
+
+- *(deps)* Update dependency cargo-nextest to v0.9.144 ([#311](https://github.com/hrzlgnm/zux/pull/311))
+
+### Fixed
+
+- *(aur)* Require verified host keys before writing known_hosts ([#310](https://github.com/hrzlgnm/zux/pull/310))
+
+- *(aur)* Allow republishing via workflow dispatch tag input ([#312](https://github.com/hrzlgnm/zux/pull/312))
+
+### Maintenance
+
+- *(ci)* Pin sccache binary and drop idle sccache from clippy ([#308](https://github.com/hrzlgnm/zux/pull/308))
+
+- *(ci)* Let renovate track the pinned sccache binary ([#309](https://github.com/hrzlgnm/zux/pull/309))
+
+## [1.13.0] - 2026-09-10 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.4...v1.13.0)
 
 ### Added
 
 - *(docker)* Add zux-arch-aur-builder image and use reusable docker workflow ([#288](https://github.com/hrzlgnm/zux/pull/288))
+
+- Use the android-update JS bindings ([#302](https://github.com/hrzlgnm/zux/pull/302))
 
 ### Dependencies
 
@@ -27,9 +47,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(deps)* Update actions/setup-java digest to de7274f ([#299](https://github.com/hrzlgnm/zux/pull/299))
 
+- *(deps)* Update dependency typescript-eslint to v8.70.0 ([#303](https://github.com/hrzlgnm/zux/pull/303))
+
+- *(deps)* Update rust crate tauri-plugin-android-update to 0.2 ([#304](https://github.com/hrzlgnm/zux/pull/304))
+
 ### Fixed
 
 - *(aur)* Retry downloads on transient failures ([#286](https://github.com/hrzlgnm/zux/pull/286))
+
+- Order CI jobs after validation ([#305](https://github.com/hrzlgnm/zux/pull/305))
 
 ### Maintenance
 
@@ -42,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(ci)* Use shared retry action from hrzlgnm/actions ([#294](https://github.com/hrzlgnm/zux/pull/294))
 
 - *(ci)* Ensure grouping so main pushes are built sequentially ([#300](https://github.com/hrzlgnm/zux/pull/300))
+
+- *(ci)* Run pnpm jobs after prettier to avoid cache warnings ([#306](https://github.com/hrzlgnm/zux/pull/306))
 
 ## [1.12.4] - 2026-09-08 [compare](https://github.com/hrzlgnm/zux/compare/v1.12.3...v1.12.4)
 
