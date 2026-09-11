@@ -115,6 +115,8 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 10
           warning_on_retry: true
+          # su without --login keeps the step env and only resets
+          # HOME/SHELL/USER/LOGNAME, so the script reads inputs from env.
           command: su runner -c "./packaging/aur/lint-pkgbuild.sh"
 
       - name: 🔒 Verify AUR deploy key secret is configured
