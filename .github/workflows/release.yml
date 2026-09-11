@@ -61,11 +61,38 @@ jobs:
         run: |
           git-cliff --config .github/cliff.toml --output CHANGELOG.md
 
-      - name: 📤 Upload versioned changelog artifact
+      - name: 🦀 Install Rust stable
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+
+      - name: 🔧 Install cargo-edit
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: cargo-edit
+          version: 0.13.13
+          locked: true
+
+      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
+        shell: bash
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
+          mv tmp.json package.json
+          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
+          mv tmp.json src-tauri/tauri.conf.json
+          cd src-tauri
+          cargo set-version "$VERSION"
+
+      - name: 📤 Upload versioned sources artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: changelog
-          path: CHANGELOG.md
+          name: versioned-sources
+          path: |
+            CHANGELOG.md
+            package.json
+            src-tauri/tauri.conf.json
+            src-tauri/Cargo.toml
+            src-tauri/Cargo.lock
 
       - name: 🗒️ Generate release body with git-cliff
         env:
@@ -135,24 +162,11 @@ jobs:
         with:
           command: pnpm install --frozen-lockfile
 
-      - name: 🔧 Install cargo-edit
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+      - name: 📥 Download versioned sources
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          crate: cargo-edit
-          version: 0.13.13
-          locked: true
-
-      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
-        shell: bash
-        env:
-          VERSION: ${{ needs.draft-release.outputs.version }}
-        run: |
-          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
-          mv tmp.json package.json
-          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
-          mv tmp.json src-tauri/tauri.conf.json
-          cd src-tauri
-          cargo set-version "$VERSION"
+          name: versioned-sources
+          path: .
 
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
@@ -203,19 +217,6 @@ jobs:
             src-tauri/target/**/release/zux
             src-tauri/target/**/release/zux.exe
           sbom-path: sbom.spdx.json
-
-      - name: 📥 Download versioned changelog (linux bundles only)
-        if: matrix.os == 'ubuntu-22.04'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: changelog
-          path: changelog-artifact
-
-      - name: 📝 Replace CHANGELOG.md with the versioned changelog
-        if: matrix.os == 'ubuntu-22.04'
-        shell: bash
-        run: |
-          cp changelog-artifact/CHANGELOG.md CHANGELOG.md
 
       - name: 📦 Build and publish bundles
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
@@ -344,24 +345,11 @@ jobs:
         with:
           command: pnpm install --frozen-lockfile
 
-      - name: 🔧 Install cargo-edit
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+      - name: 📥 Download versioned sources
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          crate: cargo-edit
-          version: 0.13.13
-          locked: true
-
-      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
-        shell: bash
-        env:
-          VERSION: ${{ needs.draft-release.outputs.version }}
-        run: |
-          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
-          mv tmp.json package.json
-          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
-          mv tmp.json src-tauri/tauri.conf.json
-          cd src-tauri
-          cargo set-version "$VERSION"
+          name: versioned-sources
+          path: .
 
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
