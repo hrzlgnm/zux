@@ -104,15 +104,9 @@ jobs:
           # HOME/SHELL/USER/LOGNAME, so the script reads inputs from env.
           command: su runner -c "./packaging/aur/lint-pkgbuild.sh"
 
-      - name: 🔒 Verify AUR deploy key secret is configured
-        if: github.event.release.tag_name || inputs.tag_name
-        env:
-          AUR_DEPLOY_KEY: ${{ secrets.AUR_DEPLOY_KEY }}
-        run: ./packaging/aur/check-deploy-key.sh
-
       - name: 🛠️ Setup AUR packaging
         if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/aur-setup@ab90f7412a2c2e04df0a675ec57bc9a68b4ba5bc # v2.12.0
+        uses: hrzlgnm/actions/.github/actions/aur-setup@a877a13e11e5b8537787be8adc2fb621846144b2 # v2.12.1
         with:
           package-name: ${{ matrix.package.name }}
           release-version: ${{ needs.release-info.outputs.version }}
