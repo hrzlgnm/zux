@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: MIT
 #
 # Regenerate ~/aur/PKGBUILD, verify it builds, and push the update.
-# Must run from the repository root (SCRIPT is repo-relative).
+# Must run from the repository root (GENERATE_SCRIPT is repo-relative).
 #
 # Env:
-#   SCRIPT      generator script, e.g. ./packaging/aur/generate-zux-bin.sh
-#   VERSION     release version without leading v, e.g. 1.2.3
+#   GENERATE_SCRIPT  generator script, e.g. ./packaging/aur/generate-zux-bin.sh
+#   RELEASE_VERSION  release version without leading v, e.g. 1.2.3
 #   SHA256      tarball checksum (source package)
 #   SHA256_DEB  .deb checksum (binary package)
 #   SHA256_EXE  unbundled binary checksum (binary package)
@@ -19,19 +19,19 @@
 
 set -euo pipefail
 
-: "${SCRIPT:?SCRIPT must be set}"
-: "${VERSION:?VERSION must be set}"
+: "${GENERATE_SCRIPT:?GENERATE_SCRIPT must be set}"
+: "${RELEASE_VERSION:?RELEASE_VERSION must be set}"
 : "${NEEDS_EXE:?NEEDS_EXE must be set}"
 
 repo_root="$PWD"
-script="${SCRIPT#./}"
+script="${GENERATE_SCRIPT#./}"
 if [[ "$NEEDS_EXE" == "true" ]]; then
     : "${SHA256_DEB:?SHA256_DEB must be set for binary packages}"
     : "${SHA256_EXE:?SHA256_EXE must be set for binary packages}"
-    "$repo_root/$script" "$VERSION" "$SHA256_DEB" "$SHA256_EXE" >"${HOME}/aur/PKGBUILD"
+    "$repo_root/$script" "$RELEASE_VERSION" "$SHA256_DEB" "$SHA256_EXE" >"${HOME}/aur/PKGBUILD"
 else
     : "${SHA256:?SHA256 must be set for source packages}"
-    "$repo_root/$script" "$VERSION" "$SHA256" >"${HOME}/aur/PKGBUILD"
+    "$repo_root/$script" "$RELEASE_VERSION" "$SHA256" >"${HOME}/aur/PKGBUILD"
 fi
 cd "${HOME}/aur" || exit 1
 if [[ -z "$(git status --porcelain -- PKGBUILD .SRCINFO)" ]]; then
@@ -47,7 +47,7 @@ else
     git config user.email 'hrzlgnm@users.noreply.github.com'
     git add PKGBUILD .SRCINFO
     if ! git diff --cached --quiet; then
-        git commit -m "New upstream release $VERSION"
+        git commit -m "New upstream release $RELEASE_VERSION"
     fi
 fi
 git push origin master
