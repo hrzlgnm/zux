@@ -70,7 +70,7 @@ jobs:
 
       - name: 🔁 Create or update Pull Request
         if: steps.changes.outputs.changed == 'true'
-        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
+        uses: hrzlgnm/actions/.github/actions/retry@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -94,6 +94,6 @@ jobs:
       actions: write
       contents: read
       pull-requests: read
-    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
+    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
     with:
       branch: chore/update-changelog
