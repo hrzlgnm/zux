@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/latest-release-info
 
       - name: 🚀 Dispatch Release snap in hrzlgnm/zux-snap
-        uses: hrzlgnm/actions/.github/actions/retry@d2c23efb5ed3a9f91dd4b2b898db20aeb5aa788f # v2.9.0
+        uses: hrzlgnm/actions/.github/actions/retry@9a8b61da03cbf93775f3fb47f6b393d06d8c62ed # v2.10.0
         env:
           GH_TOKEN: ${{ secrets.SNAP_REPO_TOKEN }}
           TAG_NAME: ${{ steps.release-info.outputs.tagName }}
