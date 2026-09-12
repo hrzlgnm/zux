@@ -1,5 +1,7 @@
-[files]
-extend-exclude = [".github/cliff.toml", ".github/cliff-release.toml"]
+[default]
+# Ignore short commit SHAs in release-please CHANGELOG links
+# (e.g. `[ba24398]`), which tokenize into false positives.
+extend-ignore-re = ["\\[[0-9a-f]{7}\\]"]
 
 [default.extend-words]
 # alls-green is a GitHub Actions status check for branch protection
