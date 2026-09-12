@@ -5,11 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.13.0...HEAD)
+## [1.14.0] - 2026-09-11 [compare](https://github.com/hrzlgnm/zux/compare/v1.13.3...v1.14.0)
+
+### Added
+
+- Use shared release-preconditions action ([#331](https://github.com/hrzlgnm/zux/pull/331))
+
+### Changed
+
+- Use shared AUR actions and unify packaging env names ([#323](https://github.com/hrzlgnm/zux/pull/323))
+
+- Remove redundant AUR sync-version step and script ([#325](https://github.com/hrzlgnm/zux/pull/325))
+
+- Drop local deploy-key preflight for shared guard ([#327](https://github.com/hrzlgnm/zux/pull/327))
+
+- Use shared aur-makepkg-lint action for PKGBUILD checks ([#328](https://github.com/hrzlgnm/zux/pull/328))
+
+### Dependencies
+
+- *(deps)* Update hrzlgnm/actions action to v2.11.0 ([#324](https://github.com/hrzlgnm/zux/pull/324))
+
+- *(deps)* Update hrzlgnm/actions action to v2.12.0 ([#326](https://github.com/hrzlgnm/zux/pull/326))
+
+- *(deps)* Update hrzlgnm/actions action to v2.13.1 ([#329](https://github.com/hrzlgnm/zux/pull/329))
+
+- *(deps)* Update hrzlgnm/actions action to v2.14.0 ([#332](https://github.com/hrzlgnm/zux/pull/332))
+
+- *(deps)* Update hrzlgnm/actions action to v2.14.1 ([#333](https://github.com/hrzlgnm/zux/pull/333))
+
+## [1.13.3] - 2026-09-11 [compare](https://github.com/hrzlgnm/zux/compare/v1.13.2...v1.13.3)
+
+### Changed
+
+- Set persist-credentials false on read-only checkouts ([#318](https://github.com/hrzlgnm/zux/pull/318))
+
+### Dependencies
+
+- *(deps)* Update hrzlgnm/actions action to v2.10.0 ([#322](https://github.com/hrzlgnm/zux/pull/322))
+
+### Fixed
+
+- Fail release when a draft already exists ([#317](https://github.com/hrzlgnm/zux/pull/317))
+
+### Maintenance
+
+- *(ci)* Use shared shell-lint reusable workflow ([#320](https://github.com/hrzlgnm/zux/pull/320))
+
+- *(ci)* Share versioned sources via single build artifact ([#321](https://github.com/hrzlgnm/zux/pull/321))
+
+## [1.13.2] - 2026-09-11 [compare](https://github.com/hrzlgnm/zux/compare/v1.13.1...v1.13.2)
+
+### Fixed
+
+- Harden AUR release scripts and workflow checkouts ([#316](https://github.com/hrzlgnm/zux/pull/316))
+
+## [1.13.1] - 2026-09-11 [compare](https://github.com/hrzlgnm/zux/compare/v1.13.0...v1.13.1)
+
+### Changed
+
+- Extract AUR workflow inline bash into packaging/aur scripts ([#315](https://github.com/hrzlgnm/zux/pull/315))
 
 ### Dependencies
 
 - *(deps)* Update dependency cargo-nextest to v0.9.144 ([#311](https://github.com/hrzlgnm/zux/pull/311))
+
+- *(deps)* Update pnpm to v12.4.0 ([#314](https://github.com/hrzlgnm/zux/pull/314))
 
 ### Fixed
 
