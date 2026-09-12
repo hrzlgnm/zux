@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write # to open Release PRs, tag, and create draft releases
+  issues: write # to manage autorelease labels on Release PRs
   pull-requests: write # to open and update Release PRs
 
 jobs:
