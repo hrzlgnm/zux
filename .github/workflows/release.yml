@@ -1,46 +1,53 @@
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT
+
 name: Release
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write # to open Release PRs, tag, and create draft releases
+  issues: write # to manage autorelease labels on Release PRs
+  pull-requests: write # to open and update Release PRs
 
 jobs:
-  draft-release:
-    name: "🚀 Draft a new release"
+  release-please:
+    name: "🤖 Release Please"
+    runs-on: ubuntu-24.04
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  prepare:
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
+    name: "📦 Prepare versioned sources"
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     permissions:
-      contents: write # to create draft releases and upload the versioned-sources artifact
+      contents: read # checkout only; version sync is applied to the working tree, not committed
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.sha }}
           persist-credentials: false
 
-      - name: 🏷️ Get version from tag
-        shell: bash
+      - name: 🏷️ Get version from release-please
         id: get_version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
-      - name: 🛑 Check release preconditions
-        uses: hrzlgnm/actions/.github/actions/release-preconditions@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
-        with:
-          tag-name: ${{ github.ref_name }}
-
-      - name: 🔧 Install git-cliff
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
-        with:
-          crate: git-cliff
-          version: 2.14.1
-          locked: true
-
-      - name: 📝 Generate CHANGELOG.md with git-cliff
-        run: |
-          git-cliff --config .github/cliff.toml --output CHANGELOG.md
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
@@ -75,27 +82,9 @@ jobs:
             src-tauri/Cargo.toml
             src-tauri/Cargo.lock
 
-      - name: 🗒️ Generate release body with git-cliff
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
-
-      - name: 🚀 Create draft release
-        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.ref_name }}
-        with:
-          command: |
-            gh release create "$TAG_NAME" \
-              --title "zux $TAG_NAME" \
-              --notes-file release-body.md \
-              --draft \
-              --latest=false
-
   release:
-    needs: [draft-release]
+    needs: [release-please, prepare]
+    if: needs.release-please.outputs.release_created == 'true'
     name: "🚀 Release"
     permissions:
       id-token: write # needed for OIDC token for attestation
@@ -153,7 +142,7 @@ jobs:
         uses: ./.github/actions/sbom
         with:
           artifact-name: "sbom.${{ matrix.os }}.spdx.json.gz"
-          current-version: ${{ needs.draft-release.outputs.version }}
+          current-version: ${{ needs.prepare.outputs.version }}
           cache-db: "false"
 
       - name: 🔑 Import windows signing certificate (windows only)
@@ -177,8 +166,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "zux ${{ github.ref_name }}"
+          tagName: ${{ needs.release-please.outputs.tag_name }}
+          releaseName: "zux ${{ needs.release-please.outputs.tag_name }}"
           releaseDraft: true
           prerelease: false
           uploadPlainBinary: true
@@ -206,8 +195,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "zux ${{ github.ref_name }}"
+          tagName: ${{ needs.release-please.outputs.tag_name }}
+          releaseName: "zux ${{ needs.release-please.outputs.tag_name }}"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -255,7 +244,8 @@ jobs:
             src-tauri/target/**/release/bundle/msi/*
 
   android-release:
-    needs: [draft-release]
+    needs: [release-please, prepare]
+    if: needs.release-please.outputs.release_created == 'true'
     name: "🤖 Android release"
     permissions:
       id-token: write # needed for OIDC token for attestation
@@ -336,7 +326,7 @@ jobs:
         uses: ./.github/actions/sbom
         with:
           artifact-name: "sbom.android.spdx.json.gz"
-          current-version: ${{ needs.draft-release.outputs.version }}
+          current-version: ${{ needs.prepare.outputs.version }}
           cache-db: "false"
 
       - name: 🏗️ Build Android app bundle
@@ -357,7 +347,7 @@ jobs:
       - name: ✍️ Sign APK
         shell: bash
         env:
-          VERSION: ${{ needs.draft-release.outputs.version }}
+          VERSION: ${{ needs.prepare.outputs.version }}
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
@@ -371,27 +361,28 @@ jobs:
       - name: 🚀 Publish APK
         uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         env:
-          VERSION: ${{ needs.draft-release.outputs.version }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+          VERSION: ${{ needs.prepare.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           command: |
-            TAG="${GITHUB_REF_NAME}"
             APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
-            gh release upload "$TAG" "$APK" --clobber
+            gh release upload "$TAG_NAME" "$APK" --clobber
 
       - name: 🛡️ Attest build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.prepare.outputs.version }}.apk
 
       - name: 🛡️ Attest SBOM
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.prepare.outputs.version }}.apk
           sbom-path: sbom.spdx.json
 
   source_checksums:
-    needs: [draft-release]
+    needs: [release-please, prepare]
+    if: needs.release-please.outputs.release_created == 'true'
     permissions:
       contents: write # to upload source checksums to release
       actions: read # to access workflow run information and secrets
@@ -399,4 +390,4 @@ jobs:
     uses: ./.github/workflows/source-checksums-reusable.yml
     secrets: inherit
     with:
-      tagName: ${{ github.ref_name }}
+      tagName: ${{ needs.release-please.outputs.tag_name }}
