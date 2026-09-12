@@ -127,12 +127,12 @@ jobs:
   typos:
     name: 📝 Check typos
     if: always()
-    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
 
   actionlint:
     name: 🔬 Check workflows
     if: always()
-    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
 
   clippy:
     name: "🔍 Clippy"
@@ -156,7 +156,7 @@ jobs:
           shared-key: "stable-ubuntu-24.04"
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: 🧰 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: 🔍 Check
@@ -198,7 +198,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: pnpm install --frozen-lockfile
       - name: 🎨 Check formatting
@@ -218,7 +218,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: pnpm install --frozen-lockfile
       - name: 🧹 Lint
@@ -236,7 +236,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: pnpm install --frozen-lockfile
       - name: 🔍 Check
@@ -282,7 +282,7 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: ✅ Run tests with nextest
@@ -314,11 +314,11 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: pnpm install --frozen-lockfile
       - name: 🎭 Install Playwright browsers
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           timeout_minutes: 10
           command: pnpm exec playwright install --with-deps chromium
@@ -347,7 +347,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           command: pnpm install --frozen-lockfile
       - name: 🔍 Check
@@ -368,7 +368,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
     with:
       branch: ${{ needs.changes.outputs.branch }}
 

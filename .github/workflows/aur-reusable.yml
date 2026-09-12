@@ -34,7 +34,7 @@ jobs:
 
   lint-scripts:
     name: "🧹 Lint shell scripts"
-    uses: hrzlgnm/actions/.github/workflows/shell-lint-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/shell-lint-reusable.yml@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
     with:
       runs-on: ubuntu-24.04
       scripts-dir: packaging/aur
@@ -87,7 +87,7 @@ jobs:
           command: ./packaging/aur/resolve-sha256.sh
 
       - name: 📝 Generate PKGBUILD
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         env:
           GENERATE_SCRIPT: ${{ matrix.package.generate_script }}
           RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
@@ -105,13 +105,13 @@ jobs:
           command: su runner -c "./packaging/aur/lint-pkgbuild.sh"
 
       - name: 🧹 Check generated PKGBUILD
-        uses: hrzlgnm/actions/.github/actions/aur-makepkg-lint@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/aur-makepkg-lint@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           workdir: ~/lint
 
       - name: 🛠️ Setup AUR packaging
         if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/aur-setup@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/aur-setup@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         with:
           package-name: ${{ matrix.package.name }}
           release-version: ${{ needs.release-info.outputs.version }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
         env:
           GENERATE_SCRIPT: ${{ matrix.package.generate_script }}
           RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
