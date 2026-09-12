@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0](https://github.com/hrzlgnm/zux/compare/v1.14.0...v1.15.0) (2026-09-12)
+
+
+### Features
+
+* manage releases with release-please ([#335](https://github.com/hrzlgnm/zux/issues/335)) ([c5a122b](https://github.com/hrzlgnm/zux/commit/c5a122bae2bf3077b541685ead295ceba84e1b96))
+* run release-please with GITHUB_TOKEN and auto-approved Release PRs ([#343](https://github.com/hrzlgnm/zux/issues/343)) ([2c51276](https://github.com/hrzlgnm/zux/commit/2c51276aa417874a025aa00e1daac31a6973ebb7))
+
+
+### Bug Fixes
+
+* **ci:** force tag creation for release-please drafts ([#342](https://github.com/hrzlgnm/zux/issues/342)) ([6bb7fde](https://github.com/hrzlgnm/zux/commit/6bb7fde20bb60f875f047c0b849496b13a82be5a))
+* **ci:** ignore short SHAs in release-please changelog for typos ([#339](https://github.com/hrzlgnm/zux/issues/339)) ([232948f](https://github.com/hrzlgnm/zux/commit/232948f143b358ec7e073b07c87cfe9b6894a81f))
+* **ci:** restore checkout credentials in update-changelog workflow ([#334](https://github.com/hrzlgnm/zux/issues/334)) ([d182a93](https://github.com/hrzlgnm/zux/commit/d182a939d78672047c7084c05d0f1344e324fe3f))
+* **ci:** run release-please with a PAT instead of GITHUB_TOKEN ([#341](https://github.com/hrzlgnm/zux/issues/341)) ([1964646](https://github.com/hrzlgnm/zux/commit/1964646776774846af5fa127f2a52db6939ed8e4))
+* **ci:** set include-component-in-tag false for release-please ([#340](https://github.com/hrzlgnm/zux/issues/340)) ([fa14916](https://github.com/hrzlgnm/zux/commit/fa14916a9beda22f73145c53dca226b4a9b0c74b))
+
 ## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.13.0...HEAD)
 
 ### Dependencies
@@ -866,5 +883,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add contents:write permission to release workflow ([#16](https://github.com/hrzlgnm/zux/pull/16))
 
 - Only run stabilization on initial layout, not on slider changes ([#17](https://github.com/hrzlgnm/zux/pull/17))
-
-
