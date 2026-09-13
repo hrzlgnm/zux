@@ -24,18 +24,15 @@ url="https://github.com/hrzlgnm/zux"
 license=('MIT')
 depends=('cairo' 'desktop-file-utils' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libsoup3' 'pango' 'webkit2gtk-4.1')
 conflicts=('zux-bin')
-makedepends=('cargo' 'cargo-edit' 'git' 'file' 'nodejs' 'pnpm' 'base-devel' 'rust' 'librsvg' 'patchelf')
+makedepends=('cargo' 'git' 'file' 'nodejs' 'pnpm' 'base-devel' 'rust' 'librsvg' 'patchelf')
 options=('!strip' '!emptydirs')
 source=("\$pkgname-v\$pkgver.tar.gz::https://github.com/hrzlgnm/\$pkgname/archive/refs/tags/v\$pkgver.tar.gz")
 sha256sums=('$sha256sum')
 _builddir="\$pkgname-\$pkgver"
 prepare() {
     cd "\$srcdir/\$_builddir" || exit 1
-    jq '.version = "$version"' src-tauri/tauri.conf.json > tmp.json
-    mv tmp.json src-tauri/tauri.conf.json
     pnpm install --frozen-lockfile
     cd src-tauri
-    cargo set-version "\$pkgver"
     cargo fetch --locked --target "\$(rustc -vV | sed -n 's/host: //p')"
 }
 build() {
