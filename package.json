@@ -2,7 +2,7 @@
   "name": "zux",
   "version": "1.15.0",
   "description": "",
-  "packageManager": "pnpm@12.4.0",
+  "packageManager": "pnpm@12.4.1",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
