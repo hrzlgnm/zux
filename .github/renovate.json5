@@ -17,6 +17,7 @@
         ":prImmediately",
         ":rebaseStalePrs",
         ":semanticCommits",
+        ":semanticPrefixFixDepsChoreOthers",
         ":separateMajorReleases",
     ],
     packageRules: [
