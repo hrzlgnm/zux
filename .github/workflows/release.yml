@@ -68,13 +68,13 @@ jobs:
           # the `required_signatures` ruleset on main. Commits created
           # through the Contents API on behalf of github-actions[bot]
           # carry GitHub's verified signature, so use `gh api` instead.
-          CONTENT=$(base64 -w0 "$FILE_PATH")
+          # The base64 payload (~200 KB) exceeds the 128 KB single-argument
+          # limit, so stream the request body from files instead of argv.
           SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}?ref=${BRANCH}" --jq .sha)
-          gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}" \
-            -f message="chore: sync Cargo.lock" \
-            -f content="$CONTENT" \
-            -f sha="$SHA" \
-            -f branch="$BRANCH"
+          base64 -w0 "$FILE_PATH" > /tmp/cargo-lock.b64
+          jq -n --rawfile content /tmp/cargo-lock.b64 --arg sha "$SHA" --arg branch "$BRANCH" \
+            '{message: "chore: sync Cargo.lock", content: $content, sha: $sha, branch: $branch}' > /tmp/body.json
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}" --input /tmp/body.json
 
   approve-release-pr:
     needs: [release-please, sync-cargo-lock]
