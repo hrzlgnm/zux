@@ -140,12 +140,12 @@ jobs:
 
       - name: 🧰 Install dependencies (ubuntu)
         if: matrix.os == 'ubuntu-22.04'
-        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
+        uses: hrzlgnm/actions/.github/actions/retry@49f43ae74193a73b2c1e1e066bf8f31a53b96a09 # v2.14.3
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
+        uses: hrzlgnm/actions/.github/actions/retry@49f43ae74193a73b2c1e1e066bf8f31a53b96a09 # v2.14.3
         with:
           command: pnpm install --frozen-lockfile
 
@@ -319,7 +319,7 @@ jobs:
           cmdline-tools-version: 15859902
 
       - name: ⚙️ Install NDK
-        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
+        uses: hrzlgnm/actions/.github/actions/retry@49f43ae74193a73b2c1e1e066bf8f31a53b96a09 # v2.14.3
         with:
           timeout_minutes: 10
           command: android sdk install "ndk;$NDK_VERSION"
@@ -329,7 +329,7 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
+        uses: hrzlgnm/actions/.github/actions/retry@49f43ae74193a73b2c1e1e066bf8f31a53b96a09 # v2.14.3
         with:
           command: pnpm install --frozen-lockfile
 
@@ -376,7 +376,7 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        uses: hrzlgnm/actions/.github/actions/retry@30ff1b2685b9a56d7693655cf248f079be398dac # v2.14.2
+        uses: hrzlgnm/actions/.github/actions/retry@49f43ae74193a73b2c1e1e066bf8f31a53b96a09 # v2.14.3
         env:
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
           VERSION: ${{ needs.prepare.outputs.version }}
