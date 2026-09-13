@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - release-please--branches--main--components--zux
   workflow_dispatch:
 
 permissions:
@@ -35,7 +36,7 @@ jobs:
 
   approve-release-pr:
     needs: [release-please]
-    if: needs.release-please.outputs.prs_created == 'true'
+    if: needs.release-please.outputs.prs_created == 'true' || github.ref == 'refs/heads/release-please--branches--main--components--zux'
     permissions:
       actions: write # needed to approve workflow runs
       contents: read
@@ -44,6 +45,48 @@ jobs:
     uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@275b5f2d90d762bd71567db08b250d8ba7cdb274 # v2.14.4
     with:
       branch: release-please--branches--main--components--zux
+
+  sync-lock:
+    needs: [release-please]
+    if: github.ref == 'refs/heads/release-please--branches--main--components--zux'
+    permissions:
+      contents: write # checkout the Release PR branch and push the synced lockfile back
+    runs-on: ubuntu-24.04
+    name: "🔒 Sync Cargo.lock on Release PR"
+    steps:
+      - name: 🔄 Checkout release branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: true # push the synced lockfile back to this branch
+
+      - name: 🦀 Install Rust stable
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+
+      - name: 🔧 Install cargo-edit
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: cargo-edit
+          version: 0.13.13
+          locked: true
+
+      - name: 🔒 Sync src-tauri/Cargo.lock with the release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(jq -r '.version' package.json)
+          cd src-tauri
+          cargo set-version "$VERSION"
+          cd ..
+          if git diff --quiet -- src-tauri/Cargo.lock; then
+            echo "Cargo.lock already in sync with version $VERSION"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src-tauri/Cargo.lock
+          git commit -m "chore: sync Cargo.lock with release version $VERSION"
+          git pull --rebase
+          git push
 
   prepare:
     needs: [release-please]
