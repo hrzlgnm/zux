@@ -39,11 +39,12 @@ jobs:
     name: "🔒 Sync Cargo.lock"
     runs-on: ubuntu-24.04
     permissions:
-      contents: write # checkout the Release PR branch and push the relocked Cargo.lock
+      contents: write # update the Release PR branch via the Contents API so the commit carries GitHub's verified signature
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: release-please--branches--main--components--zux
+          persist-credentials: false
 
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
@@ -54,16 +55,26 @@ jobs:
 
       - name: 📤 Commit Cargo.lock if changed
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: release-please--branches--main--components--zux
+          FILE_PATH: src-tauri/Cargo.lock
         run: |
-          if git diff --quiet -- src-tauri/Cargo.lock; then
+          if git diff --quiet -- "$FILE_PATH"; then
             echo "Cargo.lock already in sync"
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src-tauri/Cargo.lock
-          git commit -m "chore: sync Cargo.lock"
-          git push origin "HEAD:release-please--branches--main--components--zux"
+          # Pushes via `git commit` + `git push` are unsigned and violate
+          # the `required_signatures` ruleset on main. Commits created
+          # through the Contents API on behalf of github-actions[bot]
+          # carry GitHub's verified signature, so use `gh api` instead.
+          CONTENT=$(base64 -w0 "$FILE_PATH")
+          SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}?ref=${BRANCH}" --jq .sha)
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}" \
+            -f message="chore: sync Cargo.lock" \
+            -f content="$CONTENT" \
+            -f sha="$SHA" \
+            -f branch="$BRANCH"
 
   approve-release-pr:
     needs: [release-please, sync-cargo-lock]
