@@ -33,8 +33,40 @@ jobs:
           # release-please (force-tag-creation) alongside the draft.
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  approve-release-pr:
+  sync-cargo-lock:
     needs: [release-please]
+    if: needs.release-please.outputs.prs_created == 'true'
+    name: "🔒 Sync Cargo.lock"
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # checkout the Release PR branch and push the relocked Cargo.lock
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: release-please--branches--main--components--zux
+
+      - name: 🦀 Install Rust stable
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+
+      - name: 🔒 Sync Cargo.lock with the bumped Cargo.toml
+        shell: bash
+        run: cargo update --workspace --manifest-path src-tauri/Cargo.toml
+
+      - name: 📤 Commit Cargo.lock if changed
+        shell: bash
+        run: |
+          if git diff --quiet -- src-tauri/Cargo.lock; then
+            echo "Cargo.lock already in sync"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src-tauri/Cargo.lock
+          git commit -m "chore: sync Cargo.lock"
+          git push origin "HEAD:release-please--branches--main--components--zux"
+
+  approve-release-pr:
+    needs: [release-please, sync-cargo-lock]
     if: needs.release-please.outputs.prs_created == 'true'
     permissions:
       actions: write # needed to approve workflow runs
@@ -45,62 +77,8 @@ jobs:
     with:
       branch: release-please--branches--main--components--zux
 
-  prepare:
-    needs: [release-please]
-    if: needs.release-please.outputs.release_created == 'true'
-    name: "📦 Prepare versioned sources"
-    runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
-    permissions:
-      contents: read # checkout only; version sync is applied to the working tree, not committed
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ needs.release-please.outputs.sha }}
-          persist-credentials: false
-
-      - name: 🏷️ Get version from release-please
-        id: get_version
-        env:
-          VERSION: ${{ needs.release-please.outputs.version }}
-        run: echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: 🦀 Install Rust stable
-        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
-
-      - name: 🔧 Install cargo-edit
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
-        with:
-          crate: cargo-edit
-          version: 0.13.13
-          locked: true
-
-      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
-        shell: bash
-        env:
-          VERSION: ${{ steps.get_version.outputs.version }}
-        run: |
-          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
-          mv tmp.json package.json
-          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
-          mv tmp.json src-tauri/tauri.conf.json
-          cd src-tauri
-          cargo set-version "$VERSION"
-
-      - name: 📤 Upload versioned sources artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: versioned-sources
-          path: |
-            CHANGELOG.md
-            package.json
-            src-tauri/tauri.conf.json
-            src-tauri/Cargo.toml
-            src-tauri/Cargo.lock
-
   release:
-    needs: [release-please, prepare]
+    needs: [release-please]
     if: needs.release-please.outputs.release_created == 'true'
     name: "🚀 Release"
     permissions:
@@ -126,6 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ needs.release-please.outputs.sha }}
           persist-credentials: false
 
       - name: ⚡ Setup pnpm
@@ -149,17 +128,11 @@ jobs:
         with:
           command: pnpm install --frozen-lockfile
 
-      - name: 📥 Download versioned sources
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: versioned-sources
-          path: .
-
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
           artifact-name: "sbom.${{ matrix.os }}.spdx.json.gz"
-          current-version: ${{ needs.prepare.outputs.version }}
+          current-version: ${{ needs.release-please.outputs.version }}
           cache-db: "false"
 
       - name: 🔑 Import windows signing certificate (windows only)
@@ -261,7 +234,7 @@ jobs:
             src-tauri/target/**/release/bundle/msi/*
 
   android-release:
-    needs: [release-please, prepare]
+    needs: [release-please]
     if: needs.release-please.outputs.release_created == 'true'
     name: "🤖 Android release"
     permissions:
@@ -276,6 +249,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ needs.release-please.outputs.sha }}
           persist-credentials: false
 
       - name: 🔒 Verify Android signing secrets
@@ -333,17 +307,11 @@ jobs:
         with:
           command: pnpm install --frozen-lockfile
 
-      - name: 📥 Download versioned sources
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: versioned-sources
-          path: .
-
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
           artifact-name: "sbom.android.spdx.json.gz"
-          current-version: ${{ needs.prepare.outputs.version }}
+          current-version: ${{ needs.release-please.outputs.version }}
           cache-db: "false"
 
       - name: 🏗️ Build Android app bundle
@@ -364,7 +332,7 @@ jobs:
       - name: ✍️ Sign APK
         shell: bash
         env:
-          VERSION: ${{ needs.prepare.outputs.version }}
+          VERSION: ${{ needs.release-please.outputs.version }}
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
@@ -379,7 +347,7 @@ jobs:
         uses: hrzlgnm/actions/.github/actions/retry@275b5f2d90d762bd71567db08b250d8ba7cdb274 # v2.14.4
         env:
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
-          VERSION: ${{ needs.prepare.outputs.version }}
+          VERSION: ${{ needs.release-please.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           command: |
@@ -389,16 +357,16 @@ jobs:
       - name: 🛡️ Attest build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.prepare.outputs.version }}.apk
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.release-please.outputs.version }}.apk
 
       - name: 🛡️ Attest SBOM
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.prepare.outputs.version }}.apk
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.release-please.outputs.version }}.apk
           sbom-path: sbom.spdx.json
 
   source_checksums:
-    needs: [release-please, prepare]
+    needs: [release-please]
     if: needs.release-please.outputs.release_created == 'true'
     permissions:
       contents: write # to upload source checksums to release

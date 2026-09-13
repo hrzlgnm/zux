@@ -40,7 +40,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 - Test AUR packaging from the repository root with `~/.local/bin/test-aur-local --variant=both`; use `source` or `bin` for one package. `--no-build` is only for generator/lint smoke tests, `--no-install` skips binary installation, and `--no-cleanup` or `--keep-dir=<path>` retains artifacts.
 - Tauri packages `CHANGELOG.md` as `/usr/share/doc/zux/changelog.gz` for deb and `/usr/share/doc/zux/changelog` for rpm. Keep `bundle.linux.deb.changelog` and `bundle.linux.rpm.files` in `src-tauri/tauri.conf.json` pointed at that upstream Markdown, not a Debian-format changelog.
 - `docs/zux.1` ships as `/usr/share/man/man1/zux.1` through Tauri and `packaging/aur/generate-zux.sh`. Keep it and README's `Command line options` synchronized with every `clap::Parser` `Cli` flag in `src-tauri/src/lib.rs`, including Linux-only NVIDIA/dmabuf flags.
-- `CHANGELOG.md` and the `vMAJOR.MINOR.PATCH` tags are managed by release-please (`release-please-config.json` + `.release-please-manifest.json`); never edit the changelog or push version tags manually. Merge the `release-please` Release PR to tag and open a draft release, wait for the release workflow to upload all assets into the draft, then publish it manually so downstream `release: [released]` packaging workflows fire. Version bumps land in the Release PR for `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml`; the release workflow re-applies them with `cargo set-version` at build time so `Cargo.lock` is exact.
+- `CHANGELOG.md` and the `vMAJOR.MINOR.PATCH` tags are managed by release-please (`release-please-config.json` + `.release-please-manifest.json`); never edit the changelog or push version tags manually. Merge the `release-please` Release PR to tag and open a draft release, wait for the release workflow to upload all assets into the draft, then publish it manually so downstream `release: [released]` packaging workflows fire. Version bumps land in the Release PR for `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock` (release-please bumps the first three via `extra-files`; a `sync-cargo-lock` job relocks the fourth); release jobs check out the release SHA directly without re-setting versions.
 
 ## Rust
 
@@ -107,5 +107,6 @@ findings are fixed.
   findings per axis and the worst issue within each axis. Fix defects
   before pushing.
 - After adding changes to an open pull request, update its description
-  so the summary, issue references, and testing cover the cumulative
-  branch.
+  so the summary and issue references cover the cumulative branch.
+- Keep pull request descriptions to summary and issue references; omit
+  testing recaps, CI and Validation already cover those.
