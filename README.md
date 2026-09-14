@@ -268,6 +268,16 @@ pnpm run tauri build
 
 The bundles are created in `src-tauri/target/release/bundle/`.
 
+Release binaries are auditable: install
+[cargo-auditable](https://github.com/rust-secure-code/cargo-auditable) and put
+`scripts/` on `PATH` so the `cargo` spawned by the Tauri CLI is routed through
+it:
+
+```console
+cargo install --locked cargo-auditable
+PATH="$PWD/scripts:$PATH" pnpm run tauri build
+```
+
 ### Building for Android
 
 Building for Android requires a few additional prerequisites on top of the ones above. You
