@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0](https://github.com/hrzlgnm/zux/compare/v1.15.1...v1.16.0) (2026-09-14)
+
+
+### Features
+
+* make release builds auditable via cargo-auditable wrapper ([#368](https://github.com/hrzlgnm/zux/issues/368)) ([bcc5ee9](https://github.com/hrzlgnm/zux/commit/bcc5ee9e8a1c8493cc30deb9e2e56146a041e7ea))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate clap to v4.6.7 ([#366](https://github.com/hrzlgnm/zux/issues/366)) ([e06fcbd](https://github.com/hrzlgnm/zux/commit/e06fcbd2f5bfe65e483201abf3bcf583a19f2466))
+* drop removed legacy tools package from Android SDK setup ([#369](https://github.com/hrzlgnm/zux/issues/369)) ([f223755](https://github.com/hrzlgnm/zux/commit/f223755fe57ffd4d844b6424a94efb8a6b020b0e))
+
 ## [1.15.1](https://github.com/hrzlgnm/zux/compare/v1.15.0...v1.15.1) (2026-09-13)
 
 
