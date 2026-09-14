@@ -278,6 +278,14 @@ cargo install --locked cargo-auditable
 PATH="$PWD/scripts:$PATH" pnpm run tauri build
 ```
 
+Anyone can audit a release binary for known vulnerabilities with
+[`cargo audit bin`](https://github.com/rustsec/rustsec/tree/main/cargo-audit#cargo-audit-bin-subcommand):
+
+```console
+cargo install --locked cargo-audit
+cargo audit bin path/to/zux
+```
+
 ### Building for Android
 
 Building for Android requires a few additional prerequisites on top of the ones above. You
