@@ -147,6 +147,7 @@ jobs:
           locked: true
 
       - name: 🛠️ Add auditable cargo wrapper to PATH
+        shell: bash
         run: echo "$GITHUB_WORKSPACE/scripts" >> "$GITHUB_PATH"
 
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
