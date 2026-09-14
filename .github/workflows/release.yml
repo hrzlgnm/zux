@@ -139,6 +139,16 @@ jobs:
         with:
           command: pnpm install --frozen-lockfile
 
+      - name: 🛠️ Install cargo-auditable
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
+        with:
+          crate: cargo-auditable
+          version: 0.7.6
+          locked: true
+
+      - name: 🛠️ Add auditable cargo wrapper to PATH
+        run: echo "$GITHUB_WORKSPACE/scripts" >> "$GITHUB_PATH"
+
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
@@ -317,6 +327,16 @@ jobs:
         uses: hrzlgnm/actions/.github/actions/retry@275b5f2d90d762bd71567db08b250d8ba7cdb274 # v2.14.4
         with:
           command: pnpm install --frozen-lockfile
+
+      - name: 🛠️ Install cargo-auditable
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
+        with:
+          crate: cargo-auditable
+          version: 0.7.6
+          locked: true
+
+      - name: 🛠️ Add auditable cargo wrapper to PATH
+        run: echo "$GITHUB_WORKSPACE/scripts" >> "$GITHUB_PATH"
 
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
