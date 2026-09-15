@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0](https://github.com/hrzlgnm/zux/compare/v1.16.3...v1.17.0) (2026-09-15)
+
+
+### Features
+
+* dispatch downstream packaging workflows explicitly after publish ([#397](https://github.com/hrzlgnm/zux/issues/397)) ([5b74cdf](https://github.com/hrzlgnm/zux/commit/5b74cdfe99f554257a6cb3cd2de103dc73d385c4))
+
 ## [1.16.3](https://github.com/hrzlgnm/zux/compare/v1.16.2...v1.16.3) (2026-09-15)
 
 
