@@ -84,7 +84,7 @@ jobs:
       contents: read
       pull-requests: read
     name: "✅ Approve Release PR workflows"
-    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@734ad7f0736bb6962bec60339da9febcbdab1357 # v2.14.6
+    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
     with:
       branch: release-please--branches--main--components--zux
 
@@ -130,12 +130,12 @@ jobs:
 
       - name: 🧰 Install dependencies (ubuntu)
         if: matrix.os == 'ubuntu-22.04'
-        uses: hrzlgnm/actions/.github/actions/retry@734ad7f0736bb6962bec60339da9febcbdab1357 # v2.14.6
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@734ad7f0736bb6962bec60339da9febcbdab1357 # v2.14.6
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
 
@@ -318,7 +318,7 @@ jobs:
           packages: platform-tools
 
       - name: ⚙️ Install NDK
-        uses: hrzlgnm/actions/.github/actions/retry@734ad7f0736bb6962bec60339da9febcbdab1357 # v2.14.6
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           timeout_minutes: 10
           command: android sdk install "ndk;$NDK_VERSION"
@@ -328,7 +328,7 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@734ad7f0736bb6962bec60339da9febcbdab1357 # v2.14.6
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
 
@@ -379,7 +379,7 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        uses: hrzlgnm/actions/.github/actions/retry@734ad7f0736bb6962bec60339da9febcbdab1357 # v2.14.6
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         env:
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
           VERSION: ${{ needs.release-please.outputs.version }}
