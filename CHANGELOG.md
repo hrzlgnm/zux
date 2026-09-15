@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.1](https://github.com/hrzlgnm/zux/compare/v1.16.0...v1.16.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* clarify log file level wording in README and man page ([#382](https://github.com/hrzlgnm/zux/issues/382)) ([de6e827](https://github.com/hrzlgnm/zux/commit/de6e827b2939b60ecf154f2c1eea89f5a9e92c2b))
+* restore release please manifest ([#373](https://github.com/hrzlgnm/zux/issues/373)) ([5fa197d](https://github.com/hrzlgnm/zux/commit/5fa197de8acf7973066550812c0fda1c5df51b88))
+* run auditable cargo PATH step under bash on Windows ([#370](https://github.com/hrzlgnm/zux/issues/370)) ([85a2b60](https://github.com/hrzlgnm/zux/commit/85a2b602d1af6c71382051f8f5e8c9b5e793a038))
+
 ## [1.16.0](https://github.com/hrzlgnm/zux/compare/v1.15.1...v1.16.0) (2026-09-14)
 
 
