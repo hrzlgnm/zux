@@ -17,7 +17,8 @@
         ":prImmediately",
         ":rebaseStalePrs",
         ":semanticCommits",
-        ":semanticCommitTypeAll(chore)",
+        ":semanticCommitTypeAll(deps)",
+        ":semanticCommitScopeDisabled",
         ":separateMajorReleases",
     ],
     packageRules: [
