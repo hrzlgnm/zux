@@ -27,6 +27,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 - Install the Playwright browser once with `pnpm exec playwright install chromium` if needed.
 - After changing a workflow, run `actionlint` in addition to its matching checks.
 - After changing `.github/renovate.json5`, validate the config with `npx --yes -p renovate@latest renovate-config-validator .github/renovate.json5`.
+- After changing `release-please-config.json` or `.release-please-manifest.json`, keep them prettier-clean and valid JSON: `pnpm exec prettier --check release-please-config.json .release-please-manifest.json` (both files are covered by `pnpm run format:check`; neither is in `.prettierignore`).
 - Every commit must compile, pass its tests, and be format- and lint-clean. Do not create WIP commits that depend on a later commit to become green.
 
 ## GitHub Actions
