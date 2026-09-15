@@ -39,7 +39,9 @@ build() {
     cd "\$srcdir/\$_builddir" || exit 1
     export CFLAGS="\${CFLAGS//-flto=auto//}"
     pnpm run tauri build --no-bundle
-    pnpm run tauri build -b deb --no-sign
+    # bundle the already-built binary as deb to get required icons and
+    # desktop file for packaging, without building a second time
+    pnpm run tauri bundle -b deb --no-sign
 }
 check() {
     cd "\$srcdir/\$_builddir" || exit 1
