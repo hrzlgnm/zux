@@ -20,6 +20,8 @@
     }
   ],
   "packages": {
-    ".": {}
+    ".": {
+      "versioning": "always-bump-patch"
+    }
   }
 }
