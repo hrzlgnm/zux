@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.2](https://github.com/hrzlgnm/zux/compare/v1.16.1...v1.16.2) (2026-09-15)
+
+
+### Bug Fixes
+
+* bundle AUR source package without rebuilding ([#384](https://github.com/hrzlgnm/zux/issues/384)) ([7030792](https://github.com/hrzlgnm/zux/commit/7030792009fbbde64b0cfb2391d80b7ac3fa62b9))
+
+
+### Dependencies
+
+* update hrzlgnm/actions action to v2.14.6 ([#392](https://github.com/hrzlgnm/zux/issues/392)) ([5234ce3](https://github.com/hrzlgnm/zux/commit/5234ce30a1c6bd05aaa8440a907d569b64a4083c))
+
+
+### Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v7.4.0 ([#386](https://github.com/hrzlgnm/zux/issues/386)) ([4f36bef](https://github.com/hrzlgnm/zux/commit/4f36bef05abc33313d92db6c4e8b5b25bd0da712))
+* **deps:** update docker/setup-buildx-action action to v4.4.0 ([#387](https://github.com/hrzlgnm/zux/issues/387)) ([e12e0b9](https://github.com/hrzlgnm/zux/commit/e12e0b9d01e2cb451f4a4a168e4070b8d3231a16))
+* enforce release-please JSON formatting ([#390](https://github.com/hrzlgnm/zux/issues/390)) ([0459793](https://github.com/hrzlgnm/zux/commit/04597930b38333ed587faef015ab6ed840259f47))
+* release dep updates via deps commit type ([#388](https://github.com/hrzlgnm/zux/issues/388)) ([c44c8bf](https://github.com/hrzlgnm/zux/commit/c44c8bf89152242107a10697e79672eb0d75e3a7))
+* show all commit types in release notes ([#391](https://github.com/hrzlgnm/zux/issues/391)) ([2dc5447](https://github.com/hrzlgnm/zux/commit/2dc544726e7468cabd51d761051a5fe60e4e347b))
+
+
+### Continuous Integration
+
+* guard releases against manual mid-build publish ([#393](https://github.com/hrzlgnm/zux/issues/393)) ([3d6678e](https://github.com/hrzlgnm/zux/commit/3d6678e05805138346f9dc6bf03fb737f1e8487c))
+
 ## [1.16.1](https://github.com/hrzlgnm/zux/compare/v1.16.0...v1.16.1) (2026-09-15)
 
 
