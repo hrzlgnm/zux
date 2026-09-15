@@ -116,7 +116,7 @@ If enabled, a log file will be created in a platform-specific location:
 - Linux: `$XDG_DATA_HOME/com.github.hrzlgnm.zux/logs` or `$HOME/.local/share/com.github.hrzlgnm.zux/logs`
 - macOS: `~/Library/Logs/com.github.hrzlgnm.zux`
 
-The log file will be named `zux.log` and will contain log messages with a log-level having
+The log file will be named `zux.log` and will contain log messages with a log level of
 at least the level specified by the `log-level` option.
 
 ### disable-dmabuf-renderer
