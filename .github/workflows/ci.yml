@@ -12,8 +12,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-release:
+    name: "🏷️ Check release tag"
+    runs-on: ubuntu-24.04
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+    steps:
+      - name: 🔄 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: 🏷️ Check for release tag
+        id: check
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "push" ] && git tag --points-at HEAD | grep -q '^v'; then
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
   changes:
     name: "🔍 Detect Changes"
+    needs: [check-release]
+    if: needs.check-release.outputs.is_release != 'true'
     runs-on: ubuntu-24.04
     outputs:
       branch: ${{ steps.branch.outputs.branch }}
@@ -126,12 +153,14 @@ jobs:
 
   typos:
     name: 📝 Check typos
-    if: always()
+    needs: [check-release]
+    if: always() && needs.check-release.outputs.is_release != 'true'
     uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
 
   actionlint:
     name: 🔬 Check workflows
-    if: always()
+    needs: [check-release]
+    if: always() && needs.check-release.outputs.is_release != 'true'
     uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
 
   clippy:
@@ -354,9 +383,9 @@ jobs:
         run: pnpm run tauri signer sign package.json
 
   cache-tools:
-    needs: [actionlint, typos, clippy, fmt, prettier, eslint, tests, svelte-check, signer-check, e2e]
+    needs: [actionlint, typos, clippy, fmt, prettier, eslint, tests, svelte-check, signer-check, e2e, check-release]
     name: "📦 Cache tools"
-    if: always() && ( github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' )
+    if: always() && needs.check-release.outputs.is_release != 'true' && ( github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' )
     uses: ./.github/workflows/cache-tools-reusable.yml
 
   docker:
@@ -398,6 +427,7 @@ jobs:
     if: always()
     needs:
       [
+        check-release,
         changes,
         actionlint,
         aur,
@@ -420,6 +450,9 @@ jobs:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
         with:
           allowed-skips: >-
+            changes,
+            typos,
+            actionlint,
             aur,
             clippy,
             docker,
