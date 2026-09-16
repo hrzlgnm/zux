@@ -70,21 +70,21 @@ jobs:
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
 
       - name: 🔧 Install komac
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
         with:
           crate: komac
           version: 2.16.0
           locked: true
 
       - name: 🆙 Sync our fork of winget-pkgs
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
         with:
           command: komac sync-fork
 
       - name: 🆙 Update winget package
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
         with:
@@ -97,7 +97,7 @@ jobs:
 
       - name: 🧹 Cleanup merged branches
         if: always()
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
         with:

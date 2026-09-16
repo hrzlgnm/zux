@@ -1,101 +1,96 @@
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT
+
 name: Release
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write # to open Release PRs, tag, and create draft releases
+  issues: write # to manage autorelease labels on Release PRs
+  pull-requests: write # to open and update Release PRs
 
 jobs:
-  draft-release:
-    name: "🚀 Draft a new release"
+  release-please:
+    name: "🤖 Release Please"
     runs-on: ubuntu-24.04
     outputs:
-      version: ${{ steps.get_version.outputs.version }}
+      release_created: ${{ steps.release.outputs.release_created }}
+      prs_created: ${{ steps.release.outputs.prs_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
+        id: release
+        with:
+          # GITHUB_TOKEN: pushes come from github-actions[bot] with a
+          # verified signature. CI runs on the Release PR are approved
+          # by the approve-release-pr job below. Tags are created by
+          # release-please (force-tag-creation) alongside the draft.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  sync-cargo-lock:
+    needs: [release-please]
+    if: needs.release-please.outputs.prs_created == 'true'
+    name: "🔒 Sync Cargo.lock"
+    runs-on: ubuntu-24.04
     permissions:
-      contents: write # to create draft releases and upload the versioned-sources artifact
+      contents: write # update the Release PR branch via the Contents API so the commit carries GitHub's verified signature
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
+          ref: release-please--branches--main--components--zux
           persist-credentials: false
-
-      - name: 🏷️ Get version from tag
-        shell: bash
-        id: get_version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
-      - name: 🛑 Check release preconditions
-        uses: hrzlgnm/actions/.github/actions/release-preconditions@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
-        with:
-          tag-name: ${{ github.ref_name }}
-
-      - name: 🔧 Install git-cliff
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
-        with:
-          crate: git-cliff
-          version: 2.14.1
-          locked: true
-
-      - name: 📝 Generate CHANGELOG.md with git-cliff
-        run: |
-          git-cliff --config .github/cliff.toml --output CHANGELOG.md
 
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
 
-      - name: 🔧 Install cargo-edit
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
-        with:
-          crate: cargo-edit
-          version: 0.13.13
-          locked: true
+      - name: 🔒 Sync Cargo.lock with the bumped Cargo.toml
+        shell: bash
+        run: cargo update --workspace --manifest-path src-tauri/Cargo.toml
 
-      - name: 🔖 Sync version in package.json, Cargo.toml and tauri.conf.json
+      - name: 📤 Commit Cargo.lock if changed
         shell: bash
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
-        run: |
-          jq --arg version "$VERSION" '.version = $version' package.json > tmp.json
-          mv tmp.json package.json
-          jq --arg version "$VERSION" '.version = $version' src-tauri/tauri.conf.json > tmp.json
-          mv tmp.json src-tauri/tauri.conf.json
-          cd src-tauri
-          cargo set-version "$VERSION"
-
-      - name: 📤 Upload versioned sources artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: versioned-sources
-          path: |
-            CHANGELOG.md
-            package.json
-            src-tauri/tauri.conf.json
-            src-tauri/Cargo.toml
-            src-tauri/Cargo.lock
-
-      - name: 🗒️ Generate release body with git-cliff
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git-cliff --offline --config .github/cliff-release.toml --current --output release-body.md
-
-      - name: 🚀 Create draft release
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
-        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.ref_name }}
-        with:
-          command: |
-            gh release create "$TAG_NAME" \
-              --title "zux $TAG_NAME" \
-              --notes-file release-body.md \
-              --draft \
-              --latest=false
+          BRANCH: release-please--branches--main--components--zux
+          FILE_PATH: src-tauri/Cargo.lock
+        run: |
+          if git diff --quiet -- "$FILE_PATH"; then
+            echo "Cargo.lock already in sync"
+            exit 0
+          fi
+          # Pushes via `git commit` + `git push` are unsigned and violate
+          # the `required_signatures` ruleset on main. Commits created
+          # through the Contents API on behalf of github-actions[bot]
+          # carry GitHub's verified signature, so use `gh api` instead.
+          # The base64 payload (~200 KB) exceeds the 128 KB single-argument
+          # limit, so stream the request body from files instead of argv.
+          SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}?ref=${BRANCH}" --jq .sha)
+          base64 -w0 "$FILE_PATH" > /tmp/cargo-lock.b64
+          jq -n --rawfile content /tmp/cargo-lock.b64 --arg sha "$SHA" --arg branch "$BRANCH" \
+            '{message: "chore: sync Cargo.lock", content: $content, sha: $sha, branch: $branch}' > /tmp/body.json
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${FILE_PATH}" --input /tmp/body.json
+
+  approve-release-pr:
+    needs: [release-please, sync-cargo-lock]
+    if: needs.release-please.outputs.prs_created == 'true'
+    permissions:
+      actions: write # needed to approve workflow runs
+      contents: read
+      pull-requests: read
+    name: "✅ Approve Release PR workflows"
+    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
+    with:
+      branch: release-please--branches--main--components--zux
 
   release:
-    needs: [draft-release]
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
     name: "🚀 Release"
     permissions:
       id-token: write # needed for OIDC token for attestation
@@ -120,6 +115,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ needs.release-please.outputs.sha }}
           persist-credentials: false
 
       - name: ⚡ Setup pnpm
@@ -134,26 +130,31 @@ jobs:
 
       - name: 🧰 Install dependencies (ubuntu)
         if: matrix.os == 'ubuntu-22.04'
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
 
-      - name: 📥 Download versioned sources
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - name: 🛠️ Install cargo-auditable
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
         with:
-          name: versioned-sources
-          path: .
+          crate: cargo-auditable
+          version: 0.7.6
+          locked: true
+
+      - name: 🛠️ Add auditable cargo wrapper to PATH
+        shell: bash
+        run: echo "$GITHUB_WORKSPACE/scripts" >> "$GITHUB_PATH"
 
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
           artifact-name: "sbom.${{ matrix.os }}.spdx.json.gz"
-          current-version: ${{ needs.draft-release.outputs.version }}
+          current-version: ${{ needs.release-please.outputs.version }}
           cache-db: "false"
 
       - name: 🔑 Import windows signing certificate (windows only)
@@ -177,8 +178,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "zux ${{ github.ref_name }}"
+          tagName: ${{ needs.release-please.outputs.tag_name }}
+          releaseName: "zux ${{ needs.release-please.outputs.tag_name }}"
           releaseDraft: true
           prerelease: false
           uploadPlainBinary: true
@@ -206,8 +207,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "zux ${{ github.ref_name }}"
+          tagName: ${{ needs.release-please.outputs.tag_name }}
+          releaseName: "zux ${{ needs.release-please.outputs.tag_name }}"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -255,7 +256,8 @@ jobs:
             src-tauri/target/**/release/bundle/msi/*
 
   android-release:
-    needs: [draft-release]
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
     name: "🤖 Android release"
     permissions:
       id-token: write # needed for OIDC token for attestation
@@ -269,6 +271,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ needs.release-please.outputs.sha }}
           persist-credentials: false
 
       - name: 🔒 Verify Android signing secrets
@@ -310,9 +313,12 @@ jobs:
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
         with:
           cmdline-tools-version: 15859902
+          # The action defaults to `tools platform-tools`, but Google removed
+          # the legacy `tools` package, so sdkmanager exits 1 on it.
+          packages: platform-tools
 
       - name: ⚙️ Install NDK
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           timeout_minutes: 10
           command: android sdk install "ndk;$NDK_VERSION"
@@ -322,21 +328,25 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
 
-      - name: 📥 Download versioned sources
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - name: 🛠️ Install cargo-auditable
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
         with:
-          name: versioned-sources
-          path: .
+          crate: cargo-auditable
+          version: 0.7.6
+          locked: true
+
+      - name: 🛠️ Add auditable cargo wrapper to PATH
+        run: echo "$GITHUB_WORKSPACE/scripts" >> "$GITHUB_PATH"
 
       - name: 📜 Create and 🔍 scan SBOM for vulnerabilities
         uses: ./.github/actions/sbom
         with:
           artifact-name: "sbom.android.spdx.json.gz"
-          current-version: ${{ needs.draft-release.outputs.version }}
+          current-version: ${{ needs.release-please.outputs.version }}
           cache-db: "false"
 
       - name: 🏗️ Build Android app bundle
@@ -357,7 +367,7 @@ jobs:
       - name: ✍️ Sign APK
         shell: bash
         env:
-          VERSION: ${{ needs.draft-release.outputs.version }}
+          VERSION: ${{ needs.release-please.outputs.version }}
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
@@ -369,29 +379,30 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         env:
-          VERSION: ${{ needs.draft-release.outputs.version }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+          VERSION: ${{ needs.release-please.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           command: |
-            TAG="${GITHUB_REF_NAME}"
             APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${VERSION}.apk"
-            gh release upload "$TAG" "$APK" --clobber
+            gh release upload "$TAG_NAME" "$APK" --clobber
 
       - name: 🛡️ Attest build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.release-please.outputs.version }}.apk
 
       - name: 🛡️ Attest SBOM
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.draft-release.outputs.version }}.apk
+          subject-path: src-tauri/gen/android/app/build/outputs/apk/universal/release/zux_${{ needs.release-please.outputs.version }}.apk
           sbom-path: sbom.spdx.json
 
   source_checksums:
-    needs: [draft-release]
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
     permissions:
       contents: write # to upload source checksums to release
       actions: read # to access workflow run information and secrets
@@ -399,4 +410,52 @@ jobs:
     uses: ./.github/workflows/source-checksums-reusable.yml
     secrets: inherit
     with:
-      tagName: ${{ github.ref_name }}
+      tagName: ${{ needs.release-please.outputs.tag_name }}
+
+  publish:
+    # Flips the draft live only when every build job succeeded. A cancelled
+    # or failed build skips this job, so a partial release never goes live.
+    # This job is the only proper publisher: leave the draft alone. Events
+    # fired with GITHUB_TOKEN never create workflow runs, so the downstream
+    # packaging workflows are dispatched explicitly below instead of relying
+    # on the `release: [released]` trigger.
+    needs: [release-please, release, android-release, source_checksums]
+    if: needs.release-please.outputs.release_created == 'true'
+    name: "📢 Publish Release"
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # to publish the draft release
+      actions: write # to dispatch the downstream packaging workflows
+    steps:
+      - name: 🔄 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: 📢 Publish draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+        run: gh release edit "$TAG_NAME" --draft=false --prerelease=false
+
+      - name: 🚀 Dispatch downstream packaging workflows
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          failed=0
+          for workflow in winget-reusable.yml homebrew-reusable.yml snap-reusable.yml; do
+            if ! gh workflow run "$workflow" --ref "$REF_NAME"; then
+              echo "::error::Failed to dispatch $workflow"
+              failed=1
+            fi
+          done
+          if ! gh workflow run aur-reusable.yml --ref "$REF_NAME" -f tag_name="$TAG_NAME"; then
+            echo "::error::Failed to dispatch aur-reusable.yml"
+            failed=1
+          fi
+          exit "$failed"

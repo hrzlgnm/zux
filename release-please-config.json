@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "last-release-sha": "fbd6bae28043467a20c6dbf92faa3f3c90e5dc2d",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "draft": true,
+  "force-tag-creation": true,
+  "prerelease": false,
+  "extra-files": [
+    {
+      "type": "json",
+      "path": "src-tauri/tauri.conf.json",
+      "jsonpath": "$.version"
+    },
+    {
+      "type": "toml",
+      "path": "src-tauri/Cargo.toml",
+      "jsonpath": "$.package.version"
+    }
+  ],
+  "packages": {
+    ".": {
+      "changelog-sections": [
+        { "type": "feat", "section": "Features" },
+        { "type": "feature", "section": "Features" },
+        { "type": "fix", "section": "Bug Fixes" },
+        { "type": "perf", "section": "Performance Improvements" },
+        { "type": "revert", "section": "Reverts" },
+        { "type": "deps", "section": "Dependencies" },
+        { "type": "docs", "section": "Documentation" },
+        { "type": "style", "section": "Styles" },
+        { "type": "chore", "section": "Miscellaneous Chores" },
+        { "type": "refactor", "section": "Code Refactoring" },
+        { "type": "test", "section": "Tests" },
+        { "type": "build", "section": "Build System" },
+        { "type": "ci", "section": "Continuous Integration" }
+      ]
+    }
+  }
+}

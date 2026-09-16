@@ -116,7 +116,7 @@ If enabled, a log file will be created in a platform-specific location:
 - Linux: `$XDG_DATA_HOME/com.github.hrzlgnm.zux/logs` or `$HOME/.local/share/com.github.hrzlgnm.zux/logs`
 - macOS: `~/Library/Logs/com.github.hrzlgnm.zux`
 
-The log file will be named `zux.log` and will contain log messages with a log-level having
+The log file will be named `zux.log` and will contain log messages with a log level of
 at least the level specified by the `log-level` option.
 
 ### disable-dmabuf-renderer
@@ -267,6 +267,24 @@ pnpm run tauri build
 ```
 
 The bundles are created in `src-tauri/target/release/bundle/`.
+
+Release binaries are auditable: install
+[cargo-auditable](https://github.com/rust-secure-code/cargo-auditable) and put
+`scripts/` on `PATH` so the `cargo` spawned by the Tauri CLI is routed through
+it:
+
+```console
+cargo install --locked cargo-auditable
+PATH="$PWD/scripts:$PATH" pnpm run tauri build
+```
+
+Anyone can audit a release binary for known vulnerabilities with
+[`cargo audit bin`](https://github.com/rustsec/rustsec/tree/main/cargo-audit#cargo-audit-bin-subcommand):
+
+```console
+cargo install --locked cargo-audit
+cargo audit bin path/to/zux
+```
 
 ### Building for Android
 

@@ -155,13 +155,13 @@ jobs:
     name: 📝 Check typos
     needs: [check-release]
     if: always() && needs.check-release.outputs.is_release != 'true'
-    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/typos-reusable.yml@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
 
   actionlint:
     name: 🔬 Check workflows
     needs: [check-release]
     if: always() && needs.check-release.outputs.is_release != 'true'
-    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/actionlint-reusable.yml@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
 
   clippy:
     name: "🔍 Clippy"
@@ -185,7 +185,7 @@ jobs:
           shared-key: "stable-ubuntu-24.04"
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: 🧰 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: 🔍 Check
@@ -227,7 +227,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
       - name: 🎨 Check formatting
@@ -247,7 +247,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
       - name: 🧹 Lint
@@ -265,7 +265,7 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
       - name: 🔍 Check
@@ -285,7 +285,7 @@ jobs:
       - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
       - name: 🛠️ Install nextest
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
         with:
           crate: cargo-nextest
           version: 0.9.144
@@ -304,14 +304,14 @@ jobs:
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
         with:
           # renovate: datasource=github-releases depName=mozilla/sccache versioning=semver
-          version: "v0.17.0"
+          version: "v0.18.0"
       - name: 🔗 Enable sccache for cargo
         shell: bash
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> "$GITHUB_ENV"
       - name: 🧰 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: ✅ Run tests with nextest
@@ -343,11 +343,11 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
       - name: 🎭 Install Playwright browsers
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           timeout_minutes: 10
           command: pnpm exec playwright install --with-deps chromium
@@ -376,14 +376,27 @@ jobs:
       - name: ⚡ Setup pnpm and cache store
         uses: ./.github/actions/pnpm-setup
       - name: 📦 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+        uses: hrzlgnm/actions/.github/actions/retry@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
         with:
           command: pnpm install --frozen-lockfile
       - name: 🔍 Check
         run: pnpm run tauri signer sign package.json
 
   cache-tools:
-    needs: [actionlint, typos, clippy, fmt, prettier, eslint, tests, svelte-check, signer-check, e2e, check-release]
+    needs:
+      [
+        actionlint,
+        typos,
+        clippy,
+        fmt,
+        prettier,
+        eslint,
+        tests,
+        svelte-check,
+        signer-check,
+        e2e,
+        check-release,
+      ]
     name: "📦 Cache tools"
     if: always() && needs.check-release.outputs.is_release != 'true' && ( github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' )
     uses: ./.github/workflows/cache-tools-reusable.yml
@@ -397,7 +410,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@0bc72278fc09aa8093f47c430e6e52cf9321e14b # v2.14.1
+    uses: hrzlgnm/actions/.github/workflows/docker-reusable.yml@03b79955b43e4b4ae1678541e9d315d4f24c847d # v2.14.8
     with:
       branch: ${{ needs.changes.outputs.branch }}
 
@@ -415,8 +428,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
-      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+      - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4.4.0
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .github/docker/zux-arch-aur-builder
           file: .github/docker/zux-arch-aur-builder/Dockerfile

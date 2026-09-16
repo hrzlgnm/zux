@@ -5,6 +5,130 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0](https://github.com/hrzlgnm/zux/compare/v1.16.3...v1.17.0) (2026-09-15)
+
+
+### Features
+
+* dispatch downstream packaging workflows explicitly after publish ([#397](https://github.com/hrzlgnm/zux/issues/397)) ([5b74cdf](https://github.com/hrzlgnm/zux/commit/5b74cdfe99f554257a6cb3cd2de103dc73d385c4))
+
+## [1.16.3](https://github.com/hrzlgnm/zux/compare/v1.16.2...v1.16.3) (2026-09-15)
+
+
+### Bug Fixes
+
+* add missing checkout step to publish job in release workflow ([#394](https://github.com/hrzlgnm/zux/issues/394)) ([80ef419](https://github.com/hrzlgnm/zux/commit/80ef419e8f06db435d1a4378dd7ff764f65df3ee))
+
+
+### Dependencies
+
+* update hrzlgnm/actions action to v2.14.8 ([#396](https://github.com/hrzlgnm/zux/issues/396)) ([ccc8247](https://github.com/hrzlgnm/zux/commit/ccc8247064797abf23c9858ffe407c43b28e8979))
+
+## [1.16.2](https://github.com/hrzlgnm/zux/compare/v1.16.1...v1.16.2) (2026-09-15)
+
+
+### Bug Fixes
+
+* bundle AUR source package without rebuilding ([#384](https://github.com/hrzlgnm/zux/issues/384)) ([7030792](https://github.com/hrzlgnm/zux/commit/7030792009fbbde64b0cfb2391d80b7ac3fa62b9))
+
+
+### Dependencies
+
+* update hrzlgnm/actions action to v2.14.6 ([#392](https://github.com/hrzlgnm/zux/issues/392)) ([5234ce3](https://github.com/hrzlgnm/zux/commit/5234ce30a1c6bd05aaa8440a907d569b64a4083c))
+
+
+### Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v7.4.0 ([#386](https://github.com/hrzlgnm/zux/issues/386)) ([4f36bef](https://github.com/hrzlgnm/zux/commit/4f36bef05abc33313d92db6c4e8b5b25bd0da712))
+* **deps:** update docker/setup-buildx-action action to v4.4.0 ([#387](https://github.com/hrzlgnm/zux/issues/387)) ([e12e0b9](https://github.com/hrzlgnm/zux/commit/e12e0b9d01e2cb451f4a4a168e4070b8d3231a16))
+* enforce release-please JSON formatting ([#390](https://github.com/hrzlgnm/zux/issues/390)) ([0459793](https://github.com/hrzlgnm/zux/commit/04597930b38333ed587faef015ab6ed840259f47))
+* release dep updates via deps commit type ([#388](https://github.com/hrzlgnm/zux/issues/388)) ([c44c8bf](https://github.com/hrzlgnm/zux/commit/c44c8bf89152242107a10697e79672eb0d75e3a7))
+* show all commit types in release notes ([#391](https://github.com/hrzlgnm/zux/issues/391)) ([2dc5447](https://github.com/hrzlgnm/zux/commit/2dc544726e7468cabd51d761051a5fe60e4e347b))
+
+
+### Continuous Integration
+
+* guard releases against manual mid-build publish ([#393](https://github.com/hrzlgnm/zux/issues/393)) ([3d6678e](https://github.com/hrzlgnm/zux/commit/3d6678e05805138346f9dc6bf03fb737f1e8487c))
+
+## [1.16.1](https://github.com/hrzlgnm/zux/compare/v1.16.0...v1.16.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* clarify log file level wording in README and man page ([#382](https://github.com/hrzlgnm/zux/issues/382)) ([de6e827](https://github.com/hrzlgnm/zux/commit/de6e827b2939b60ecf154f2c1eea89f5a9e92c2b))
+* restore release please manifest ([#373](https://github.com/hrzlgnm/zux/issues/373)) ([5fa197d](https://github.com/hrzlgnm/zux/commit/5fa197de8acf7973066550812c0fda1c5df51b88))
+* run auditable cargo PATH step under bash on Windows ([#370](https://github.com/hrzlgnm/zux/issues/370)) ([85a2b60](https://github.com/hrzlgnm/zux/commit/85a2b602d1af6c71382051f8f5e8c9b5e793a038))
+
+## [1.16.0](https://github.com/hrzlgnm/zux/compare/v1.15.1...v1.16.0) (2026-09-14)
+
+
+### Features
+
+* make release builds auditable via cargo-auditable wrapper ([#368](https://github.com/hrzlgnm/zux/issues/368)) ([bcc5ee9](https://github.com/hrzlgnm/zux/commit/bcc5ee9e8a1c8493cc30deb9e2e56146a041e7ea))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate clap to v4.6.7 ([#366](https://github.com/hrzlgnm/zux/issues/366)) ([e06fcbd](https://github.com/hrzlgnm/zux/commit/e06fcbd2f5bfe65e483201abf3bcf583a19f2466))
+* drop removed legacy tools package from Android SDK setup ([#369](https://github.com/hrzlgnm/zux/issues/369)) ([f223755](https://github.com/hrzlgnm/zux/commit/f223755fe57ffd4d844b6424a94efb8a6b020b0e))
+* restore release please manifest ([#373](https://github.com/hrzlgnm/zux/issues/373)) ([5fa197d](https://github.com/hrzlgnm/zux/commit/5fa197de8acf7973066550812c0fda1c5df51b88))
+* run auditable cargo PATH step under bash on Windows ([#370](https://github.com/hrzlgnm/zux/issues/370)) ([85a2b60](https://github.com/hrzlgnm/zux/commit/85a2b602d1af6c71382051f8f5e8c9b5e793a038))
+
+## [1.16.0](https://github.com/hrzlgnm/zux/compare/v1.15.1...v1.16.0) (2026-09-14)
+
+
+### Features
+
+* make release builds auditable via cargo-auditable wrapper ([#368](https://github.com/hrzlgnm/zux/issues/368)) ([bcc5ee9](https://github.com/hrzlgnm/zux/commit/bcc5ee9e8a1c8493cc30deb9e2e56146a041e7ea))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate clap to v4.6.7 ([#366](https://github.com/hrzlgnm/zux/issues/366)) ([e06fcbd](https://github.com/hrzlgnm/zux/commit/e06fcbd2f5bfe65e483201abf3bcf583a19f2466))
+* drop removed legacy tools package from Android SDK setup ([#369](https://github.com/hrzlgnm/zux/issues/369)) ([f223755](https://github.com/hrzlgnm/zux/commit/f223755fe57ffd4d844b6424a94efb8a6b020b0e))
+* restore release please manifest ([#373](https://github.com/hrzlgnm/zux/issues/373)) ([5fa197d](https://github.com/hrzlgnm/zux/commit/5fa197de8acf7973066550812c0fda1c5df51b88))
+* run auditable cargo PATH step under bash on Windows ([#370](https://github.com/hrzlgnm/zux/issues/370)) ([85a2b60](https://github.com/hrzlgnm/zux/commit/85a2b602d1af6c71382051f8f5e8c9b5e793a038))
+
+## [1.16.0](https://github.com/hrzlgnm/zux/compare/v1.15.1...v1.16.0) (2026-09-14)
+
+
+### Features
+
+* make release builds auditable via cargo-auditable wrapper ([#368](https://github.com/hrzlgnm/zux/issues/368)) ([bcc5ee9](https://github.com/hrzlgnm/zux/commit/bcc5ee9e8a1c8493cc30deb9e2e56146a041e7ea))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate clap to v4.6.7 ([#366](https://github.com/hrzlgnm/zux/issues/366)) ([e06fcbd](https://github.com/hrzlgnm/zux/commit/e06fcbd2f5bfe65e483201abf3bcf583a19f2466))
+* drop removed legacy tools package from Android SDK setup ([#369](https://github.com/hrzlgnm/zux/issues/369)) ([f223755](https://github.com/hrzlgnm/zux/commit/f223755fe57ffd4d844b6424a94efb8a6b020b0e))
+
+## [1.15.1](https://github.com/hrzlgnm/zux/compare/v1.15.0...v1.15.1) (2026-09-13)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate webkit2gtk-nvidia-quirk to v2.1.2 ([c648131](https://github.com/hrzlgnm/zux/commit/c648131d61a2fdbc20390cb114d24f07c84598cb))
+
+## [1.15.0](https://github.com/hrzlgnm/zux/compare/v1.14.0...v1.15.0) (2026-09-13)
+
+
+### Features
+
+* manage releases with release-please ([#335](https://github.com/hrzlgnm/zux/issues/335)) ([c5a122b](https://github.com/hrzlgnm/zux/commit/c5a122bae2bf3077b541685ead295ceba84e1b96))
+* run release-please with GITHUB_TOKEN and auto-approved Release PRs ([#343](https://github.com/hrzlgnm/zux/issues/343)) ([2c51276](https://github.com/hrzlgnm/zux/commit/2c51276aa417874a025aa00e1daac31a6973ebb7))
+
+
+### Bug Fixes
+
+* **ci:** force tag creation for release-please drafts ([#342](https://github.com/hrzlgnm/zux/issues/342)) ([6bb7fde](https://github.com/hrzlgnm/zux/commit/6bb7fde20bb60f875f047c0b849496b13a82be5a))
+* **ci:** ignore short SHAs in release-please changelog for typos ([#339](https://github.com/hrzlgnm/zux/issues/339)) ([232948f](https://github.com/hrzlgnm/zux/commit/232948f143b358ec7e073b07c87cfe9b6894a81f))
+* **ci:** relock Cargo.lock on Release PR, drop build-time version sync ([#351](https://github.com/hrzlgnm/zux/issues/351)) ([d839219](https://github.com/hrzlgnm/zux/commit/d8392196f11b19ba4362f8ce602726d60dac6dd4))
+* **ci:** restore checkout credentials in update-changelog workflow ([#334](https://github.com/hrzlgnm/zux/issues/334)) ([d182a93](https://github.com/hrzlgnm/zux/commit/d182a939d78672047c7084c05d0f1344e324fe3f))
+* **ci:** run release-please with a PAT instead of GITHUB_TOKEN ([#341](https://github.com/hrzlgnm/zux/issues/341)) ([1964646](https://github.com/hrzlgnm/zux/commit/1964646776774846af5fa127f2a52db6939ed8e4))
+* **ci:** set include-component-in-tag false for release-please ([#340](https://github.com/hrzlgnm/zux/issues/340)) ([fa14916](https://github.com/hrzlgnm/zux/commit/fa14916a9beda22f73145c53dca226b4a9b0c74b))
+* **ci:** sign Cargo.lock sync commit via Contents API ([#353](https://github.com/hrzlgnm/zux/issues/353)) ([0b7be3d](https://github.com/hrzlgnm/zux/commit/0b7be3dd5dac14484b9cdabdb19cf2d34564db5b))
+* **ci:** stream Contents API body from file in Cargo.lock sync ([#354](https://github.com/hrzlgnm/zux/issues/354)) ([17f9dfb](https://github.com/hrzlgnm/zux/commit/17f9dfbacbd3de8146d9638ce7b837fc66a46a85))
+
 ## [Unreleased] [compare](https://github.com/hrzlgnm/zux/compare/v1.13.0...HEAD)
 
 ### Dependencies
@@ -866,5 +990,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add contents:write permission to release workflow ([#16](https://github.com/hrzlgnm/zux/pull/16))
 
 - Only run stabilization on initial layout, not on slider changes ([#17](https://github.com/hrzlgnm/zux/pull/17))
-
-
