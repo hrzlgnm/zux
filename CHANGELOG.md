@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.1](https://github.com/hrzlgnm/zux/compare/v1.17.0...v1.17.1) (2026-09-16)
+
+
+### Dependencies
+
+* update docker/setup-buildx-action action to v4.4.1 ([#402](https://github.com/hrzlgnm/zux/issues/402)) ([7b1ae57](https://github.com/hrzlgnm/zux/commit/7b1ae57ba5d010fc36d6370b97a51bbecfc50ee6))
+* update rust crate tauri-plugin-store to v2.4.5 ([#399](https://github.com/hrzlgnm/zux/issues/399)) ([e1f07a0](https://github.com/hrzlgnm/zux/commit/e1f07a0aff62ec3bf9b996ad39a33c90777bfba3))
+
+
+### Continuous Integration
+
+* skip heavy jobs on release-tag pushes ([#401](https://github.com/hrzlgnm/zux/issues/401)) ([6099937](https://github.com/hrzlgnm/zux/commit/60999374398c50d6359c3637db8c9ad5f8151703))
+
 ## [1.17.0](https://github.com/hrzlgnm/zux/compare/v1.16.3...v1.17.0) (2026-09-15)
 
 
