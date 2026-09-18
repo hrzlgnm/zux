@@ -19,12 +19,14 @@
     selectedNodeId,
     graphNetwork,
   } from '$lib/store'
+  import { initLogger } from '$lib/logger'
   import ServiceGraph from '$lib/ServiceGraph.svelte'
   import Sidebar from '$lib/Sidebar.svelte'
   import NodeDetail from '$lib/NodeDetail.svelte'
   import pkg from '../../package.json'
 
   let unlisten: UnlistenFn | null = null
+  let unlistenLogger: UnlistenFn | null = null
   let mounted = true
   let drawerOpen = $state(false)
   let hamburgerEl: HTMLButtonElement | undefined = $state(undefined)
@@ -87,6 +89,12 @@
 
   onMount(async () => {
     if (isTauri()) {
+      const loggerUnlisten = await initLogger()
+      if (mounted) {
+        unlistenLogger = loggerUnlisten
+      } else {
+        loggerUnlisten()
+      }
       void initPhysicsConfig()
       void initTheme()
       try {
@@ -114,6 +122,10 @@
     if (unlisten) {
       unlisten()
       unlisten = null
+    }
+    if (unlistenLogger) {
+      unlistenLogger()
+      unlistenLogger = null
     }
   })
 

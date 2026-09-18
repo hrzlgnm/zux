@@ -257,7 +257,8 @@ pub fn run() {
     let mut log_builder = tauri_plugin_log::Builder::new()
         .level(level)
         .clear_targets()
-        .target(Target::new(TargetKind::Stdout));
+        .target(Target::new(TargetKind::Stdout))
+        .target(Target::new(TargetKind::Webview));
 
     if cli.log_to_file {
         log_builder = log_builder.target(Target::new(TargetKind::LogDir { file_name: None }));
@@ -303,6 +304,7 @@ pub fn run_mobile() {
                 .level(LevelFilter::Info)
                 .clear_targets()
                 .target(Target::new(TargetKind::Stdout))
+                .target(Target::new(TargetKind::Webview))
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())
