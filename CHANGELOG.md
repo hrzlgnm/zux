@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0](https://github.com/hrzlgnm/zux/compare/v1.17.1...v1.18.0) (2026-09-18)
+
+
+### Features
+
+* forward frontend logs to backend via tauri-log plugin ([#409](https://github.com/hrzlgnm/zux/issues/409)) ([e6cc10a](https://github.com/hrzlgnm/zux/commit/e6cc10afaa1f64e558b25fac864bc6e5ffac7ae6))
+
+
+### Bug Fixes
+
+* detect release-please commits in CI skip check ([#403](https://github.com/hrzlgnm/zux/issues/403)) ([dfd49ab](https://github.com/hrzlgnm/zux/commit/dfd49abaebf1c18bb10aa0313390ab88a46a85e7))
+
+
+### Dependencies
+
+* update android-actions/setup-android digest to be39fa8 ([#406](https://github.com/hrzlgnm/zux/issues/406)) ([32e8c0d](https://github.com/hrzlgnm/zux/commit/32e8c0d43e49a32193d7a18083b6a99b71370ecd))
+* update archlinux:base-devel docker digest to 4894f5a ([#407](https://github.com/hrzlgnm/zux/issues/407)) ([a36e004](https://github.com/hrzlgnm/zux/commit/a36e00427847f18def8b6d984440ae09b150db85))
+* update dependency cargo-nextest to v0.9.145 ([#405](https://github.com/hrzlgnm/zux/issues/405)) ([8433ccc](https://github.com/hrzlgnm/zux/commit/8433cccc1949f5898be8115494be7710eb75c3dd))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 07672cb ([#408](https://github.com/hrzlgnm/zux/issues/408)) ([a7feaf1](https://github.com/hrzlgnm/zux/commit/a7feaf1186ed5666c63516328a14513062e3584e))
+* update pnpm to v12.4.2 ([#410](https://github.com/hrzlgnm/zux/issues/410)) ([f57a5e7](https://github.com/hrzlgnm/zux/commit/f57a5e705066ce9058449cc4d4534b46bacfe274))
+
 ## [1.17.1](https://github.com/hrzlgnm/zux/compare/v1.17.0...v1.17.1) (2026-09-16)
 
 
