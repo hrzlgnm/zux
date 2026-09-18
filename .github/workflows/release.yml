@@ -16,7 +16,7 @@ permissions:
 jobs:
   release-please:
     name: "🤖 Release Please"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       prs_created: ${{ steps.release.outputs.prs_created }}
@@ -37,7 +37,7 @@ jobs:
     needs: [release-please]
     if: needs.release-please.outputs.prs_created == 'true'
     name: "🔒 Sync Cargo.lock"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # update the Release PR branch via the Contents API so the commit carries GitHub's verified signature
     steps:
@@ -263,7 +263,7 @@ jobs:
       id-token: write # needed for OIDC token for attestation
       attestations: write # needed to create build attestations
       contents: write # needed to upload build artifacts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       RUSTFLAGS: "-D warnings"
       NDK_VERSION: 29.0.14206865
@@ -422,7 +422,7 @@ jobs:
     needs: [release-please, release, android-release, source_checksums]
     if: needs.release-please.outputs.release_created == 'true'
     name: "📢 Publish Release"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # to publish the draft release
       actions: write # to dispatch the downstream packaging workflows
