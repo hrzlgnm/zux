@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.1](https://github.com/hrzlgnm/zux/compare/v1.18.0...v1.18.1) (2026-09-19)
+
+
+### Dependencies
+
+* update dependency @tauri-apps/plugin-store to v2.4.5 ([#412](https://github.com/hrzlgnm/zux/issues/412)) ([ecc5593](https://github.com/hrzlgnm/zux/commit/ecc55934bf8370ce133f3fe58f14b775642afcf4))
+* update dependency prettier to v3.9.7 ([#416](https://github.com/hrzlgnm/zux/issues/416)) ([513981f](https://github.com/hrzlgnm/zux/commit/513981f2fa4e680211e7c96f8aab7ce57946b365))
+* update dependency ubuntu to v26 ([#411](https://github.com/hrzlgnm/zux/issues/411)) ([f86a715](https://github.com/hrzlgnm/zux/commit/f86a7151d8517abf87609b3522a089f7e51fdc18))
+* update hrzlgnm/actions action to v2.14.9 ([#415](https://github.com/hrzlgnm/zux/issues/415)) ([19988dc](https://github.com/hrzlgnm/zux/commit/19988dc69c1c7f1136ca4148950696447cc87be0))
+* update rust crate webkit2gtk-nvidia-quirk to v2.2.0 ([#413](https://github.com/hrzlgnm/zux/issues/413)) ([e4330f7](https://github.com/hrzlgnm/zux/commit/e4330f736f1a2b8348a4bd126d367d804187cc68))
+
 ## [1.18.0](https://github.com/hrzlgnm/zux/compare/v1.17.1...v1.18.0) (2026-09-18)
 
 
