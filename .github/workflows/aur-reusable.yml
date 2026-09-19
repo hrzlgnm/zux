@@ -19,7 +19,7 @@ jobs:
     name: "🏷️ Release info"
     permissions:
       packages: read
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.version.outputs.version }}
       tagName: ${{ steps.version.outputs.tagName }}
@@ -44,7 +44,7 @@ jobs:
     needs:
       - release-info
       - lint-scripts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:07672cb6283bcd6110aac3ac6a34f8c9223f55bdc9b8a4a0ec3515566a99d5b3
     strategy:

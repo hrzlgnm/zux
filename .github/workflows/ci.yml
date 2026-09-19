@@ -14,7 +14,7 @@ concurrency:
 jobs:
   check-release:
     name: "🏷️ Check release tag"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
     steps:
@@ -48,7 +48,7 @@ jobs:
     name: "🔍 Detect Changes"
     needs: [check-release]
     if: needs.check-release.outputs.is_release != 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       branch: ${{ steps.branch.outputs.branch }}
       rust: ${{ steps.filter.outputs.rust }}
@@ -174,7 +174,7 @@ jobs:
     name: "🔍 Clippy"
     needs: [changes, actionlint]
     if: needs.changes.outputs.rust == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       RUSTFLAGS: "-D warnings"
     steps:
@@ -203,7 +203,7 @@ jobs:
     name: "🎨 Format"
     needs: [changes, actionlint]
     if: needs.changes.outputs.fmt == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -226,7 +226,7 @@ jobs:
     if: needs.changes.outputs.prettier == 'true'
     permissions:
       contents: read
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -246,7 +246,7 @@ jobs:
     if: needs.changes.outputs.lint == 'true'
     permissions:
       contents: read
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -264,7 +264,7 @@ jobs:
     name: "🔍 Svelte check"
     needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.svelte-check == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -282,7 +282,7 @@ jobs:
     name: "🧪 Tests"
     needs: [changes, actionlint]
     if: needs.changes.outputs.tests == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       checks: write # required for action-junit-report annotation
     steps:
@@ -340,7 +340,7 @@ jobs:
     name: "🎭 E2E tests"
     needs: [changes, actionlint, prettier]
     if: needs.changes.outputs.e2e == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -375,7 +375,7 @@ jobs:
     env:
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -465,7 +465,7 @@ jobs:
         winget,
         e2e,
       ]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: re-actors/alls-green@a638d6464689bbb24c325bb3fe9404d63a913030
         with:

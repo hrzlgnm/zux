@@ -18,7 +18,7 @@ jobs:
     # click arrives with a User sender.
     if: github.event.sender.type != 'Bot'
     name: "🛡️ Demote Manual Publish"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # to demote the release to pre-release
     steps:
