@@ -67,7 +67,9 @@
       "endpoints": [
         "https://github.com/hrzlgnm/zux/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE4MjE2MUNDMjBCODY4QjkKUldTNWFMZ2d6R0VocU5DUEZSVGdzejFmVm81ZUcrMHB0SHdySmlNbWUwTEcyVHdWdlRsdjBLQ2MK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE4MjE2MUNDMjBCODY4QjkKUldTNWFMZ2d6R0VocU5DUEZSVGdzejFmVm81ZUcrMHB0SHdySmlNbWUwTEcyVHdWdlRsdjBLQ2MK",
+      "requireSignedVersion": true,
+      "allowDowngrades": false
     }
   }
 }
