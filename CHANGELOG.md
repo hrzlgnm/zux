@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.1](https://github.com/hrzlgnm/zux/compare/v1.19.0...v1.19.1) (2026-09-22)
+
+
+### Dependencies
+
+* lock file maintenance ([#421](https://github.com/hrzlgnm/zux/issues/421)) ([3ece975](https://github.com/hrzlgnm/zux/commit/3ece975a688df3532a89316fe211a29cef2acd53))
+* update archlinux:base-devel docker digest to 8745817 ([#424](https://github.com/hrzlgnm/zux/issues/424)) ([505c569](https://github.com/hrzlgnm/zux/commit/505c569647ea8fb2188b9911c8dc47f257ea4233))
+* update dependency cargo-nextest to v0.9.146 ([#425](https://github.com/hrzlgnm/zux/issues/425)) ([08d1831](https://github.com/hrzlgnm/zux/commit/08d1831fe32958364886128fcc45e47add8da942))
+* update dependency eslint to v10.11.0 ([#428](https://github.com/hrzlgnm/zux/issues/428)) ([2d3a593](https://github.com/hrzlgnm/zux/commit/2d3a593a1b221947041d4e84e2c75aed33deb944))
+* update dependency prettier to v3.9.8 ([#420](https://github.com/hrzlgnm/zux/issues/420)) ([da3ca79](https://github.com/hrzlgnm/zux/commit/da3ca79b952604e9f7d47f0e8ac04a5e30b3eefe))
+* update dependency svelte to v5.57.1 ([#427](https://github.com/hrzlgnm/zux/issues/427)) ([70fd1af](https://github.com/hrzlgnm/zux/commit/70fd1afc3f439d05515b5fad1aafe61543bbe2f6))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 61f544a ([#426](https://github.com/hrzlgnm/zux/issues/426)) ([6eddab7](https://github.com/hrzlgnm/zux/commit/6eddab7a48a1b72517707c9485e91ef3b749e754))
+* update pnpm to v12.5.1 ([#429](https://github.com/hrzlgnm/zux/issues/429)) ([d19acf8](https://github.com/hrzlgnm/zux/commit/d19acf83fa63171a3d0b3aa36ac22930a3441f07))
+* update pnpm/setup action to v3 ([#419](https://github.com/hrzlgnm/zux/issues/419)) ([39bb7a5](https://github.com/hrzlgnm/zux/commit/39bb7a50cd5d0cadbf4eac1a9c9049a46d632753))
+* update rust crate mdns-sd to v0.21.4 ([#423](https://github.com/hrzlgnm/zux/issues/423)) ([5966b02](https://github.com/hrzlgnm/zux/commit/5966b02d85408079e6bb9941cb177225f54499a2))
+
 ## [1.19.0](https://github.com/hrzlgnm/zux/compare/v1.18.0...v1.19.0) (2026-09-20)
 
 
