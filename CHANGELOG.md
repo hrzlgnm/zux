@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.2](https://github.com/hrzlgnm/zux/compare/v1.19.1...v1.19.2) (2026-09-26)
+
+
+### Dependencies
+
+* update dependency @sveltejs/vite-plugin-svelte to v7.3.1 ([#435](https://github.com/hrzlgnm/zux/issues/435)) ([d6464ff](https://github.com/hrzlgnm/zux/commit/d6464ffdfe83bf6c93fe5c7e20a07d7ad678af09))
+* update dependency prettier to v3.9.9 ([#434](https://github.com/hrzlgnm/zux/issues/434)) ([19784cd](https://github.com/hrzlgnm/zux/commit/19784cdfd3b1d39223a23924d7a41ef5084035d1))
+* update dependency typescript-eslint to v8.70.1 ([#430](https://github.com/hrzlgnm/zux/issues/430)) ([cec7433](https://github.com/hrzlgnm/zux/commit/cec7433b416307f783f21068344af004be2b18da))
+* update hrzlgnm/actions action to v2.14.10 ([#433](https://github.com/hrzlgnm/zux/issues/433)) ([76ab68e](https://github.com/hrzlgnm/zux/commit/76ab68e1e720b5e9c777ec4e90c00a8e91e5d547))
+* update tauri monorepo ([#436](https://github.com/hrzlgnm/zux/issues/436)) ([2f39c47](https://github.com/hrzlgnm/zux/commit/2f39c47415271956808fd5b23f64b64ae3190cab))
+
 ## [1.19.1](https://github.com/hrzlgnm/zux/compare/v1.19.0...v1.19.1) (2026-09-22)
 
 
