@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.2](https://github.com/hrzlgnm/zux/compare/v1.19.1...v1.19.2) (2026-09-29)
+
+
+### Dependencies
+
+* lock file maintenance ([#439](https://github.com/hrzlgnm/zux/issues/439)) ([8a8489e](https://github.com/hrzlgnm/zux/commit/8a8489e7839b7759674da8e4d0603d1d8aa48358))
+* update archlinux:base-devel docker digest to 51dd3d2 ([#440](https://github.com/hrzlgnm/zux/issues/440)) ([d1b943b](https://github.com/hrzlgnm/zux/commit/d1b943be97506102d2cf318a2a3e0b68a6e41960))
+* update dependency @sveltejs/vite-plugin-svelte to v7.3.1 ([#435](https://github.com/hrzlgnm/zux/issues/435)) ([d6464ff](https://github.com/hrzlgnm/zux/commit/d6464ffdfe83bf6c93fe5c7e20a07d7ad678af09))
+* update dependency prettier to v3.9.9 ([#434](https://github.com/hrzlgnm/zux/issues/434)) ([19784cd](https://github.com/hrzlgnm/zux/commit/19784cdfd3b1d39223a23924d7a41ef5084035d1))
+* update dependency typescript-eslint to v8.70.1 ([#430](https://github.com/hrzlgnm/zux/issues/430)) ([cec7433](https://github.com/hrzlgnm/zux/commit/cec7433b416307f783f21068344af004be2b18da))
+* update dependency vite to v8.3.1 ([#438](https://github.com/hrzlgnm/zux/issues/438)) ([aa6cb61](https://github.com/hrzlgnm/zux/commit/aa6cb616e94483156ddee894a7e0749afb322fe0))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to aa642a5 ([#441](https://github.com/hrzlgnm/zux/issues/441)) ([8ae436e](https://github.com/hrzlgnm/zux/commit/8ae436e0e80ef955ce03c67e1f3bceb8c9412751))
+* update hrzlgnm/actions action to v2.14.10 ([#433](https://github.com/hrzlgnm/zux/issues/433)) ([76ab68e](https://github.com/hrzlgnm/zux/commit/76ab68e1e720b5e9c777ec4e90c00a8e91e5d547))
+* update pnpm to v12.6.0 ([#432](https://github.com/hrzlgnm/zux/issues/432)) ([96e8bda](https://github.com/hrzlgnm/zux/commit/96e8bda5f395ef03caaee6ec6cb512c555b66e4f))
+* update rust crate tauri-plugin-android-update to 0.3 ([#442](https://github.com/hrzlgnm/zux/issues/442)) ([049fdc1](https://github.com/hrzlgnm/zux/commit/049fdc19a8b301bd09b689632c4abbec093079ba))
+* update tauri monorepo ([#436](https://github.com/hrzlgnm/zux/issues/436)) ([2f39c47](https://github.com/hrzlgnm/zux/commit/2f39c47415271956808fd5b23f64b64ae3190cab))
+* update tauri monorepo ([#437](https://github.com/hrzlgnm/zux/issues/437)) ([52b2877](https://github.com/hrzlgnm/zux/commit/52b287791a37e218abfdabcc6d5acbe27b195df1))
+* update tauri monorepo ([#443](https://github.com/hrzlgnm/zux/issues/443)) ([95856e6](https://github.com/hrzlgnm/zux/commit/95856e6c468dc60b86863df50151d8ec1e75323c))
+
 ## [1.19.1](https://github.com/hrzlgnm/zux/compare/v1.19.0...v1.19.1) (2026-09-22)
 
 
