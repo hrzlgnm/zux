@@ -34,7 +34,7 @@ jobs:
 
   lint-scripts:
     name: "🧹 Lint shell scripts"
-    uses: hrzlgnm/actions/.github/workflows/shell-lint-reusable.yml@0bb9559803ab259be48398d4137dcec658d45bf9 # v2.14.9
+    uses: hrzlgnm/actions/.github/workflows/shell-lint-reusable.yml@c4634c8090f9c2941bbad01a692e2dd4fc91416c # v2.14.10
     with:
       runs-on: ubuntu-24.04
       scripts-dir: packaging/aur
@@ -46,7 +46,7 @@ jobs:
       - lint-scripts
     runs-on: ubuntu-26.04
     container:
-      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:07672cb6283bcd6110aac3ac6a34f8c9223f55bdc9b8a4a0ec3515566a99d5b3
+      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:aa642a5004f5de8518008b75b46ba06dc14e8780d8b30d33b6ab1e1618021e2f
     strategy:
       fail-fast: false
       matrix:
@@ -87,7 +87,7 @@ jobs:
           command: ./packaging/aur/resolve-sha256.sh
 
       - name: 📝 Generate PKGBUILD
-        uses: hrzlgnm/actions/.github/actions/retry@0bb9559803ab259be48398d4137dcec658d45bf9 # v2.14.9
+        uses: hrzlgnm/actions/.github/actions/retry@c4634c8090f9c2941bbad01a692e2dd4fc91416c # v2.14.10
         env:
           GENERATE_SCRIPT: ${{ matrix.package.generate_script }}
           RELEASE_VERSION: ${{ needs.release-info.outputs.version }}
@@ -105,13 +105,13 @@ jobs:
           command: su runner -c "./packaging/aur/lint-pkgbuild.sh"
 
       - name: 🧹 Check generated PKGBUILD
-        uses: hrzlgnm/actions/.github/actions/aur-makepkg-lint@0bb9559803ab259be48398d4137dcec658d45bf9 # v2.14.9
+        uses: hrzlgnm/actions/.github/actions/aur-makepkg-lint@c4634c8090f9c2941bbad01a692e2dd4fc91416c # v2.14.10
         with:
           workdir: ~/lint
 
       - name: 🛠️ Setup AUR packaging
         if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/aur-setup@0bb9559803ab259be48398d4137dcec658d45bf9 # v2.14.9
+        uses: hrzlgnm/actions/.github/actions/aur-setup@c4634c8090f9c2941bbad01a692e2dd4fc91416c # v2.14.10
         with:
           package-name: ${{ matrix.package.name }}
           release-version: ${{ needs.release-info.outputs.version }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: 🚀 Generate PKGBUILD update and publish
         if: github.event.release.tag_name || inputs.tag_name
-        uses: hrzlgnm/actions/.github/actions/retry@0bb9559803ab259be48398d4137dcec658d45bf9 # v2.14.9
+        uses: hrzlgnm/actions/.github/actions/retry@c4634c8090f9c2941bbad01a692e2dd4fc91416c # v2.14.10
         env:
           GENERATE_SCRIPT: ${{ matrix.package.generate_script }}
           RELEASE_VERSION: ${{ needs.release-info.outputs.version }}

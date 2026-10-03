@@ -1,6 +1,6 @@
 [package]
 name = "zux"
-version = "1.19.0"
+version = "1.19.2"
 description = "mDNS-SD Visualizer"
 authors = ["hrzlgnm"]
 edition = "2024"
@@ -42,7 +42,7 @@ url = "2"
 log = "0.4"
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-tauri-plugin-android-update = "0.2"
+tauri-plugin-android-update = "0.3"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 clap = { version = "4", features = ["derive"] }
