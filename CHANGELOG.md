@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.4](https://github.com/hrzlgnm/zux/compare/v1.19.3...v1.19.4) (2026-10-03)
+
+
+### Dependencies
+
+* update pnpm to v12.8.2 ([#454](https://github.com/hrzlgnm/zux/issues/454)) ([7ea57bf](https://github.com/hrzlgnm/zux/commit/7ea57bf1913bd6b7f807e76e910fea23f810f0de))
+
 ## [1.19.3](https://github.com/hrzlgnm/zux/compare/v1.19.2...v1.19.3) (2026-10-03)
 
 
