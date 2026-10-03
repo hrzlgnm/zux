@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.3](https://github.com/hrzlgnm/zux/compare/v1.19.2...v1.19.3) (2026-10-03)
+
+
+### Bug Fixes
+
+* **android:** hold targetSdk at 36 to keep local-network access ([#453](https://github.com/hrzlgnm/zux/issues/453)) ([2fab699](https://github.com/hrzlgnm/zux/commit/2fab69948c0dddc63fd32ce1ea347542604a6e54))
+
+
+### Dependencies
+
+* update dependency cargo-auditable to v0.7.7 ([#450](https://github.com/hrzlgnm/zux/issues/450)) ([e0f864b](https://github.com/hrzlgnm/zux/commit/e0f864b35c674d50549ea84ba8448bbc7d283ed9))
+* update dependency tauri-plugin-android-update-api to ^0.3.0 ([#452](https://github.com/hrzlgnm/zux/issues/452)) ([08f7958](https://github.com/hrzlgnm/zux/commit/08f7958befb5b3e4d2588a72b7f9362b25d68d8b))
+* update dependency typescript-eslint to v8.71.0 ([#448](https://github.com/hrzlgnm/zux/issues/448)) ([86dcbf2](https://github.com/hrzlgnm/zux/commit/86dcbf2dc49e0579c6532648499a4a004f9ecdda))
+* update dtolnay/rust-toolchain digest to 89b1218 ([#449](https://github.com/hrzlgnm/zux/issues/449)) ([3a20428](https://github.com/hrzlgnm/zux/commit/3a2042828d62c76a38a8957692c2e7a10adc2f39))
+* update pnpm to v12.8.0 ([#445](https://github.com/hrzlgnm/zux/issues/445)) ([3165844](https://github.com/hrzlgnm/zux/commit/31658447f347157cb1087f8039923e8d63fce2a4))
+* update pnpm to v12.8.1 ([#447](https://github.com/hrzlgnm/zux/issues/447)) ([bd933af](https://github.com/hrzlgnm/zux/commit/bd933af03db597eac62c5fc8cde1c8b227f13454))
+* update rust crate tokio to v1.53.2 ([#451](https://github.com/hrzlgnm/zux/issues/451)) ([0af10fe](https://github.com/hrzlgnm/zux/commit/0af10fe8e6f881905eb9a7f62e0e05d23452be02))
+* update tauri monorepo ([#444](https://github.com/hrzlgnm/zux/issues/444)) ([7c100e5](https://github.com/hrzlgnm/zux/commit/7c100e568e06e27c3cbcf8700125a42c3901707f))
+
 ## [1.19.2](https://github.com/hrzlgnm/zux/compare/v1.19.1...v1.19.2) (2026-09-29)
 
 
