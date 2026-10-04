@@ -24,7 +24,6 @@
     graphNetwork,
   } from '#lib/store.js'
   import { initLogger } from '#lib/logger.js'
-  import ServiceGraph from '#lib/ServiceGraph.svelte'
   import Sidebar from '#lib/Sidebar.svelte'
   import NodeDetail from '#lib/NodeDetail.svelte'
   import pkg from '../../package.json'
@@ -227,7 +226,13 @@
       {#if $localNetworkAccess === null}
         <!-- Access state still resolving; render nothing yet. -->
       {:else if $localNetworkAccess === 'granted'}
-        <ServiceGraph />
+        {#await import('#lib/ServiceGraph.svelte')}
+          <p class="graph-status">Loading graph...</p>
+        {:then { default: ServiceGraph }}
+          <ServiceGraph />
+        {:catch}
+          <p class="graph-status">Failed to load the graph view.</p>
+        {/await}
         <NodeDetail />
       {:else}
         <div class="access-panel">
@@ -292,6 +297,14 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
+  }
+  .graph-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin: 0;
+    color: var(--text-secondary);
   }
   .access-panel {
     display: flex;

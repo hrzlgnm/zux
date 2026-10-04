@@ -13,7 +13,6 @@
     setTheme,
   } from './store'
   import { themes } from './themes'
-  import { exportGraphSvg } from './svg-export'
   import type { Solver, ThemeName } from './types'
 
   let { open = false, onClose = () => {} }: { open?: boolean; onClose?: () => void } = $props()
@@ -37,6 +36,8 @@
       return
     }
     try {
+      // Loaded on demand: pulls in the export code and its embedded font
+      const { exportGraphSvg } = await import('./svg-export.js')
       await exportGraphSvg(network)
     } catch (e) {
       console.error('[zux] export failed:', e)
