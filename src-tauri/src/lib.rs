@@ -1,17 +1,10 @@
-mod mdns;
-
-use std::sync::Mutex;
-use std::time::Duration;
+use serde::Serialize;
 
 #[cfg(desktop)]
 use clap::Parser;
 use log::LevelFilter;
-use mdns::{MdnsBrowser, MdnsEvent};
-use tauri::{Emitter, State};
+use tauri::State;
 use tauri_plugin_log::{Target, TargetKind};
-
-const EMIT_BATCH_SIZE: usize = 1;
-const EMIT_BATCH_INTERVAL: Duration = Duration::from_millis(50);
 
 #[cfg(desktop)]
 use tauri::utils::platform::bundle_type;
@@ -64,6 +57,21 @@ struct Cli {
     nvidia_workaround_verbose: bool,
 }
 
+/// Discovery options derived from the CLI; the mDNS engine itself lives in
+/// `tauri-plugin-mdns`, so only the address-visibility flag remains here.
+#[derive(Clone, Serialize, Debug, PartialEq)]
+struct DiscoveryConfig {
+    link_local_only: bool,
+}
+
+/// Reports whether non-link-local IPv6 addresses should be hidden from the
+/// graph. The frontend filters resolved addresses with this flag, preserving
+/// the `-I/--include-non-link-local-ipv6` default of leaking no public IPv6.
+#[tauri::command]
+fn link_local_only(config: State<'_, DiscoveryConfig>) -> bool {
+    config.link_local_only
+}
+
 #[tauri::command]
 fn save_text_file(path: String, contents: String) -> Result<(), String> {
     log::debug!("save_text_file called");
@@ -92,100 +100,6 @@ fn can_auto_update() -> bool {
         return false;
     }
     true
-}
-
-#[tauri::command]
-async fn start_discovery(
-    app: tauri::AppHandle,
-    state: State<'_, Mutex<MdnsBrowser>>,
-) -> Result<(), String> {
-    log::debug!("start_discovery called");
-    let mut browser = state.lock().map_err(|e| {
-        log::error!("lock error: {e}");
-        e.to_string()
-    })?;
-    browser.reset().map_err(|e| {
-        log::error!("reset error: {e}");
-        e.to_string()
-    })?;
-    let mut rx = browser.subscribe();
-    let app_clone = app.clone();
-
-    tokio::spawn(async move {
-        log::debug!("event listener started");
-        let mut pending: Vec<MdnsEvent> = Vec::new();
-        let mut timer = tokio::time::interval(EMIT_BATCH_INTERVAL);
-        timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
-        timer.tick().await;
-        loop {
-            tokio::select! {
-                result = rx.recv() => match result {
-                    Ok(event) => {
-                        coalesce_event(&mut pending, event);
-                    }
-                    Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                        log::warn!("lagged behind {n} events, continuing");
-                    }
-                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                        log::debug!("event listener ended");
-                        emit_batch(&app_clone, &mut pending);
-                        break;
-                    }
-                },
-                _ = timer.tick() => emit_batch(&app_clone, &mut pending),
-            }
-        }
-    });
-
-    browser.start().map_err(|e| {
-        log::error!("start error: {e}");
-        e.to_string()
-    })?;
-    Ok(())
-}
-
-fn coalesce_event(pending: &mut Vec<MdnsEvent>, event: MdnsEvent) {
-    match event {
-        MdnsEvent::Added(svc) => {
-            let id = svc.id.clone();
-            pending.retain(|e| match e {
-                MdnsEvent::Added(s) => s.id != id,
-                MdnsEvent::Removed { id: r_id, .. } => r_id.as_str() != id.as_str(),
-                MdnsEvent::TypeAdded { .. } => true,
-            });
-            pending.push(MdnsEvent::Added(svc));
-        }
-        MdnsEvent::Removed {
-            id, service_type, ..
-        } => {
-            let is_pending_add = pending
-                .iter()
-                .any(|e| matches!(e, MdnsEvent::Added(s) if s.id == id));
-            pending.retain(|e| !matches!(e, MdnsEvent::Added(s) if s.id == id));
-            if !is_pending_add {
-                pending.push(MdnsEvent::Removed { id, service_type });
-            }
-        }
-        MdnsEvent::TypeAdded { service_type } => {
-            if !pending.iter().any(
-                |e| matches!(e, MdnsEvent::TypeAdded { service_type: st } if st == &service_type),
-            ) {
-                pending.push(MdnsEvent::TypeAdded { service_type });
-            }
-        }
-    }
-}
-
-fn emit_batch(app: &tauri::AppHandle, pending: &mut Vec<MdnsEvent>) {
-    if pending.is_empty() {
-        return;
-    }
-    let take = pending.len().min(EMIT_BATCH_SIZE);
-    let events: Vec<MdnsEvent> = pending.drain(..take).collect();
-    log::debug!("emitting {} events to frontend", events.len());
-    if let Err(e) = app.emit("mdns-event", &events) {
-        log::error!("emit error: {e}");
-    }
 }
 
 /// Creates the main application window.
@@ -264,19 +178,19 @@ pub fn run() {
         log_builder = log_builder.target(Target::new(TargetKind::LogDir { file_name: None }));
     }
 
-    let browser =
-        MdnsBrowser::new(!cli.include_non_link_local_ipv6).expect("failed to create mDNS browser");
-
     tauri::Builder::default()
         .plugin(log_builder.build())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_mdns::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
-        .manage(Mutex::new(browser))
+        .manage(DiscoveryConfig {
+            link_local_only: !cli.include_non_link_local_ipv6,
+        })
         .invoke_handler(tauri::generate_handler![
-            start_discovery,
+            link_local_only,
             can_auto_update,
             save_text_file
         ])
@@ -296,8 +210,6 @@ pub fn run() {
 #[cfg(mobile)]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run_mobile() {
-    let browser = MdnsBrowser::new(false).expect("failed to create mDNS browser");
-
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -308,6 +220,7 @@ pub fn run_mobile() {
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_mdns::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_android_update::Builder::new()
@@ -316,9 +229,11 @@ pub fn run_mobile() {
                 .build(),
         )
         .plugin(tauri_plugin_store::Builder::new().build())
-        .manage(Mutex::new(browser))
+        .manage(DiscoveryConfig {
+            link_local_only: false,
+        })
         .invoke_handler(tauri::generate_handler![
-            start_discovery,
+            link_local_only,
             can_auto_update,
             save_text_file
         ])
