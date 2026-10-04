@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.0](https://github.com/hrzlgnm/zux/compare/v1.19.3...v1.20.0) (2026-10-04)
+
+
+### Features
+
+* browse via tauri-plugin-mdns ([#458](https://github.com/hrzlgnm/zux/issues/458)) ([0eab1f2](https://github.com/hrzlgnm/zux/commit/0eab1f223dd4e18b2fff4707d3d77bfdbdc31daa))
+* migrate to SvelteKit v3 ([#465](https://github.com/hrzlgnm/zux/issues/465)) ([c0b52c6](https://github.com/hrzlgnm/zux/commit/c0b52c6845fb3952b710d5ef200ab2ecfbd1a38e))
+
+
+### Bug Fixes
+
+* exempt hrzlgnm plugin npm packages from Renovate minimum release age ([#464](https://github.com/hrzlgnm/zux/issues/464)) ([e6a1751](https://github.com/hrzlgnm/zux/commit/e6a1751063c6fbfddead8c7ed3592dbce01af342))
+
+
+### Performance Improvements
+
+* lazy-load graph view and SVG export ([#466](https://github.com/hrzlgnm/zux/issues/466)) ([4c4f875](https://github.com/hrzlgnm/zux/commit/4c4f87591402bf3847484aa9c45521f3b902f495))
+
+
+### Dependencies
+
+* update dependency @sveltejs/adapter-static to v4 ([#461](https://github.com/hrzlgnm/zux/issues/461)) ([b37a01a](https://github.com/hrzlgnm/zux/commit/b37a01ae4c7f2a79f7504ab37ef9286ca03d12a9))
+* update dependency globals to v17.13.0 ([#456](https://github.com/hrzlgnm/zux/issues/456)) ([ed5c16c](https://github.com/hrzlgnm/zux/commit/ed5c16cc2ec026a1e2bf8a38332e52a4685993f8))
+* update dependency tauri-plugin-mdns-api to v0.3.1 ([#462](https://github.com/hrzlgnm/zux/issues/462)) ([682bd97](https://github.com/hrzlgnm/zux/commit/682bd976554ca5f87da6d7280a703fd0b9891d2d))
+* update dependency vite to v8.3.2 ([#457](https://github.com/hrzlgnm/zux/issues/457)) ([ccf3ec1](https://github.com/hrzlgnm/zux/commit/ccf3ec1a3bfce600be07b948dccb9a7bac6a5b46))
+* update pnpm to v12.8.2 ([#454](https://github.com/hrzlgnm/zux/issues/454)) ([7ea57bf](https://github.com/hrzlgnm/zux/commit/7ea57bf1913bd6b7f807e76e910fea23f810f0de))
+* update rust crate tauri-plugin-mdns to v0.3.1 ([#460](https://github.com/hrzlgnm/zux/issues/460)) ([eec0b1a](https://github.com/hrzlgnm/zux/commit/eec0b1aceaf3c8ebb39c549ef52bd66ab59d01a5))
+
+
+### Miscellaneous Chores
+
+* build Android releases on Java 21 ([#459](https://github.com/hrzlgnm/zux/issues/459)) ([19a047a](https://github.com/hrzlgnm/zux/commit/19a047ad83c9f283b25218c0fd3ca5571006670f))
+
 ## [1.19.3](https://github.com/hrzlgnm/zux/compare/v1.19.2...v1.19.3) (2026-10-03)
 
 
