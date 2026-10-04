@@ -1,9 +1,9 @@
 import type { ResolvedService, ScopedAddr } from 'tauri-plugin-mdns-api'
 import type { AddressInfo, ServiceDiscovered } from './types'
 
-// Conversion from the plugin's `ResolvedService` to the graph's
-// `ServiceDiscovered`, ported from the former Rust engine: instance-name
-// extraction, link-local address filtering, and URL derivation.
+// Converts the plugin's `ResolvedService` to the graph's
+// `ServiceDiscovered`: instance-name extraction, link-local address
+// filtering, and URL derivation.
 
 export function cleanHostname(hostname: string): string {
   return hostname.replace('.local.', '.').replace(/\.+$/, '')
@@ -43,18 +43,19 @@ export function deriveUrls(
   addresses: AddressInfo[],
 ): string[] {
   const urls: string[] = []
-  const ty = serviceType.toLowerCase()
+  const lowerType = serviceType.toLowerCase()
   let path = '/'
   const txtPath = txt['path']?.trim()
   if (txtPath) {
     path = txtPath.startsWith('/') ? txtPath : `/${txtPath}`
   }
 
-  if (ty.startsWith('_http._tcp') || ty.startsWith('_https._tcp')) {
-    const scheme = ty.startsWith('_https._tcp') ? 'https' : 'http'
+  if (lowerType.startsWith('_http._tcp') || lowerType.startsWith('_https._tcp')) {
+    const scheme = lowerType.startsWith('_https._tcp') ? 'https' : 'http'
     const host = urlHostname(hostname)
     urls.push(formatUrl(scheme, host, port, path))
     for (const a of addresses) {
+      // Link-local addresses need a scope id and are unusable in URLs.
       if (a.ip.toLowerCase().startsWith('fe80:')) continue
       const addr = a.ip.includes(':') ? `[${a.ip}]` : a.ip
       const u = formatUrl(scheme, addr, port, path)

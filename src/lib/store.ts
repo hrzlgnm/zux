@@ -35,8 +35,8 @@ export const serviceTypes = writable<Set<string>>(new Set())
 export const filterQuery = writable<string>('')
 export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
 
-// Seen instances by fullname, replacing the engine's dedup cache: unchanged
-// re-resolves are skipped so the graph does not redraw on every update.
+// Seen instances by fullname: unchanged re-resolves are skipped so the
+// graph does not redraw on every update.
 const seenInstances = new Map<string, ServiceDiscovered>()
 
 export const defaultPhysicsConfig: PhysicsConfig = {

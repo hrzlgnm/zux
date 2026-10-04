@@ -1,7 +1,8 @@
 import { invoke } from '@tauri-apps/api/core'
 
-// mDNS discovery commands, events, and types live in tauri-plugin-mdns
-// now; re-export them here so frontend imports keep a single seam.
+// mDNS discovery commands, events, and types are owned by
+// tauri-plugin-mdns; re-export them here so frontend imports keep a
+// single seam.
 export {
   browseMany,
   browseTypes,
