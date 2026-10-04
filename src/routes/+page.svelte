@@ -10,7 +10,7 @@
     check as checkAndroidUpdate,
     downloadAndInstall as installAndroidUpdate,
   } from 'tauri-plugin-android-update-api'
-  import { canAutoUpdate, requestLocalNetworkAccess } from '$lib/api'
+  import { canAutoUpdate, requestLocalNetworkAccess } from '#lib/api.js'
   import {
     setupEventListeners,
     clearGraph,
@@ -22,11 +22,11 @@
     startDiscovery,
     selectedNodeId,
     graphNetwork,
-  } from '$lib/store'
-  import { initLogger } from '$lib/logger'
-  import ServiceGraph from '$lib/ServiceGraph.svelte'
-  import Sidebar from '$lib/Sidebar.svelte'
-  import NodeDetail from '$lib/NodeDetail.svelte'
+  } from '#lib/store.js'
+  import { initLogger } from '#lib/logger.js'
+  import ServiceGraph from '#lib/ServiceGraph.svelte'
+  import Sidebar from '#lib/Sidebar.svelte'
+  import NodeDetail from '#lib/NodeDetail.svelte'
   import pkg from '../../package.json'
 
   let unlisten: UnlistenFn | null = null
