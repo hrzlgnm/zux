@@ -320,6 +320,19 @@ To run the app in development on an emulator or a connected device:
 pnpm run tauri android dev
 ```
 
+On Android 17, grant local-network access once per fresh install before
+starting dev: the dev frontend is served over the LAN, so until the
+permission is granted the app cannot load at all — and the in-app
+consent UI lives behind that same load:
+
+```console
+adb shell pm grant com.github.hrzlgnm.zux.debug android.permission.ACCESS_LOCAL_NETWORK
+```
+
+Reinstalls preserve the grant, full uninstalls wipe it. Release builds
+bundle the frontend locally and always reach the in-app consent flow,
+so they need no such step.
+
 ## Attested build artifacts
 
 The release binaries and bundles are attested with GitHub Artifact Attestations, and a
