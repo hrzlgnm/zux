@@ -13,6 +13,13 @@ const host = process.env.TAURI_DEV_HOST
 export default defineConfig(async () => ({
   plugins: [sveltekit({ adapter: adapter({ fallback: 'index.html' }) })],
 
+  build: {
+    // vis-network ships as one monolithic chunk (~530 kB) that is
+    // lazy-loaded after access is granted, so the default 500 kB
+    // warning does not reflect initial load
+    chunkSizeWarningLimit: 600,
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors
