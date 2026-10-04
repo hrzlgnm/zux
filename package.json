@@ -3,6 +3,9 @@
   "version": "1.19.3",
   "description": "",
   "packageManager": "pnpm@12.8.2",
+  "engines": {
+    "node": ">=22.17"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite dev",
