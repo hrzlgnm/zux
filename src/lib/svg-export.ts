@@ -1,8 +1,9 @@
 import type { Network, Node, Edge, Position, IdType } from 'vis-network'
-import { isTauri, invoke } from '@tauri-apps/api/core'
+import { isTauri } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
 // Embed the font so exported SVGs render labels with the same metrics used for measurement
 import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url&inline'
+import { saveTextFile } from './api'
 import { themeColors } from './store'
 
 function groupColors(): Record<string, string> {
@@ -297,7 +298,7 @@ export async function exportGraphSvg(network: Network) {
       filters: [{ name: 'SVG', extensions: ['svg'] }],
     })
     if (!path) return
-    await invoke('save_text_file', { path, contents: svg })
+    await saveTextFile(path, svg)
   } else {
     const blob = new Blob([svg], { type: 'image/svg+xml' })
     const url = URL.createObjectURL(blob)

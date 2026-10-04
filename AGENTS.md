@@ -18,7 +18,7 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 | --- | --- | --- |
 | `rust` | `src-tauri/` | `cargo clippy -- -D warnings` |
 | `fmt` | `src-tauri/` | `cargo fmt --check` |
-| `tests` | `src-tauri/` | `cargo test` |
+| `tests` | repository root | `pnpm test` |
 | `lint` | repository root | `pnpm run lint` |
 | `prettier` | repository root | `pnpm run format:check` |
 | `svelte-check` | repository root | `pnpm run check` |
