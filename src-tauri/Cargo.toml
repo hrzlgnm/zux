@@ -36,7 +36,7 @@ tauri-plugin-store = "2"
 serde = { version = "1", features = ["derive"] }
 # required by the tauri::generate_context! macro, no direct use in code
 serde_json = "1"
-tauri-plugin-mdns = "0.3"
+tauri-plugin-mdns = "0.4"
 log = "0.4"
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
