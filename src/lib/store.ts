@@ -1,13 +1,26 @@
 import { writable, derived, get } from 'svelte/store'
 import { isTauri } from '@tauri-apps/api/core'
-import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import type { UnlistenFn } from '@tauri-apps/api/event'
 import { Store } from '@tauri-apps/plugin-store'
 import type { Network } from 'vis-network'
+import {
+  browseMany,
+  browseTypes,
+  linkLocalOnly,
+  localNetworkStatus,
+  onServiceRemoved,
+  onServiceResolved,
+  onServiceTypeFound,
+  stopBrowse,
+} from './api'
+import type { LocalNetworkState } from './api'
+import { resolvedToDiscovered } from './mdns'
 import type {
   GraphNode,
   GraphEdge,
   PhysicsConfig,
   MdnsEvent,
+  ServiceDiscovered,
   Solver,
   ThemeName,
   ThemeColors,
@@ -21,6 +34,10 @@ export const selectedNodeId = writable<string | null>(null)
 export const serviceTypes = writable<Set<string>>(new Set())
 export const filterQuery = writable<string>('')
 export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
+
+// Seen instances by fullname, replacing the engine's dedup cache: unchanged
+// re-resolves are skipped so the graph does not redraw on every update.
+const seenInstances = new Map<string, ServiceDiscovered>()
 
 export const defaultPhysicsConfig: PhysicsConfig = {
   solver: 'repulsion',
@@ -266,6 +283,7 @@ export function clearGraph() {
   graphEdges.set(new Map())
   selectedNodeId.set(null)
   serviceTypes.set(new Set())
+  seenInstances.clear()
 }
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
@@ -564,14 +582,78 @@ function handleMdnsEvent(p: MdnsEvent) {
 
 export function setupEventListeners(): Promise<UnlistenFn> {
   console.debug('[zux] setting up event listeners')
-  return listen<MdnsEvent | MdnsEvent[]>('mdns-event', (event) => {
-    const payload = event.payload
-    if (Array.isArray(payload)) {
-      for (const p of payload) handleMdnsEvent(p)
-    } else {
-      handleMdnsEvent(payload)
+  return (async () => {
+    let linkLocal = true
+    try {
+      linkLocal = await linkLocalOnly()
+    } catch (e) {
+      console.warn('[zux] failed to query address visibility, hiding non-link-local IPv6:', e)
     }
-  })
+    const unlistenType = await onServiceTypeFound(({ service_type }) => {
+      if (service_type.includes('._sub.')) return
+      if (get(serviceTypes).has(service_type)) return
+      handleMdnsEvent({ type: 'service-type-added', data: { service_type } })
+      void browseMany([service_type]).catch((e) => {
+        console.warn('[zux] failed to browse service type:', service_type, e)
+      })
+    })
+    const unlistenResolved = await onServiceResolved(({ service }) => {
+      const discovered = resolvedToDiscovered(service, linkLocal)
+      const prev = seenInstances.get(discovered.id)
+      if (prev && JSON.stringify(prev) === JSON.stringify(discovered)) return
+      seenInstances.set(discovered.id, discovered)
+      handleMdnsEvent({ type: 'service-added', data: discovered })
+    })
+    const unlistenRemoved = await onServiceRemoved(({ instance_name }) => {
+      // The removal event carries no service type; resolve it through the
+      // last resolved state. Unknown fullnames never produced a node, so
+      // there is nothing to mark offline.
+      const stored = seenInstances.get(instance_name)
+      if (!stored) return
+      seenInstances.delete(instance_name)
+      handleMdnsEvent({
+        type: 'service-removed',
+        data: { id: stored.name || stored.id, service_type: stored.service_type },
+      })
+    })
+    return () => {
+      unlistenType()
+      unlistenResolved()
+      unlistenRemoved()
+    }
+  })()
+}
+
+// Local-network access gate (Android 17+ targeting SDK 37). `null` while
+// the native state is still being queried, so the blocking panel does not
+// flash prematurely. Discovery only starts while granted; anything else
+// renders the blocking panel in +page.svelte. Off Android the backend
+// always reports granted.
+export const localNetworkAccess = writable<LocalNetworkState | null>(null)
+
+export async function initLocalNetworkAccess(): Promise<LocalNetworkState> {
+  try {
+    const state = await localNetworkStatus()
+    localNetworkAccess.set(state)
+    return state
+  } catch (e) {
+    console.warn('[zux] failed to query local network access:', e)
+    localNetworkAccess.set('denied')
+    return 'denied'
+  }
+}
+
+export async function startDiscovery(): Promise<void> {
+  try {
+    // Stop any previously started browsing so a restart never resumes
+    // stale browses, then trigger service-type discovery. This must happen
+    // after the service-type-found listener exists, otherwise the initial
+    // answers are dropped and the types never show up.
+    await stopBrowse()
+    await browseTypes()
+  } catch (e) {
+    console.warn('[zux] failed to start discovery:', e)
+  }
 }
 
 const PREVIEW_SERVICE_TYPES = [

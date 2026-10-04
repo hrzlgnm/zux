@@ -357,7 +357,8 @@ jobs:
           pnpm run tauri android build
           # The mDNS plugin declares ACCESS_LOCAL_NETWORK (mandatory on
           # Android 17+ targeting SDK 37); fail loudly if the merged
-          # manifest lost it.
+          # manifest lost it. (-r: GNU xargs, this job runs ubuntu-only;
+          # trailing grep requires at least one matching manifest.)
           if ! find src-tauri/gen/android/app/build/intermediates -name AndroidManifest.xml -print0 \
             | xargs -r -0 grep -l 'android.permission.ACCESS_LOCAL_NETWORK' \
             | grep -q .; then

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
   import '@fontsource-variable/inter'
-  import { isTauri, invoke } from '@tauri-apps/api/core'
+  import { isTauri } from '@tauri-apps/api/core'
   import type { UnlistenFn } from '@tauri-apps/api/event'
   import { confirm } from '@tauri-apps/plugin-dialog'
   import { relaunch } from '@tauri-apps/plugin-process'
@@ -10,12 +10,16 @@
     check as checkAndroidUpdate,
     downloadAndInstall as installAndroidUpdate,
   } from 'tauri-plugin-android-update-api'
+  import { canAutoUpdate, requestLocalNetworkAccess } from '$lib/api'
   import {
     setupEventListeners,
     clearGraph,
     seedPreviewData,
     initPhysicsConfig,
     initTheme,
+    initLocalNetworkAccess,
+    localNetworkAccess,
+    startDiscovery,
     selectedNodeId,
     graphNetwork,
   } from '$lib/store'
@@ -28,6 +32,7 @@
   let unlisten: UnlistenFn | null = null
   let unlistenLogger: UnlistenFn | null = null
   let mounted = true
+  let requesting = $state(false)
   let drawerOpen = $state(false)
   let hamburgerEl: HTMLButtonElement | undefined = $state(undefined)
 
@@ -87,6 +92,28 @@
     return () => cancelAnimationFrame(raf)
   })
 
+  async function requestAccess() {
+    requesting = true
+    try {
+      const state = await requestLocalNetworkAccess()
+      localNetworkAccess.set(state)
+      if (state === 'granted') {
+        await startDiscovery()
+      }
+    } catch (e) {
+      console.warn('[zux] failed to request local network access:', e)
+    } finally {
+      requesting = false
+    }
+  }
+
+  async function retryAccess() {
+    const state = await initLocalNetworkAccess()
+    if (state === 'granted') {
+      await startDiscovery()
+    }
+  }
+
   onMount(async () => {
     if (isTauri()) {
       const loggerUnlisten = await initLogger()
@@ -109,11 +136,17 @@
       }
       if (!mounted) return
       clearGraph()
-      invoke('start_discovery').catch(() => {})
+      const access = await initLocalNetworkAccess()
+      if (!mounted) return
+      if (access === 'granted') {
+        await startDiscovery()
+      }
       checkForUpdates()
     } else {
       void initTheme()
       seedPreviewData()
+      // No permission gate off-device; render the preview graph directly.
+      localNetworkAccess.set('granted')
     }
   })
 
@@ -131,7 +164,7 @@
 
   async function checkForUpdates() {
     try {
-      const canUpdate = await invoke<boolean>('can_auto_update')
+      const canUpdate = await canAutoUpdate()
       if (!canUpdate) return
       if (/Android/i.test(navigator.userAgent)) {
         const update = await checkAndroidUpdate()
@@ -191,8 +224,32 @@
       onclick={closeDrawer}
     ></button>
     <div class="graph-stack">
-      <ServiceGraph />
-      <NodeDetail />
+      {#if $localNetworkAccess === null}
+        <!-- Access state still resolving; render nothing yet. -->
+      {:else if $localNetworkAccess === 'granted'}
+        <ServiceGraph />
+        <NodeDetail />
+      {:else}
+        <div class="access-panel">
+          <h2 class="access-title">Local network access required</h2>
+          <p class="access-text">
+            zux discovers services on your local network. Grant access to start browsing.
+          </p>
+          <div class="access-actions">
+            <button
+              type="button"
+              class="access-button"
+              onclick={requestAccess}
+              disabled={requesting}
+            >
+              Grant access
+            </button>
+            <button type="button" class="access-button" onclick={retryAccess} disabled={requesting}>
+              Check again
+            </button>
+          </div>
+        </div>
+      {/if}
     </div>
   </main>
 </div>
@@ -235,6 +292,46 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
+  }
+  .access-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 100%;
+    padding: 24px;
+    text-align: center;
+  }
+  .access-title {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-primary);
+  }
+  .access-text {
+    margin: 0;
+    max-width: 420px;
+    color: var(--text-secondary);
+  }
+  .access-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .access-button {
+    padding: 8px 16px;
+    border: 1px solid var(--border-accent);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .access-button:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .access-button:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
   @media (max-width: 768px) {
     .layout {
