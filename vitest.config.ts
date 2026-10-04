@@ -4,5 +4,9 @@ export default defineConfig({
   test: {
     // Playwright specs live in e2e/ and must not run under vitest.
     exclude: [...configDefaults.exclude, 'e2e/**'],
+    reporters: ['default', 'junit'],
+    outputFile: {
+      junit: './test-results/junit.xml',
+    },
   },
 })

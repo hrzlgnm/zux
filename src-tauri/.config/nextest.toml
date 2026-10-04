@@ -1,6 +1,0 @@
-[profile.ci]
-
-[profile.ci.junit]
-path = "junit.xml"
-store-success-output = false
-store-failure-output = true
