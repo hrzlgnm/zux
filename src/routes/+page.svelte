@@ -227,11 +227,11 @@
         <!-- Access state still resolving; render nothing yet. -->
       {:else if $localNetworkAccess === 'granted'}
         {#await import('#lib/ServiceGraph.svelte')}
-          <p class="graph-loading">Loading graph...</p>
+          <p class="graph-status">Loading graph...</p>
         {:then { default: ServiceGraph }}
           <ServiceGraph />
         {:catch}
-          <p class="graph-loading">Failed to load the graph view.</p>
+          <p class="graph-status">Failed to load the graph view.</p>
         {/await}
         <NodeDetail />
       {:else}
@@ -298,7 +298,7 @@
     min-height: 0;
     overflow: hidden;
   }
-  .graph-loading {
+  .graph-status {
     display: flex;
     align-items: center;
     justify-content: center;
