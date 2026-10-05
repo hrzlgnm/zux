@@ -3,10 +3,16 @@ import {
   cleanHostname,
   deriveUrls,
   formatUrl,
+  hasOfflineNodes,
   instanceName,
   keepAddress,
   urlHostname,
 } from './mdns'
+import type { GraphNode } from './types'
+
+function node(id: string, offline?: boolean): GraphNode {
+  return { id, label: id, group: 'instance', offline }
+}
 
 describe('formatUrl', () => {
   it('omits the default port', () => {
@@ -84,5 +90,27 @@ describe('deriveUrls', () => {
 
   it('derives nothing for non-http services without URL TXT values', () => {
     expect(deriveUrls('_ssh._tcp.local.', 'host.local.', 22, {}, [])).toEqual([])
+  })
+})
+
+describe('hasOfflineNodes', () => {
+  it('returns false for an empty graph', () => {
+    expect(hasOfflineNodes(new Map())).toBe(false)
+  })
+
+  it('returns false when all nodes are online', () => {
+    const nodes = new Map([
+      ['a', node('a', false)],
+      ['b', node('b')],
+    ])
+    expect(hasOfflineNodes(nodes)).toBe(false)
+  })
+
+  it('returns true when any node is offline', () => {
+    const nodes = new Map([
+      ['a', node('a', false)],
+      ['b', node('b', true)],
+    ])
+    expect(hasOfflineNodes(nodes)).toBe(true)
   })
 })

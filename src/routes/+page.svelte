@@ -20,6 +20,7 @@
     initLocalNetworkAccess,
     localNetworkAccess,
     startDiscovery,
+    restartBrowsing,
     selectedNodeId,
     graphNetwork,
   } from '#lib/store.js'
@@ -30,6 +31,7 @@
 
   let unlisten: UnlistenFn | null = null
   let unlistenLogger: UnlistenFn | null = null
+  let unlistenWindowFocus: Promise<UnlistenFn | undefined> | null = null
   let mounted = true
   let requesting = $state(false)
   let drawerOpen = $state(false)
@@ -42,6 +44,17 @@
 
   function toggleDrawer() {
     drawerOpen = !drawerOpen
+  }
+
+  // Recycle instance browsing on foregrounding (see restartBrowsing for
+  // why suspension expires records). Attached in onMount, detached in
+  // onDestroy.
+  function onVisibility() {
+    if (document.visibilityState === 'visible') void restartBrowsing()
+  }
+
+  function onForeground() {
+    void restartBrowsing()
   }
 
   let prevSelectedNodeId: string | null = $state(null)
@@ -114,6 +127,31 @@
   }
 
   onMount(async () => {
+    // visibilitychange covers mobile activity pause/resume; the Tauri
+    // focus event is the reliable signal when a suspended WebView skips
+    // DOM visibility toggles; focus/pageshow cover desktop and bfcache
+    // (restartBrowsing itself is mobile-gated).
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('focus', onForeground)
+    window.addEventListener('pageshow', onForeground)
+    if (isTauri()) {
+      unlistenWindowFocus = (async () => {
+        try {
+          const { getCurrentWindow } = await import('@tauri-apps/api/window')
+          const unlistenFocus = await getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+            if (focused) void restartBrowsing()
+          })
+          if (!mounted) {
+            unlistenFocus()
+            return undefined
+          }
+          return unlistenFocus
+        } catch (e) {
+          console.warn('[zux] failed to listen for window focus:', e)
+          return undefined
+        }
+      })()
+    }
     if (isTauri()) {
       const loggerUnlisten = await initLogger()
       if (mounted) {
@@ -151,6 +189,10 @@
 
   onDestroy(() => {
     mounted = false
+    document.removeEventListener('visibilitychange', onVisibility)
+    window.removeEventListener('focus', onForeground)
+    window.removeEventListener('pageshow', onForeground)
+    void unlistenWindowFocus?.then((unlistenFocus) => unlistenFocus?.())
     if (unlisten) {
       unlisten()
       unlisten = null

@@ -1,5 +1,5 @@
 import type { ResolvedService, ScopedAddr } from 'tauri-plugin-mdns-api'
-import type { AddressInfo, ServiceDiscovered } from './types'
+import type { AddressInfo, GraphNode, ServiceDiscovered } from './types'
 
 // Converts the plugin's `ResolvedService` to the graph's
 // `ServiceDiscovered`: instance-name extraction, link-local address
@@ -116,4 +116,14 @@ export function resolvedToDiscovered(
     txt,
     urls: deriveUrls(serviceType, service.hostname, service.port, txt, addresses),
   }
+}
+
+// Whether any graph node is marked offline. Records expire while the app
+// is suspended (the querier's query loop stalls with the CPU), so callers
+// restart instance browsing on foregrounding when this is true.
+export function hasOfflineNodes(nodes: Map<string, GraphNode>): boolean {
+  for (const node of nodes.values()) {
+    if (node.offline) return true
+  }
+  return false
 }
