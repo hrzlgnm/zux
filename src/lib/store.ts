@@ -14,7 +14,7 @@ import {
   stopBrowse,
 } from './api'
 import type { LocalNetworkState } from './api'
-import { resolvedToDiscovered } from './mdns'
+import { resolvedToDiscovered, hasOfflineNodes } from './mdns'
 import type {
   GraphNode,
   GraphEdge,
@@ -653,6 +653,42 @@ export async function startDiscovery(): Promise<void> {
     await browseTypes()
   } catch (e) {
     console.warn('[zux] failed to start discovery:', e)
+  }
+}
+
+// Cooldown between restart runs (focus events fire in storms).
+const RESTART_COOLDOWN_MS = 5000
+let lastRestartAt = 0
+
+// Restarts instance browsing on foregrounding: the querier's query loop
+// stalls while suspended (expiring records into offline nodes), and a
+// suspended browse can stay wedged after resume, so recycle it.
+// stopBrowse keeps service-type discovery; browseMany re-queries every
+// known type and still-present instances resolve back online. Mobile-only:
+// only suspended phone apps stall this way; desktop foregrounds must not
+// recycle browsing. No-op without offline nodes; focus storms share one run.
+export async function restartBrowsing(): Promise<void> {
+  if (!/Android/i.test(navigator.userAgent)) return
+  if (get(localNetworkAccess) !== 'granted') return
+  if (!hasOfflineNodes(get(graphNodes))) return
+  if (get(serviceTypes).size === 0) return
+  const now = Date.now()
+  if (now - lastRestartAt < RESTART_COOLDOWN_MS) return
+  lastRestartAt = now
+  // A revocation mid-session silently starves discovery, so surface the
+  // blocking panel instead of restarting.
+  if ((await initLocalNetworkAccess()) !== 'granted') return
+  const types = [...get(serviceTypes)]
+  console.debug('[zux] restarting instance browsing after resume')
+  try {
+    await stopBrowse()
+  } catch (e) {
+    console.warn('[zux] failed to stop browsing for restart:', e)
+  }
+  try {
+    await browseMany(types)
+  } catch (e) {
+    console.warn('[zux] failed to restart browsing after resume:', e)
   }
 }
 
