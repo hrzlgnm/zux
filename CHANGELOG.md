@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.3](https://github.com/hrzlgnm/zux/compare/v1.20.2...v1.20.3) (2026-10-05)
+
+
+### Bug Fixes
+
+* **aur:** skip publish when AUR already matches the release ([#477](https://github.com/hrzlgnm/zux/issues/477)) ([77668f8](https://github.com/hrzlgnm/zux/commit/77668f85a658a191c8786f3b0de0e009ccc5db71))
+* **homebrew:** rebase tap checkout before pushing ([#480](https://github.com/hrzlgnm/zux/issues/480)) ([a9094a5](https://github.com/hrzlgnm/zux/commit/a9094a5884593ddfb3abecb8cd3a875b7a16f662))
+* restart instance browsing on app foreground ([#482](https://github.com/hrzlgnm/zux/issues/482)) ([4a0e4a3](https://github.com/hrzlgnm/zux/commit/4a0e4a32d25496efd1c8c05a09f339cd763bfb15))
+
+
+### Dependencies
+
+* update dependency eslint to v10.12.0 ([#484](https://github.com/hrzlgnm/zux/issues/484)) ([aa3ed61](https://github.com/hrzlgnm/zux/commit/aa3ed6145c3e590c11a7f3691940fa36c1999bb4))
+* update hrzlgnm/actions action to v2.14.11 ([#478](https://github.com/hrzlgnm/zux/issues/478)) ([742f5b5](https://github.com/hrzlgnm/zux/commit/742f5b51eccc979a00f986ae114209c458db4f43))
+* update mikepenz/action-junit-report digest to b7b80d7 ([#481](https://github.com/hrzlgnm/zux/issues/481)) ([5def697](https://github.com/hrzlgnm/zux/commit/5def697ea755c0acf5881f126909384fdca42d06))
+* update tauri-plugin-mdns to v0.4.2 ([#483](https://github.com/hrzlgnm/zux/issues/483)) ([31a7106](https://github.com/hrzlgnm/zux/commit/31a710665503fe98e39c841fa66687b19bd773a8))
+
 ## [1.20.2](https://github.com/hrzlgnm/zux/compare/v1.20.1...v1.20.2) (2026-10-05)
 
 
