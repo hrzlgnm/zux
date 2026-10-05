@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.2](https://github.com/hrzlgnm/zux/compare/v1.20.1...v1.20.2) (2026-10-05)
+
+
+### Dependencies
+
+* lock file maintenance ([#473](https://github.com/hrzlgnm/zux/issues/473)) ([fb51226](https://github.com/hrzlgnm/zux/commit/fb5122637044c0d5a32f8de2b628282c381dc527))
+* lock file maintenance ([#476](https://github.com/hrzlgnm/zux/issues/476)) ([f9a773b](https://github.com/hrzlgnm/zux/commit/f9a773b718a6ece342bf909309f83cfa7ca50d4c))
+* update tauri-plugin-android-update to v0.3.1 ([#474](https://github.com/hrzlgnm/zux/issues/474)) ([dde59b0](https://github.com/hrzlgnm/zux/commit/dde59b0feb12a794b8ca6b9d0b4fca9e6b9cea93))
+* update tauri-plugin-mdns to 0.4 ([#471](https://github.com/hrzlgnm/zux/issues/471)) ([1810e32](https://github.com/hrzlgnm/zux/commit/1810e320c1c4c40ca33d87386815600a34691d3a))
+* update tauri-plugin-mdns to v0.4.1 ([#475](https://github.com/hrzlgnm/zux/issues/475)) ([bd4f410](https://github.com/hrzlgnm/zux/commit/bd4f4101773b5e817c75589cad171acb4dfe9b1c))
+
 ## [1.20.1](https://github.com/hrzlgnm/zux/compare/v1.20.0...v1.20.1) (2026-10-04)
 
 
