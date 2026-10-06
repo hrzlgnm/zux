@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.0](https://github.com/hrzlgnm/zux/compare/v1.20.3...v1.21.0) (2026-10-06)
+
+
+### Features
+
+* publish partial release as pre-release on build failure ([#489](https://github.com/hrzlgnm/zux/issues/489)) ([360340a](https://github.com/hrzlgnm/zux/commit/360340a8968c3b569c71fafc78665775f09578ba))
+* use custom dropdowns for theme and solver selects ([#490](https://github.com/hrzlgnm/zux/issues/490)) ([fcacceb](https://github.com/hrzlgnm/zux/commit/fcacceb177bf11a900551c52ab5f660a059a6613))
+
+
+### Dependencies
+
+* update archlinux:base-devel docker digest to 996c3a1 ([#485](https://github.com/hrzlgnm/zux/issues/485)) ([01c8ff6](https://github.com/hrzlgnm/zux/commit/01c8ff693f9dbffd4a237354994b78ac9eb0e80e))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 8d99c3e ([#487](https://github.com/hrzlgnm/zux/issues/487)) ([9f59da2](https://github.com/hrzlgnm/zux/commit/9f59da27b505830fe826c5f9f012c3e2c66e1b84))
+* update pnpm to v12.9.0 ([#488](https://github.com/hrzlgnm/zux/issues/488)) ([feaee81](https://github.com/hrzlgnm/zux/commit/feaee814fd7a04a9cf7d8e8ae583c9c6f0579b5d))
+
 ## [1.20.3](https://github.com/hrzlgnm/zux/compare/v1.20.2...v1.20.3) (2026-10-05)
 
 
