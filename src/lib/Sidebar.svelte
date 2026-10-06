@@ -29,6 +29,135 @@
     return [dark, light, ...rest].filter((t): t is (typeof themes)[number] => Boolean(t))
   })()
 
+  interface DropdownOption<T extends string> {
+    value: T
+    label: string
+  }
+
+  const themeOptions = $derived<DropdownOption<ThemeName>[]>([
+    { value: 'system', label: $systemTheme === 'dark' ? 'System (Dark)' : 'System (Light)' },
+    ...sortedThemes.map((t) => ({ value: t.name as ThemeName, label: t.label })),
+  ])
+  const themeLabel = $derived(
+    themeOptions.find((o) => o.value === $currentTheme)?.label ?? $currentTheme,
+  )
+
+  const solverOptions: DropdownOption<Solver>[] = [
+    { value: 'forceAtlas2Based', label: 'forceAtlas2Based' },
+    { value: 'barnesHut', label: 'barnesHut' },
+    { value: 'repulsion', label: 'repulsion' },
+    { value: 'hierarchicalRepulsion', label: 'hierarchicalRepulsion' },
+  ]
+  const solverLabel = $derived(
+    solverOptions.find((o) => o.value === $physicsConfig.solver)?.label ?? $physicsConfig.solver,
+  )
+
+  let themeOpen = $state(false)
+  let themeActiveIndex = $state(-1)
+  let themeTriggerEl: HTMLDivElement | undefined = $state(undefined)
+
+  let solverOpen = $state(false)
+  let solverActiveIndex = $state(-1)
+  let solverTriggerEl: HTMLDivElement | undefined = $state(undefined)
+
+  function closeTheme() {
+    themeOpen = false
+    themeActiveIndex = -1
+  }
+
+  function openThemeList() {
+    themeOpen = true
+    themeActiveIndex = themeOptions.findIndex((o) => o.value === $currentTheme)
+  }
+
+  function closeSolver() {
+    solverOpen = false
+    solverActiveIndex = -1
+  }
+
+  function openSolverList() {
+    solverOpen = true
+    solverActiveIndex = solverOptions.findIndex((o) => o.value === $physicsConfig.solver)
+  }
+
+  // Keeps the keyboard-navigated option visible; `nearest` scrolls the
+  // listbox only, never the page.
+  function scrollOptionIntoView(idPrefix: string, index: number) {
+    document.getElementById(`${idPrefix}-${index}`)?.scrollIntoView({ block: 'nearest' })
+  }
+
+  function chooseTheme(value: ThemeName) {
+    setTheme(value)
+    closeTheme()
+    themeTriggerEl?.focus()
+  }
+
+  function chooseSolver(value: Solver) {
+    physicsConfig.set({ ...$physicsConfig, solver: value })
+    closeSolver()
+    solverTriggerEl?.focus()
+  }
+
+  function onThemeKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (!themeOpen) {
+        openThemeList()
+      } else {
+        const delta = e.key === 'ArrowDown' ? 1 : -1
+        themeActiveIndex = (themeActiveIndex + delta + themeOptions.length) % themeOptions.length
+        scrollOptionIntoView('theme-option', themeActiveIndex)
+      }
+    } else if ((e.key === 'Enter' || e.key === ' ') && !themeOpen) {
+      e.preventDefault()
+      openThemeList()
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      const selected = themeOptions[themeActiveIndex]
+      if (selected !== undefined) chooseTheme(selected.value)
+      else closeTheme()
+    } else if (e.key === 'Escape' && themeOpen) {
+      e.preventDefault()
+      closeTheme()
+    }
+  }
+
+  function onSolverKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (!solverOpen) {
+        openSolverList()
+      } else {
+        const delta = e.key === 'ArrowDown' ? 1 : -1
+        solverActiveIndex =
+          (solverActiveIndex + delta + solverOptions.length) % solverOptions.length
+        scrollOptionIntoView('solver-option', solverActiveIndex)
+      }
+    } else if ((e.key === 'Enter' || e.key === ' ') && !solverOpen) {
+      e.preventDefault()
+      openSolverList()
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      const selected = solverOptions[solverActiveIndex]
+      if (selected !== undefined) chooseSolver(selected.value)
+      else closeSolver()
+    } else if (e.key === 'Escape' && solverOpen) {
+      e.preventDefault()
+      closeSolver()
+    }
+  }
+
+  function onDropdownFocusOut(close: () => void) {
+    return (e: FocusEvent) => {
+      // Keep the listbox open while focus moves to one of its options.
+      const next = e.relatedTarget as Node | null
+      if (next !== null && e.currentTarget instanceof Node && e.currentTarget.contains(next)) {
+        return
+      }
+      close()
+    }
+  }
+
   async function exportSvg() {
     const network = get(graphNetwork)
     if (!network) {
@@ -74,21 +203,56 @@
   </div>
   <p class="subtitle">mDNS-SD Visualizer</p>
 
-  <label class="ctrl">
-    Theme
-    <select
-      value={$currentTheme}
-      onchange={(e) => {
-        const t = e.target as HTMLSelectElement
-        setTheme(t.value as ThemeName)
-      }}
-    >
-      <option value="system">{$systemTheme === 'dark' ? 'System (Dark)' : 'System (Light)'}</option>
-      {#each sortedThemes as theme (theme.name)}
-        <option value={theme.name}>{theme.label}</option>
-      {/each}
-    </select>
-  </label>
+  <div class="ctrl">
+    <span id="theme-label">Theme</span>
+    <span class="dropdown-wrapper" onfocusout={onDropdownFocusOut(closeTheme)}>
+      <div
+        role="combobox"
+        tabindex="0"
+        class="dropdown-trigger"
+        bind:this={themeTriggerEl}
+        aria-labelledby="theme-label theme-value"
+        aria-haspopup="listbox"
+        aria-expanded={themeOpen}
+        aria-controls="theme-listbox"
+        aria-activedescendant={themeActiveIndex >= 0
+          ? `theme-option-${themeActiveIndex}`
+          : undefined}
+        onclick={() => (themeOpen ? closeTheme() : openThemeList())}
+        onkeydown={onThemeKeydown}
+      >
+        {themeLabel}
+      </div>
+      <span id="theme-value" class="visually-hidden">{themeLabel}</span>
+      {#if themeOpen}
+        <ul
+          id="theme-listbox"
+          class="dropdown-listbox"
+          role="listbox"
+          aria-labelledby="theme-label"
+        >
+          {#each themeOptions as option, i (option.value)}
+            <li
+              id={`theme-option-${i}`}
+              role="option"
+              aria-selected={option.value === $currentTheme}
+              class:active={i === themeActiveIndex}
+            >
+              <button
+                type="button"
+                tabindex="-1"
+                onmousedown={(e) => e.preventDefault()}
+                onclick={() => chooseTheme(option.value)}
+                onmousemove={() => (themeActiveIndex = i)}
+              >
+                {option.label}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </span>
+  </div>
 
   <div class="stats">
     <div class="stat"><span class="num">{$stats.types}</span> types</div>
@@ -123,21 +287,56 @@
     </button>
     {#if physicsOpen}
       <div class="physics-controls">
-        <label class="ctrl">
-          Solver
-          <select
-            value={$physicsConfig.solver}
-            onchange={(e) => {
-              const t = e.target as HTMLSelectElement
-              physicsConfig.set({ ...$physicsConfig, solver: t.value as Solver })
-            }}
-          >
-            <option value="forceAtlas2Based">forceAtlas2Based</option>
-            <option value="barnesHut">barnesHut</option>
-            <option value="repulsion">repulsion</option>
-            <option value="hierarchicalRepulsion">hierarchicalRepulsion</option>
-          </select>
-        </label>
+        <div class="ctrl">
+          <span id="solver-label">Solver</span>
+          <span class="dropdown-wrapper" onfocusout={onDropdownFocusOut(closeSolver)}>
+            <div
+              role="combobox"
+              tabindex="0"
+              class="dropdown-trigger"
+              bind:this={solverTriggerEl}
+              aria-labelledby="solver-label solver-value"
+              aria-haspopup="listbox"
+              aria-expanded={solverOpen}
+              aria-controls="solver-listbox"
+              aria-activedescendant={solverActiveIndex >= 0
+                ? `solver-option-${solverActiveIndex}`
+                : undefined}
+              onclick={() => (solverOpen ? closeSolver() : openSolverList())}
+              onkeydown={onSolverKeydown}
+            >
+              {solverLabel}
+            </div>
+            <span id="solver-value" class="visually-hidden">{solverLabel}</span>
+            {#if solverOpen}
+              <ul
+                id="solver-listbox"
+                class="dropdown-listbox"
+                role="listbox"
+                aria-labelledby="solver-label"
+              >
+                {#each solverOptions as option, i (option.value)}
+                  <li
+                    id={`solver-option-${i}`}
+                    role="option"
+                    aria-selected={option.value === $physicsConfig.solver}
+                    class:active={i === solverActiveIndex}
+                  >
+                    <button
+                      type="button"
+                      tabindex="-1"
+                      onmousedown={(e) => e.preventDefault()}
+                      onclick={() => chooseSolver(option.value)}
+                      onmousemove={() => (solverActiveIndex = i)}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          </span>
+        </div>
         <label class="ctrl">
           Gravity <span class="val">{$physicsConfig.gravitationalConstant}</span>
           <input
@@ -388,8 +587,7 @@
     font-size: 11px;
     color: var(--text-secondary);
   }
-  .ctrl select {
-    appearance: none;
+  .ctrl .dropdown-trigger {
     background: var(--bg-primary)
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6' fill='currentColor'/%3E%3C/svg%3E")
       no-repeat right 6px center;
@@ -399,6 +597,67 @@
     padding: 4px 22px 4px 6px;
     font-size: 11px;
     cursor: pointer;
+  }
+  .ctrl .dropdown-trigger:focus {
+    outline: none;
+  }
+  .ctrl .dropdown-trigger:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .dropdown-wrapper {
+    position: relative;
+    display: block;
+  }
+  .dropdown-listbox {
+    position: absolute;
+    z-index: 100;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+    max-height: 16rem;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  }
+  .dropdown-listbox button {
+    display: block;
+    width: 100%;
+    padding: 4px 8px;
+    font: inherit;
+    font-size: 11px;
+    text-align: left;
+    background: transparent;
+    color: var(--text-primary);
+    border: 0;
+    cursor: pointer;
+  }
+  .dropdown-listbox button:hover {
+    background: var(--bg-tertiary);
+  }
+  .dropdown-listbox li.active button {
+    background: var(--bg-tertiary);
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .dropdown-listbox li[aria-selected='true'] button {
+    font-weight: 600;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   .ctrl input[type='range'] {
     width: 100%;
