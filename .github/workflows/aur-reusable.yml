@@ -46,7 +46,7 @@ jobs:
       - lint-scripts
     runs-on: ubuntu-26.04
     container:
-      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:aa642a5004f5de8518008b75b46ba06dc14e8780d8b30d33b6ab1e1618021e2f
+      image: ghcr.io/hrzlgnm/zux-arch-aur-builder:v1@sha256:8d99c3ebea3c85160ee2d01831cf64fe07c34ab0053148141ad01a548289229c
     strategy:
       fail-fast: false
       matrix:
