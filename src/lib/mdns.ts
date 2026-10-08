@@ -29,6 +29,112 @@ function isUnicastLinkLocal(ip: string): boolean {
   return Number.isInteger(value) && value >= 0xfe80 && value <= 0xfebf
 }
 
+function parseIpv4(s: string): number[] | null {
+  const parts = s.split('.')
+  if (parts.length !== 4) return null
+  const out: number[] = []
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part ?? '')) return null
+    const n = parseInt(part, 10)
+    if (n < 0 || n > 255) return null
+    out.push(n)
+  }
+  return out
+}
+
+function parseHextets(text: string): number[] | null {
+  if (text === '') return []
+  const out: number[] = []
+  for (const part of text.split(':')) {
+    if (!/^[0-9a-fA-F]{1,4}$/.test(part ?? '')) return null
+    out.push(parseInt(part, 16))
+  }
+  return out
+}
+
+// Parses an IPv6 literal into sixteen bytes in network order. Handles `::`
+// compression and embedded IPv4 tails such as `::ffff:192.168.0.1`.
+function parseIpv6(s: string): number[] | null {
+  let text = s
+  if (text.includes('.')) {
+    const tail = text.slice(text.lastIndexOf(':') + 1)
+    const v4 = parseIpv4(tail)
+    if (v4 === null) return null
+    const prefix = text.slice(0, text.length - tail.length)
+    const high = ((v4[0] ?? 0) * 256 + (v4[1] ?? 0)).toString(16)
+    const low = ((v4[2] ?? 0) * 256 + (v4[3] ?? 0)).toString(16)
+    text = `${prefix}${high}:${low}`
+  }
+  const halves = text.split('::')
+  if (halves.length > 2) return null
+  let groups: number[]
+  if (halves.length === 2) {
+    const left = parseHextets(halves[0] ?? '')
+    const right = parseHextets(halves[1] ?? '')
+    if (left === null || right === null) return null
+    const fill = 8 - (left.length + right.length)
+    if (fill < 1) return null
+    groups = [...left, ...new Array<number>(fill).fill(0), ...right]
+  } else {
+    const parsed = parseHextets(text)
+    if (parsed === null || parsed.length !== 8) return null
+    groups = parsed
+  }
+  const out: number[] = []
+  for (const group of groups) {
+    out.push((group >> 8) & 0xff, group & 0xff)
+  }
+  return out
+}
+
+// Numeric IP ordering for URL hosts, with IPv4 before IPv6. Returns null
+// unless both hosts parse as IP addresses, so mixed and non-IP hosts keep
+// the previous lexicographic order.
+function compareIpHosts(a: string, b: string): number | null {
+  const a4 = parseIpv4(a)
+  const b4 = parseIpv4(b)
+  if (a4 !== null && b4 !== null) {
+    for (let i = 0; i < 4; i++) {
+      if (a4[i] !== b4[i]) return (a4[i] ?? 0) - (b4[i] ?? 0)
+    }
+    return 0
+  }
+  const a6 = parseIpv6(a)
+  const b6 = parseIpv6(b)
+  if (a6 !== null && b6 !== null) {
+    for (let i = 0; i < 16; i++) {
+      if (a6[i] !== b6[i]) return (a6[i] ?? 0) - (b6[i] ?? 0)
+    }
+    return 0
+  }
+  if (a4 !== null && b6 !== null) return -1
+  if (a6 !== null && b4 !== null) return 1
+  return null
+}
+
+function urlHost(url: string): string {
+  try {
+    // WHATWG URL keeps the brackets on IPv6 literals; strip them so the
+    // host parses as an IP address.
+    return new URL(url).hostname.replace(/^\[(.*)\]$/, '$1')
+  } catch {
+    return url
+  }
+}
+
+// Lexicographic URL order misorders same-family IPs (`...0.155` before
+// `...0.2`), so compare numeric IP hosts by value and fall back to string
+// order otherwise.
+function compareUrls(a: string, b: string): number {
+  const ha = urlHost(a)
+  const hb = urlHost(b)
+  if (ha !== hb) {
+    const ipOrder = compareIpHosts(ha, hb)
+    if (ipOrder !== null && ipOrder !== 0) return ipOrder
+  }
+  return a < b ? -1 : a > b ? 1 : 0
+}
+
 export function keepAddress(addr: string, linkLocalOnly: boolean): boolean {
   if (!linkLocalOnly) return true
   if (!addr.includes(':')) return true
@@ -45,7 +151,10 @@ export function deriveUrls(
   const urls: string[] = []
   const lowerType = serviceType.toLowerCase()
   let path = '/'
-  const txtPath = txt['path']?.trim()
+  // TXT keys are case-insensitive (RFC 6763, section 6.4).
+  const txtPath = Object.entries(txt)
+    .find(([key]) => key.toLowerCase() === 'path')?.[1]
+    ?.trim()
   if (txtPath) {
     path = txtPath.startsWith('/') ? txtPath : `/${txtPath}`
   }
@@ -75,7 +184,7 @@ export function deriveUrls(
     }
   }
 
-  urls.sort()
+  urls.sort(compareUrls)
   return urls
 }
 

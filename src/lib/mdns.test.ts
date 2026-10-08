@@ -91,6 +91,47 @@ describe('deriveUrls', () => {
   it('derives nothing for non-http services without URL TXT values', () => {
     expect(deriveUrls('_ssh._tcp.local.', 'host.local.', 22, {}, [])).toEqual([])
   })
+
+  it('matches the TXT path key case-insensitively', () => {
+    const urls = deriveUrls('_http._tcp.local.', 'printer.local.', 80, { Path: 'status' }, [])
+    expect(urls).toEqual(['http://printer.local/status'])
+  })
+
+  it('orders IP URLs numerically, not lexicographically', () => {
+    const urls = deriveUrls('_http._tcp.local.', 'printer.local.', 8080, {}, [
+      { ip: '192.168.0.155', interfaces: ['wlan0'] },
+      { ip: '192.168.0.2', interfaces: ['wlan0'] },
+    ])
+    expect(urls).toEqual([
+      'http://192.168.0.2:8080/',
+      'http://192.168.0.155:8080/',
+      'http://printer.local:8080/',
+    ])
+  })
+
+  it('orders IPv6 URLs numerically', () => {
+    const urls = deriveUrls('_http._tcp.local.', 'printer.local.', 8080, {}, [
+      { ip: '2001:db8::10', interfaces: ['wlan0'] },
+      { ip: '2001:db8::2', interfaces: ['wlan0'] },
+    ])
+    expect(urls).toEqual([
+      'http://[2001:db8::2]:8080/',
+      'http://[2001:db8::10]:8080/',
+      'http://printer.local:8080/',
+    ])
+  })
+
+  it('falls back to string order for numerically equal IP hosts', () => {
+    const urls = deriveUrls('_http._tcp.local.', 'printer.local.', 8080, {}, [
+      { ip: '192.168.0.2', interfaces: ['wlan0'] },
+      { ip: '192.168.0.002', interfaces: ['wlan0'] },
+    ])
+    expect(urls).toEqual([
+      'http://192.168.0.002:8080/',
+      'http://192.168.0.2:8080/',
+      'http://printer.local:8080/',
+    ])
+  })
 })
 
 describe('hasOfflineNodes', () => {
