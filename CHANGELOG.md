@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.1](https://github.com/hrzlgnm/zux/compare/v1.21.0...v1.21.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* order derived URLs numerically and match TXT path case-insensitively ([#497](https://github.com/hrzlgnm/zux/issues/497)) ([579c131](https://github.com/hrzlgnm/zux/commit/579c1317cf492e6efc2d80bc2dff27d1fb5b46eb))
+
+
+### Dependencies
+
+* update actions/download-artifact digest to 9000827 ([#493](https://github.com/hrzlgnm/zux/issues/493)) ([242a2fc](https://github.com/hrzlgnm/zux/commit/242a2fcfb7f45f1d7a4958493d2255cdadccff85))
+* update actions/upload-artifact action to v7.0.2 ([#495](https://github.com/hrzlgnm/zux/issues/495)) ([41d2a18](https://github.com/hrzlgnm/zux/commit/41d2a18d1f836ce39c069673be80ce36011e14a0))
+* update actions/upload-artifact digest to cf430e0 ([#494](https://github.com/hrzlgnm/zux/issues/494)) ([2dc093a](https://github.com/hrzlgnm/zux/commit/2dc093a0a538cbfb96b8c12cfdd5d6b8f3d46c54))
+* update pnpm to v12.9.1 ([#491](https://github.com/hrzlgnm/zux/issues/491)) ([c5cc4fc](https://github.com/hrzlgnm/zux/commit/c5cc4fc8ea567c1d3ccba1c7bc55dfcd663bb5c2))
+* update tauri monorepo to v2.13.2 ([#496](https://github.com/hrzlgnm/zux/issues/496)) ([b9e68e4](https://github.com/hrzlgnm/zux/commit/b9e68e49ec9fb65e282c28c2e5ea510772999384))
+
 ## [1.21.0](https://github.com/hrzlgnm/zux/compare/v1.20.3...v1.21.0) (2026-10-06)
 
 
