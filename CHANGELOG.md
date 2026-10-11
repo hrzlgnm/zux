@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.2](https://github.com/hrzlgnm/zux/compare/v1.21.1...v1.21.2) (2026-10-11)
+
+
+### Dependencies
+
+* lock file maintenance ([#517](https://github.com/hrzlgnm/zux/issues/517)) ([15c7e95](https://github.com/hrzlgnm/zux/commit/15c7e952902033bd8e8d1419a48b4e6b45307b7e))
+* update dependency @playwright/test to v1.64.0 ([#510](https://github.com/hrzlgnm/zux/issues/510)) ([273d7b0](https://github.com/hrzlgnm/zux/commit/273d7b0fa885ee84af2593b1fb7616223f586ec3))
+* update dependency @sveltejs/kit to v3.0.1 ([#463](https://github.com/hrzlgnm/zux/issues/463)) ([6520ede](https://github.com/hrzlgnm/zux/commit/6520ede2295910dba1e0f26e92bdc2540d01cb78))
+* update dependency svelte to v5.57.2 ([#506](https://github.com/hrzlgnm/zux/issues/506)) ([3e81855](https://github.com/hrzlgnm/zux/commit/3e8185535357b71bf4079de79d134d6e5d063055))
+* update dependency typescript-eslint to v8.71.1 ([#498](https://github.com/hrzlgnm/zux/issues/498)) ([8fd9525](https://github.com/hrzlgnm/zux/commit/8fd952505e94b71973a9a8b49745ce4d521c2de5))
+* update dependency vite to v8.3.3 ([#503](https://github.com/hrzlgnm/zux/issues/503)) ([2640750](https://github.com/hrzlgnm/zux/commit/26407504b6c6122eaaeeec32385d3c9296b0dd41))
+* update dependency vite to v8.3.4 ([#512](https://github.com/hrzlgnm/zux/issues/512)) ([116b685](https://github.com/hrzlgnm/zux/commit/116b685127c11a1019993b5ca10f329521b98383))
+* update dtolnay/rust-toolchain digest to 686976e ([#501](https://github.com/hrzlgnm/zux/issues/501)) ([27a0174](https://github.com/hrzlgnm/zux/commit/27a0174adeebf4a2447f21ae680320680f51b4b8))
+* update mikepenz/action-junit-report digest to 6ef3fdc ([#500](https://github.com/hrzlgnm/zux/issues/500)) ([bfcc112](https://github.com/hrzlgnm/zux/commit/bfcc112dd2a8ef24db4ba619f4fa7775239055a7))
+* update pnpm to v12.10.0 ([#504](https://github.com/hrzlgnm/zux/issues/504)) ([45fb025](https://github.com/hrzlgnm/zux/commit/45fb02503075db3df87c30b2db0659464d47cd68))
+* update pnpm to v12.10.1 ([#507](https://github.com/hrzlgnm/zux/issues/507)) ([4ec668e](https://github.com/hrzlgnm/zux/commit/4ec668e05a4cb4074cfb3c8fa346166ca9143de5))
+* update pnpm/setup action to v3.1.1 ([#511](https://github.com/hrzlgnm/zux/issues/511)) ([81bf398](https://github.com/hrzlgnm/zux/commit/81bf3984f6b8fe5b56122a17aa7c8b7d7eb7bef9))
+* update rust crate serde_json to v1.0.152 ([#508](https://github.com/hrzlgnm/zux/issues/508)) ([1be50b6](https://github.com/hrzlgnm/zux/commit/1be50b68403e42f6b603311d81c52eca2f32fd8b))
+* update rust crate serde_json to v1.0.153 ([#513](https://github.com/hrzlgnm/zux/issues/513)) ([d69b54a](https://github.com/hrzlgnm/zux/commit/d69b54a819238be17d6935f723302cc249b6c539))
+* update rust crate serde_json to v1.0.154 ([#516](https://github.com/hrzlgnm/zux/issues/516)) ([8b0f21b](https://github.com/hrzlgnm/zux/commit/8b0f21b4a535745dcef2f411d03589ceb551c3ae))
+* update tauri monorepo ([#509](https://github.com/hrzlgnm/zux/issues/509)) ([96f017e](https://github.com/hrzlgnm/zux/commit/96f017ed8a6887418abfa87a40963464a12cf768))
+* update tauri monorepo to v2.12.2 ([#502](https://github.com/hrzlgnm/zux/issues/502)) ([67bd8f6](https://github.com/hrzlgnm/zux/commit/67bd8f6b6cb3b3eb473c2c9354b997c46db12bc9))
+* update tauri-plugin-android-update to v0.3.3 ([#514](https://github.com/hrzlgnm/zux/issues/514)) ([9019f63](https://github.com/hrzlgnm/zux/commit/9019f63914d8e6a4b285e2be1e4213597b629bb0))
+* update tauri-plugin-mdns to v0.4.4 ([#515](https://github.com/hrzlgnm/zux/issues/515)) ([923124c](https://github.com/hrzlgnm/zux/commit/923124ce53aadfe2f65390e9f653b485af71ed13))
+
+
+### Miscellaneous Chores
+
+* use ubuntu-slim runner where safe ([#505](https://github.com/hrzlgnm/zux/issues/505)) ([dc99e55](https://github.com/hrzlgnm/zux/commit/dc99e55988f8bb2efbaa563f7e1b9d0ce6f0604c))
+
 ## [1.21.1](https://github.com/hrzlgnm/zux/compare/v1.21.0...v1.21.1) (2026-10-08)
 
 
