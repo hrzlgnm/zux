@@ -2,7 +2,7 @@
   "name": "zux",
   "version": "1.21.2",
   "description": "",
-  "packageManager": "pnpm@12.11.1",
+  "packageManager": "pnpm@12.11.2",
   "engines": {
     "node": ">=22.17"
   },
