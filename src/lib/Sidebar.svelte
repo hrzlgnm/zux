@@ -1,5 +1,6 @@
 <script lang="ts">
   import { get } from 'svelte/store'
+  import { openUrl } from '@tauri-apps/plugin-opener'
   import pkg from '../../package.json'
   import {
     stats,
@@ -16,6 +17,13 @@
   import type { Solver, ThemeName } from './types'
 
   let { open = false, onClose = () => {} }: { open?: boolean; onClose?: () => void } = $props()
+
+  const INTER_URL = 'https://github.com/rsms/inter'
+  const OFL_URL = 'https://scripts.sil.org/OFL'
+
+  function openAttribution(url: string) {
+    openUrl(url).catch((e) => console.warn('[zux] failed to open URL:', e))
+  }
 
   let physicsOpen = $state(false)
 
@@ -431,6 +439,17 @@
   />
 
   <button class="export-btn" onclick={exportSvg}>Export SVG</button>
+
+  <p class="font-attribution">
+    Inter font by
+    <button type="button" class="attribution-link" onclick={() => openAttribution(INTER_URL)}>
+      The Inter Project Authors
+    </button>
+    ·
+    <button type="button" class="attribution-link" onclick={() => openAttribution(OFL_URL)}>
+      SIL OFL 1.1
+    </button>
+  </p>
 </aside>
 
 <style>
@@ -700,6 +719,24 @@
   .export-btn:hover {
     background: var(--bg-secondary);
     border-color: var(--accent);
+  }
+  .font-attribution {
+    margin: auto 0 0;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .attribution-link {
+    font: inherit;
+    display: inline;
+    padding: 0;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .attribution-link:hover {
+    color: var(--accent-hover);
   }
   .reset-btn {
     margin-top: 2px;

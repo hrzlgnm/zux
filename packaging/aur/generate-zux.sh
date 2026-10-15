@@ -21,7 +21,7 @@ pkgrel=1
 pkgdesc="mDNS-SD Visualizer - A cross platform mDNS browsing visualizer written in Rust using tauri and svelte"
 arch=('x86_64')
 url="https://github.com/hrzlgnm/zux"
-license=('MIT')
+license=('MIT' 'OFL-1.1')
 depends=('cairo' 'desktop-file-utils' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libsoup3' 'pango' 'webkit2gtk-4.1')
 conflicts=('zux-bin')
 makedepends=('cargo' 'git' 'file' 'nodejs' 'pnpm' 'base-devel' 'rust' 'librsvg' 'patchelf')
@@ -56,6 +56,7 @@ package() {
     install -Dm644 usr/share/icons/hicolor/256x256@2/apps/zux.png "\$pkgdir"/usr/share/icons/hicolor/256x256@2/apps/zux.png
     install -Dm644 usr/share/icons/hicolor/32x32/apps/zux.png "\$pkgdir"/usr/share/icons/hicolor/32x32/apps/zux.png
     install -Dm644 "\${srcdir}/\${_builddir}/LICENSE" "\$pkgdir"/usr/share/licenses/zux/LICENSE
+    install -Dm644 "\${srcdir}/\${_builddir}/LICENSES/Inter-OFL.txt" "\$pkgdir"/usr/share/licenses/zux/Inter-OFL.txt
     install -Dm644 "\${srcdir}/\${_builddir}/docs/zux.1" "\$pkgdir"/usr/share/man/man1/zux.1
 }
 EOF
