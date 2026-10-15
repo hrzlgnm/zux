@@ -385,3 +385,5 @@ This process has been used since release v0.1.0.
 This app uses the fantastic [mdns-sd library](https://github.com/keepsimple1/mdns-sd) to
 handle all mDNS functionality, and [vis-network](https://visjs.org/) for the
 force-directed graph. If you find this app helpful, consider giving them a star on GitHub!
+
+This app uses the [Inter font](https://github.com/rsms/inter) by The Inter Project Authors, licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL) (see `LICENSES/Inter-OFL.txt`).

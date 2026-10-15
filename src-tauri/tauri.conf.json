@@ -16,6 +16,9 @@
   },
   "bundle": {
     "active": true,
+    "license": "MIT",
+    "licenseFile": "../LICENSE",
+    "resources": ["../LICENSES/Inter-OFL.txt"],
     "targets": [
       "app",
       "deb",
@@ -24,8 +27,6 @@
       "nsis",
       "dmg"
     ],
-    "license": "MIT",
-    "licenseFile": "../LICENSE",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -38,7 +39,8 @@
       "deb": {
         "changelog": "../CHANGELOG.md",
         "files": {
-          "/usr/share/man/man1/zux.1": "../docs/zux.1"
+          "/usr/share/man/man1/zux.1": "../docs/zux.1",
+          "/usr/share/doc/zux/Inter-OFL.txt": "../LICENSES/Inter-OFL.txt"
         }
       },
       "rpm": {
@@ -48,7 +50,8 @@
         },
         "files": {
           "/usr/share/doc/zux/changelog": "../CHANGELOG.md",
-          "/usr/share/man/man1/zux.1": "../docs/zux.1"
+          "/usr/share/man/man1/zux.1": "../docs/zux.1",
+          "/usr/share/doc/zux/Inter-OFL.txt": "../LICENSES/Inter-OFL.txt"
         }
       }
     },
