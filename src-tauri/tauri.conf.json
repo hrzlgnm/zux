@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "zux",
-  "version": "1.21.2",
+  "version": "1.21.3",
   "identifier": "com.github.hrzlgnm.zux",
   "build": {
     "beforeDevCommand": "pnpm run dev",
@@ -18,7 +18,9 @@
     "active": true,
     "license": "MIT",
     "licenseFile": "../LICENSE",
-    "resources": ["../LICENSES/Inter-OFL.txt"],
+    "resources": [
+      "../LICENSES/Inter-OFL.txt"
+    ],
     "targets": [
       "app",
       "deb",

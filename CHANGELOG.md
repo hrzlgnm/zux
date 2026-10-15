@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.3](https://github.com/hrzlgnm/zux/compare/v1.21.2...v1.21.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* attribute Inter font under SIL OFL 1.1 ([#532](https://github.com/hrzlgnm/zux/issues/532)) ([d0a961b](https://github.com/hrzlgnm/zux/commit/d0a961b310ea7be45cb60babf5e3eb1afe03e989))
+
+
+### Dependencies
+
+* lock file maintenance ([#518](https://github.com/hrzlgnm/zux/issues/518)) ([e5fd5f9](https://github.com/hrzlgnm/zux/commit/e5fd5f9201e52cd9d248da8e95ad16d919a72ad7))
+* update actions/setup-java digest to b843ebf ([#529](https://github.com/hrzlgnm/zux/issues/529)) ([d49dc0d](https://github.com/hrzlgnm/zux/commit/d49dc0def50195e930222e85188c56c96fc84c19))
+* update archlinux:base-devel docker digest to 0616799 ([#523](https://github.com/hrzlgnm/zux/issues/523)) ([9a69511](https://github.com/hrzlgnm/zux/commit/9a69511e25a78a67fdad3aa50aae0edfbe9a22bb))
+* update dependency @types/node to v26.6.5 ([#524](https://github.com/hrzlgnm/zux/issues/524)) ([d4b71fa](https://github.com/hrzlgnm/zux/commit/d4b71faad81a4ea1ae642c26c20a61f6828ada46))
+* update dependency eslint-plugin-svelte to v3.23.1 ([#520](https://github.com/hrzlgnm/zux/issues/520)) ([6b12cef](https://github.com/hrzlgnm/zux/commit/6b12cef4f8f2292d1a690f5fc7aa06c36c535b76))
+* update dependency komac to v2.17.1 ([#530](https://github.com/hrzlgnm/zux/issues/530)) ([382572b](https://github.com/hrzlgnm/zux/commit/382572bc098a5f47ce46f9c4c3364eaad22c6b20))
+* update dependency prettier to v3.9.10 ([#527](https://github.com/hrzlgnm/zux/issues/527)) ([8306443](https://github.com/hrzlgnm/zux/commit/83064439426d7dd9de311ab7aa252fdab7ae83da))
+* update dependency typescript-eslint to v8.71.2 ([#533](https://github.com/hrzlgnm/zux/issues/533)) ([56efe3e](https://github.com/hrzlgnm/zux/commit/56efe3ec23ee98646d34675f0e5b5785b32284df))
+* update dependency vitest to v5.0.4 ([#531](https://github.com/hrzlgnm/zux/issues/531)) ([8aea19e](https://github.com/hrzlgnm/zux/commit/8aea19e3a01229db20210a78a747c553b2e22f48))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to ddc81ae ([#525](https://github.com/hrzlgnm/zux/issues/525)) ([c35d6c3](https://github.com/hrzlgnm/zux/commit/c35d6c3c38accfcd2be66f4e103d2bd36ed197ad))
+* update pnpm to v12.11.0 ([#521](https://github.com/hrzlgnm/zux/issues/521)) ([417a3ff](https://github.com/hrzlgnm/zux/commit/417a3ff778b9a59abcf60678f23c50e6b7d74c07))
+* update pnpm to v12.11.1 ([#522](https://github.com/hrzlgnm/zux/issues/522)) ([0ebd768](https://github.com/hrzlgnm/zux/commit/0ebd768ef273cdfd56314e80066ec029b566c06f))
+* update pnpm to v12.11.2 ([#526](https://github.com/hrzlgnm/zux/issues/526)) ([3831e59](https://github.com/hrzlgnm/zux/commit/3831e59f856a5114346147c0ae585777a03f835c))
+* update tauri monorepo ([#528](https://github.com/hrzlgnm/zux/issues/528)) ([cb2cc31](https://github.com/hrzlgnm/zux/commit/cb2cc314c9ac1d57dac1d28c961ceba5447d7556))
+
 ## [1.21.2](https://github.com/hrzlgnm/zux/compare/v1.21.1...v1.21.2) (2026-10-11)
 
 
