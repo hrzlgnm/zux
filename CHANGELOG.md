@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.4](https://github.com/hrzlgnm/zux/compare/v1.21.3...v1.21.4) (2026-10-17)
+
+
+### Dependencies
+
+* update dependency @playwright/test to v1.64.1 ([#537](https://github.com/hrzlgnm/zux/issues/537)) ([e5af122](https://github.com/hrzlgnm/zux/commit/e5af122d8cca48f1080d360196eb05781ceba55f))
+* update dtolnay/rust-toolchain digest to b725eda ([#534](https://github.com/hrzlgnm/zux/issues/534)) ([f252f30](https://github.com/hrzlgnm/zux/commit/f252f306c744e24ada874f7c99702f17a5a3bf94))
+* update pnpm to v12.13.0 ([#536](https://github.com/hrzlgnm/zux/issues/536)) ([7b60182](https://github.com/hrzlgnm/zux/commit/7b601821193a0b04571b52d8b5ba9060ac99f91c))
+
 ## [1.21.3](https://github.com/hrzlgnm/zux/compare/v1.21.2...v1.21.3) (2026-10-15)
 
 
