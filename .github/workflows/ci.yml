@@ -416,6 +416,34 @@ jobs:
           push: false
           tags: ghcr.io/hrzlgnm/zux-arch-aur-builder:dev
 
+  lockfile-fresh:
+    name: "🔒 Lockfile Fresh"
+    needs:
+      - check-release
+    if: needs.check-release.outputs.is_release != 'true' && github.event_name == 'pull_request' && startsWith(github.head_ref, 'release-please--')
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read # checkout only; the check never commits anything
+    steps:
+      - name: 🔄 Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+
+      - name: 🔒 Verify lockfile is fully maximized
+        shell: bash
+        run: |
+          cargo update --manifest-path src-tauri/Cargo.toml
+          if ! git diff --quiet -- src-tauri/Cargo.lock; then
+            echo "::error::Cargo.lock is not fully maximized. Run Renovate lock maintenance, let release-please refresh this PR, then re-run CI."
+            git diff --stat -- src-tauri/Cargo.lock
+            exit 1
+          fi
+          echo "Cargo.lock is fully maximized"
+
   alls-green:
     if: always()
     needs:
@@ -437,6 +465,7 @@ jobs:
         docker-pr,
         winget,
         e2e,
+        lockfile-fresh,
       ]
     runs-on: ubuntu-26.04
     steps:
@@ -459,4 +488,5 @@ jobs:
             cache-tools,
             winget,
             e2e,
+            lockfile-fresh,
           jobs: ${{ toJSON(needs) }}
