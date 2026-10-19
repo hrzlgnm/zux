@@ -1,6 +1,6 @@
 [package]
 name = "zux"
-version = "1.21.3"
+version = "1.21.4"
 description = "mDNS-SD Visualizer"
 authors = ["hrzlgnm"]
 edition = "2024"

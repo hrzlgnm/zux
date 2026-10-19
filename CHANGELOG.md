@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.4](https://github.com/hrzlgnm/zux/compare/v1.21.3...v1.21.4) (2026-10-19)
+
+
+### Dependencies
+
+* lock file maintenance ([#541](https://github.com/hrzlgnm/zux/issues/541)) ([210cfd5](https://github.com/hrzlgnm/zux/commit/210cfd5cf5afe0a8a1e0848f907f1f9a3fe20d67))
+* lock file maintenance ([#544](https://github.com/hrzlgnm/zux/issues/544)) ([e944ba9](https://github.com/hrzlgnm/zux/commit/e944ba97ea794158dfbdee10da49114241dd2a6a))
+* update dependency @playwright/test to v1.64.1 ([#537](https://github.com/hrzlgnm/zux/issues/537)) ([e5af122](https://github.com/hrzlgnm/zux/commit/e5af122d8cca48f1080d360196eb05781ceba55f))
+* update dependency @sveltejs/kit to v3.1.0 ([#538](https://github.com/hrzlgnm/zux/issues/538)) ([6a70cb5](https://github.com/hrzlgnm/zux/commit/6a70cb5263259677ce19f740928318b65b7e973a))
+* update dependency vitest to v5.0.5 ([#539](https://github.com/hrzlgnm/zux/issues/539)) ([e2c3919](https://github.com/hrzlgnm/zux/commit/e2c3919bc4d5aedd1272b3ca0c8e657038d832b0))
+* update dtolnay/rust-toolchain digest to b725eda ([#534](https://github.com/hrzlgnm/zux/issues/534)) ([f252f30](https://github.com/hrzlgnm/zux/commit/f252f306c744e24ada874f7c99702f17a5a3bf94))
+* update pnpm to v12.13.0 ([#536](https://github.com/hrzlgnm/zux/issues/536)) ([7b60182](https://github.com/hrzlgnm/zux/commit/7b601821193a0b04571b52d8b5ba9060ac99f91c))
+* update pnpm to v12.14.0 ([#540](https://github.com/hrzlgnm/zux/issues/540)) ([76b5ef3](https://github.com/hrzlgnm/zux/commit/76b5ef3d497ed6590a64f526802770f62cc83d66))
+* update rust crate tauri-plugin-mdns to v0.4.5 ([#542](https://github.com/hrzlgnm/zux/issues/542)) ([49a88a1](https://github.com/hrzlgnm/zux/commit/49a88a1cadab7fa1c185d3fd65b27f86688f1e5b))
+* update tauri-plugin-android-update to v0.3.4 ([#543](https://github.com/hrzlgnm/zux/issues/543)) ([3a621cc](https://github.com/hrzlgnm/zux/commit/3a621cca3840e865199cdb95fa4f3cd3e37e3386))
+
 ## [1.21.3](https://github.com/hrzlgnm/zux/compare/v1.21.2...v1.21.3) (2026-10-15)
 
 
