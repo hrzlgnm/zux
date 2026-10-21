@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.5](https://github.com/hrzlgnm/zux/compare/v1.21.4...v1.21.5) (2026-10-21)
+
+
+### Dependencies
+
+* lock file maintenance ([#555](https://github.com/hrzlgnm/zux/issues/555)) ([8a30f99](https://github.com/hrzlgnm/zux/commit/8a30f9938b272d03bb09ef8b868fb9ac76bb03a0))
+* update archlinux:base-devel docker digest to 0ccc8b2 ([#550](https://github.com/hrzlgnm/zux/issues/550)) ([5b8149d](https://github.com/hrzlgnm/zux/commit/5b8149d66b697ec592a8e9f98b8afd284d758f2c))
+* update dependency eslint to v10.13.0 ([#548](https://github.com/hrzlgnm/zux/issues/548)) ([aff9dbf](https://github.com/hrzlgnm/zux/commit/aff9dbf214b16803d64a0899fcd37bd508ae5066))
+* update dependency svelte-check to v4.7.7 ([#547](https://github.com/hrzlgnm/zux/issues/547)) ([d227e9b](https://github.com/hrzlgnm/zux/commit/d227e9beaf5e99a41716ee6c45518a722a6d8adb))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 1e00bd4 ([#551](https://github.com/hrzlgnm/zux/issues/551)) ([f1902cc](https://github.com/hrzlgnm/zux/commit/f1902cc0fd31f69c2412d6976f1469a9e087ff3a))
+* update rust crate webkit2gtk-nvidia-quirk to v2.3.0 ([#553](https://github.com/hrzlgnm/zux/issues/553)) ([365860e](https://github.com/hrzlgnm/zux/commit/365860eb327a7311aa70ef8d7486ce2739e47414))
+* update swatinem/rust-cache digest to d1527c8 ([#552](https://github.com/hrzlgnm/zux/issues/552)) ([e3bfa62](https://github.com/hrzlgnm/zux/commit/e3bfa62fad2de32001c5a3ffcd8523ac7af1b89d))
+* update tauri-plugin-android-update to v0.3.5 ([#554](https://github.com/hrzlgnm/zux/issues/554)) ([f5fa84f](https://github.com/hrzlgnm/zux/commit/f5fa84fa3d56fc0c74e6e2c97ad44005415826ad))
+
+
+### Miscellaneous Chores
+
+* gate release PRs on a fully maximized Cargo.lock ([#549](https://github.com/hrzlgnm/zux/issues/549)) ([8cdcae5](https://github.com/hrzlgnm/zux/commit/8cdcae5ee55cb8edc1146cd65fd6785f14b77015))
+* remove release-guard in favor of failure handler ([#545](https://github.com/hrzlgnm/zux/issues/545)) ([7267dad](https://github.com/hrzlgnm/zux/commit/7267dad20cb7740fd08f20c443642acf5f995898))
+
 ## [1.21.4](https://github.com/hrzlgnm/zux/compare/v1.21.3...v1.21.4) (2026-10-19)
 
 
