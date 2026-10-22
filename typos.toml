@@ -1,7 +1,9 @@
 [default]
 # Ignore short commit SHAs in release-please CHANGELOG links
 # (e.g. `[ba24398]`), which tokenize into false positives.
-extend-ignore-re = ["\\[[0-9a-f]{7}\\]"]
+# Ignore bare short docker digests in release-please CHANGELOG entries
+# (e.g. `docker digest to 3ba858c`), which tokenize into false positives.
+extend-ignore-re = ["\\[[0-9a-f]{7}\\]", "docker digest to [0-9a-f]+"]
 
 [default.extend-words]
 # alls-green is a GitHub Actions status check for branch protection
