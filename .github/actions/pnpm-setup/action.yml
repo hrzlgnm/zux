@@ -11,7 +11,7 @@ runs:
     - name: "⚡ Setup pnpm and Node"
       uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
       with:
-        version: "12.14.0"
+        version: "12.15.0"
         runtime: "node@24"
         cache: false
         install: false
