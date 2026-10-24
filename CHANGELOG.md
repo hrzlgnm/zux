@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.6](https://github.com/hrzlgnm/zux/compare/v1.21.5...v1.21.6) (2026-10-24)
+
+
+### Bug Fixes
+
+* drop redundant renovate managers behind built-in extraction ([#566](https://github.com/hrzlgnm/zux/issues/566)) ([66bffb9](https://github.com/hrzlgnm/zux/commit/66bffb9e28d8b56275472856ffb4b006bb39dda9))
+* ignore bare docker digests in typos ([#562](https://github.com/hrzlgnm/zux/issues/562)) ([099906b](https://github.com/hrzlgnm/zux/commit/099906bc7865de6c167521c54c74097b61bb1105))
+
+
+### Dependencies
+
+* lock file maintenance ([#570](https://github.com/hrzlgnm/zux/issues/570)) ([a032f22](https://github.com/hrzlgnm/zux/commit/a032f22a33ff854268491f9a1dc4ab06c4a4b434))
+* update archlinux:base-devel docker digest to 3cbf69d ([#559](https://github.com/hrzlgnm/zux/issues/559)) ([25852fd](https://github.com/hrzlgnm/zux/commit/25852fd41df04e505f37c088d78d6eca2ad8f797))
+* update dependency tauri-plugin-android-update-api to v0.3.6 ([#568](https://github.com/hrzlgnm/zux/issues/568)) ([079b526](https://github.com/hrzlgnm/zux/commit/079b52609ab25e3924e8d618da1c6cb921f5e500))
+* update dependency typescript-eslint to v8.72.0 ([#561](https://github.com/hrzlgnm/zux/issues/561)) ([e3029b3](https://github.com/hrzlgnm/zux/commit/e3029b36cfd5af360780b9800881ee3222ff69f2))
+* update dependency vite to v8.3.5 ([#565](https://github.com/hrzlgnm/zux/issues/565)) ([0f8ba4f](https://github.com/hrzlgnm/zux/commit/0f8ba4fa180f3260f1441f42a56f2a1a68d72371))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 3ba858c ([#560](https://github.com/hrzlgnm/zux/issues/560)) ([1368ec3](https://github.com/hrzlgnm/zux/commit/1368ec31bec954aff823b3521065ffbecad6dd23))
+* update hrzlgnm/actions action to v2.14.12 ([#558](https://github.com/hrzlgnm/zux/issues/558)) ([9ef9f89](https://github.com/hrzlgnm/zux/commit/9ef9f89dbfbfc5638a63da56e25289065c8e9adf))
+* update pnpm to v12.15.0 ([#567](https://github.com/hrzlgnm/zux/issues/567)) ([7a5caa0](https://github.com/hrzlgnm/zux/commit/7a5caa0beb7974506a38d2b51431087c921aa88f))
+* update rust crate tauri-plugin-android-update to v0.3.6 ([#569](https://github.com/hrzlgnm/zux/issues/569)) ([ce6afc8](https://github.com/hrzlgnm/zux/commit/ce6afc8276a2f4724ee87ba7fcc40e740999d30b))
+* update tauri monorepo ([#556](https://github.com/hrzlgnm/zux/issues/556)) ([69f0804](https://github.com/hrzlgnm/zux/commit/69f0804c3a84cb53ee6eb8d500da8a5044494bfd))
+
+
+### Miscellaneous Chores
+
+* **ci:** only cancel in-progress runs off main ([#563](https://github.com/hrzlgnm/zux/issues/563)) ([e18e72e](https://github.com/hrzlgnm/zux/commit/e18e72e6ca0a21b9bef58efd06bbbed6cd08e325))
+* fix misleading re-run note in lockfile-fresh error ([#564](https://github.com/hrzlgnm/zux/issues/564)) ([08c2645](https://github.com/hrzlgnm/zux/commit/08c26450307ede8a9748b1fe7790fa90afb99bd5))
+
 ## [1.21.5](https://github.com/hrzlgnm/zux/compare/v1.21.4...v1.21.5) (2026-10-21)
 
 
