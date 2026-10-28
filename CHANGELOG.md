@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.7](https://github.com/hrzlgnm/zux/compare/v1.21.6...v1.21.7) (2026-10-28)
+
+
+### Bug Fixes
+
+* **ci:** read pnpm version from packageManager in setup ([#577](https://github.com/hrzlgnm/zux/issues/577)) ([73ed67d](https://github.com/hrzlgnm/zux/commit/73ed67dd43e384d8f3a41b4098a1d40c1c73fa2d))
+* **release:** don't publish release on failure to allow rebuilds ([#582](https://github.com/hrzlgnm/zux/issues/582)) ([c173cf2](https://github.com/hrzlgnm/zux/commit/c173cf20f98d663c3fe3a3e3163e1d1c6d7eeb6e))
+
+
+### Dependencies
+
+* lock file maintenance ([#573](https://github.com/hrzlgnm/zux/issues/573)) ([eff4ea5](https://github.com/hrzlgnm/zux/commit/eff4ea5af8da88bf2edbc5c05ac1170878da6a9a))
+* lock file maintenance ([#581](https://github.com/hrzlgnm/zux/issues/581)) ([45b5262](https://github.com/hrzlgnm/zux/commit/45b5262ded19bf9cbce636b97f635d01995cfe1e))
+* update archlinux:base-devel docker digest to 624bdc7 ([#574](https://github.com/hrzlgnm/zux/issues/574)) ([82d0bc1](https://github.com/hrzlgnm/zux/commit/82d0bc11e46aaf6755073eb8002d73d0c4ea0927))
+* update dependency vis-data to v8.0.6 ([#578](https://github.com/hrzlgnm/zux/issues/578)) ([e706b72](https://github.com/hrzlgnm/zux/commit/e706b728a5ca4b82d03229ac883c7213aa6bc2c6))
+* update dependency vis-network to v10.1.3 ([#579](https://github.com/hrzlgnm/zux/issues/579)) ([e205db2](https://github.com/hrzlgnm/zux/commit/e205db20f1712cd2d64c7017fa31be772708f7b5))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to c0c31c2 ([#575](https://github.com/hrzlgnm/zux/issues/575)) ([7b13c41](https://github.com/hrzlgnm/zux/commit/7b13c41444f280a6337c73cbf79915932d5c359a))
+* update node.js to v26 ([#580](https://github.com/hrzlgnm/zux/issues/580)) ([94bd545](https://github.com/hrzlgnm/zux/commit/94bd545c4621f6ef1a4fc1cd3564dbfb7f40fb54))
+* update pnpm/setup action to v3.1.2 ([#571](https://github.com/hrzlgnm/zux/issues/571)) ([b12a51f](https://github.com/hrzlgnm/zux/commit/b12a51f4746856796912727a19701c5da1086d90))
+* update tauri monorepo ([#576](https://github.com/hrzlgnm/zux/issues/576)) ([4f6b0ef](https://github.com/hrzlgnm/zux/commit/4f6b0efae0034b7f9821d3433fcb73606a027469))
+
 ## [1.21.6](https://github.com/hrzlgnm/zux/compare/v1.21.5...v1.21.6) (2026-10-24)
 
 
