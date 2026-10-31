@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.8](https://github.com/hrzlgnm/zux/compare/v1.21.7...v1.21.8) (2026-10-31)
+
+
+### Bug Fixes
+
+* **release:** drop stale publish-prerelease-on-failure comment ([#583](https://github.com/hrzlgnm/zux/issues/583)) ([0ebe48c](https://github.com/hrzlgnm/zux/commit/0ebe48c1dc3728840973dcb1bda9d0fbe581ef13))
+
+
+### Dependencies
+
+* update dependency @types/node to v26.6.6 ([#591](https://github.com/hrzlgnm/zux/issues/591)) ([3783468](https://github.com/hrzlgnm/zux/commit/3783468421b3cabed4db241bda574a6f0f8320ac))
+* update dependency svelte to v5.57.3 ([#585](https://github.com/hrzlgnm/zux/issues/585)) ([7865421](https://github.com/hrzlgnm/zux/commit/78654211757ed5df5d8a7615145d7475924fe925))
+* update dependency typescript-eslint to v8.72.1 ([#586](https://github.com/hrzlgnm/zux/issues/586)) ([c9eea4f](https://github.com/hrzlgnm/zux/commit/c9eea4f54fe0f0291e5b59bf79898d9606551c43))
+* update mikepenz/action-junit-report digest to 8a133bf ([#590](https://github.com/hrzlgnm/zux/issues/590)) ([c3e5b08](https://github.com/hrzlgnm/zux/commit/c3e5b086db150da8b9c2b75ac2fc00e65bd4372e))
+* update pnpm to v12.16.0 ([#587](https://github.com/hrzlgnm/zux/issues/587)) ([6001a5a](https://github.com/hrzlgnm/zux/commit/6001a5a9fbbbe7301d78141748f6066ca06e5704))
+* update pnpm to v12.16.1 ([#588](https://github.com/hrzlgnm/zux/issues/588)) ([db869b8](https://github.com/hrzlgnm/zux/commit/db869b842853beace2b5769e5d43e2a724290a32))
+* update rust crate log to v0.4.35 ([#589](https://github.com/hrzlgnm/zux/issues/589)) ([4eab91c](https://github.com/hrzlgnm/zux/commit/4eab91c414beeafb91004a8bf52233bdd228b486))
+
 ## [1.21.7](https://github.com/hrzlgnm/zux/compare/v1.21.6...v1.21.7) (2026-10-28)
 
 
