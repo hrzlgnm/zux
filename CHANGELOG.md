@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.8](https://github.com/hrzlgnm/zux/compare/v1.21.7...v1.21.8) (2026-11-02)
+
+
+### Bug Fixes
+
+* **release:** drop stale publish-prerelease-on-failure comment ([#583](https://github.com/hrzlgnm/zux/issues/583)) ([0ebe48c](https://github.com/hrzlgnm/zux/commit/0ebe48c1dc3728840973dcb1bda9d0fbe581ef13))
+
+
+### Dependencies
+
+* lock file maintenance ([#594](https://github.com/hrzlgnm/zux/issues/594)) ([c6795a9](https://github.com/hrzlgnm/zux/commit/c6795a9381c209a46da0ff334ce58941a21b5c17))
+* lock file maintenance ([#596](https://github.com/hrzlgnm/zux/issues/596)) ([1fb9682](https://github.com/hrzlgnm/zux/commit/1fb96825902b2111444964c378923aba374e9db1))
+* lock file maintenance ([#597](https://github.com/hrzlgnm/zux/issues/597)) ([89715b2](https://github.com/hrzlgnm/zux/commit/89715b2bb2b94aaf51b6e57a255ed9d85c7ca620))
+* update dependency @sveltejs/adapter-static to v4.0.1 ([#592](https://github.com/hrzlgnm/zux/issues/592)) ([b799760](https://github.com/hrzlgnm/zux/commit/b799760e14fbbd9380129ec352dc319d1ec49b6f))
+* update dependency @sveltejs/kit to v3.1.1 ([#593](https://github.com/hrzlgnm/zux/issues/593)) ([5d7c821](https://github.com/hrzlgnm/zux/commit/5d7c821f4d9e43e2dd12b1277c802cedb8e6ae01))
+* update dependency @types/node to v26.6.6 ([#591](https://github.com/hrzlgnm/zux/issues/591)) ([3783468](https://github.com/hrzlgnm/zux/commit/3783468421b3cabed4db241bda574a6f0f8320ac))
+* update dependency svelte to v5.57.3 ([#585](https://github.com/hrzlgnm/zux/issues/585)) ([7865421](https://github.com/hrzlgnm/zux/commit/78654211757ed5df5d8a7615145d7475924fe925))
+* update dependency typescript-eslint to v8.72.1 ([#586](https://github.com/hrzlgnm/zux/issues/586)) ([c9eea4f](https://github.com/hrzlgnm/zux/commit/c9eea4f54fe0f0291e5b59bf79898d9606551c43))
+* update mikepenz/action-junit-report digest to 8a133bf ([#590](https://github.com/hrzlgnm/zux/issues/590)) ([c3e5b08](https://github.com/hrzlgnm/zux/commit/c3e5b086db150da8b9c2b75ac2fc00e65bd4372e))
+* update pnpm to v12.16.0 ([#587](https://github.com/hrzlgnm/zux/issues/587)) ([6001a5a](https://github.com/hrzlgnm/zux/commit/6001a5a9fbbbe7301d78141748f6066ca06e5704))
+* update pnpm to v12.16.1 ([#588](https://github.com/hrzlgnm/zux/issues/588)) ([db869b8](https://github.com/hrzlgnm/zux/commit/db869b842853beace2b5769e5d43e2a724290a32))
+* update rust crate log to v0.4.35 ([#589](https://github.com/hrzlgnm/zux/issues/589)) ([4eab91c](https://github.com/hrzlgnm/zux/commit/4eab91c414beeafb91004a8bf52233bdd228b486))
+* update tauri-plugin-mdns to v0.4.6 ([#595](https://github.com/hrzlgnm/zux/issues/595)) ([074b9da](https://github.com/hrzlgnm/zux/commit/074b9da698d57b89747c9f9417892f4af3a47a8f))
+
 ## [1.21.7](https://github.com/hrzlgnm/zux/compare/v1.21.6...v1.21.7) (2026-10-28)
 
 
