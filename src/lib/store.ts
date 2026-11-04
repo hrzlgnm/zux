@@ -39,6 +39,45 @@ export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
 // graph does not redraw on every update.
 const seenInstances = new Map<string, ServiceDiscovered>()
 
+// Batched mDNS event processing: events are queued and flushed together so
+// the graph stores update a few times per burst instead of once per event.
+// This keeps the UI responsive on large networks.
+const BATCH_FLUSH_MS = 50
+const BATCH_EARLY_FLUSH_COUNT = 200
+const eventQueue: MdnsEvent[] = []
+let flushTimer: ReturnType<typeof setTimeout> | null = null
+const pendingBrowseTypes = new Set<string>()
+
+function clearEventQueue() {
+  eventQueue.length = 0
+  pendingBrowseTypes.clear()
+  if (flushTimer) {
+    clearTimeout(flushTimer)
+    flushTimer = null
+  }
+}
+
+function scheduleFlush() {
+  if (flushTimer) return
+  flushTimer = setTimeout(() => {
+    flushTimer = null
+    flushEvents()
+  }, BATCH_FLUSH_MS)
+}
+
+function maybeEarlyFlush() {
+  if (
+    eventQueue.length >= BATCH_EARLY_FLUSH_COUNT ||
+    pendingBrowseTypes.size >= BATCH_EARLY_FLUSH_COUNT
+  ) {
+    if (flushTimer) {
+      clearTimeout(flushTimer)
+      flushTimer = null
+    }
+    flushEvents()
+  }
+}
+
 export const defaultPhysicsConfig: PhysicsConfig = {
   solver: 'repulsion',
   gravitationalConstant: -100,
@@ -279,6 +318,7 @@ export function setTheme(name: ThemeName) {
 }
 
 export function clearGraph() {
+  clearEventQueue()
   graphNodes.set(new Map())
   graphEdges.set(new Map())
   selectedNodeId.set(null)
@@ -397,186 +437,241 @@ function cascadeOffline() {
   })
 }
 
-function handleMdnsEvent(p: MdnsEvent) {
-  switch (p.type) {
-    case 'service-type-added': {
-      const st = p.data.service_type
-      serviceTypes.update((s) => {
-        s.add(st)
-        return s
-      })
-      const id = typeId(st)
-      graphNodes.update((m) => {
-        if (!m.has(id)) {
-          m.set(id, {
-            id,
-            label: st.replace('.local.', '').replace(/\.$/, ''),
-            group: 'service-type',
-            shape: 'diamond',
-            size: 25,
-            color: themeColors().serviceTypeBg,
-          })
-        }
-        return m
-      })
-      break
+function enqueueEvent(p: MdnsEvent) {
+  eventQueue.push(p)
+  scheduleFlush()
+  maybeEarlyFlush()
+}
+
+function enqueueServiceType(serviceType: string) {
+  if (pendingBrowseTypes.has(serviceType)) return
+  pendingBrowseTypes.add(serviceType)
+}
+
+function applyServiceTypeAddedToMaps(st: string, nodes: Map<string, GraphNode>) {
+  const id = typeId(st)
+  if (!nodes.has(id)) {
+    nodes.set(id, {
+      id,
+      label: st.replace('.local.', '').replace(/\.$/, ''),
+      group: 'service-type',
+      shape: 'diamond',
+      size: 25,
+      color: themeColors().serviceTypeBg,
+    })
+  }
+}
+
+function applyServiceTypeAdded(st: string) {
+  serviceTypes.update((s) => {
+    s.add(st)
+    return s
+  })
+  graphNodes.update((m) => {
+    applyServiceTypeAddedToMaps(st, m)
+    return m
+  })
+}
+
+function applyServiceAddedToMaps(
+  d: ServiceDiscovered,
+  nodes: Map<string, GraphNode>,
+  edges: Map<string, GraphEdge>,
+  types: Set<string>,
+) {
+  const nId = instId(d.name || d.id, d.service_type)
+  const hId = hostId(d.hostname || 'unknown')
+  const tId = typeId(d.service_type)
+
+  if (!types.has(d.service_type)) {
+    types.add(d.service_type)
+    applyServiceTypeAddedToMaps(d.service_type, nodes)
+  }
+
+  const existing = nodes.get(nId)
+  if (!existing) {
+    nodes.set(nId, {
+      id: nId,
+      label: d.name || d.id.split('.')[0],
+      group: 'instance',
+      shape: 'dot',
+      size: 15,
+      color: themeColors().instanceBg,
+      serviceType: d.service_type,
+      subType: d.sub_type ?? undefined,
+      hostname: d.hostname,
+      port: d.port,
+      addresses: d.addresses,
+      txt: d.txt,
+      urls: d.urls,
+    })
+  } else {
+    const updated = {
+      ...existing,
+      label: d.name || d.id.split('.')[0],
+      hostname: d.hostname,
+      port: d.port,
+      addresses: d.addresses,
+      txt: d.txt,
+      urls: d.urls,
+      subType: d.sub_type ?? undefined,
     }
-    case 'service-added': {
-      const d = p.data
-      const nId = instId(d.name || d.id, d.service_type)
-      const hId = hostId(d.hostname || 'unknown')
-      const tId = typeId(d.service_type)
-
-      graphNodes.update((m) => {
-        const existing = m.get(nId)
-        if (!existing) {
-          m.set(nId, {
-            id: nId,
-            label: d.name || d.id.split('.')[0],
-            group: 'instance',
-            shape: 'dot',
-            size: 15,
-            color: themeColors().instanceBg,
-            serviceType: d.service_type,
-            subType: d.sub_type ?? undefined,
-            hostname: d.hostname,
-            port: d.port,
-            addresses: d.addresses,
-            txt: d.txt,
-            urls: d.urls,
-          })
-        } else {
-          const updated = {
-            ...existing,
-            label: d.name || d.id.split('.')[0],
-            hostname: d.hostname,
-            port: d.port,
-            addresses: d.addresses,
-            txt: d.txt,
-            urls: d.urls,
-            subType: d.sub_type ?? undefined,
-          }
-          m.set(nId, existing.offline ? applyOnlineStyle(updated) : updated)
-        }
-        if (!m.has(hId)) {
-          m.set(hId, {
-            id: hId,
-            label: d.hostname.replace('.local.', ''),
-            group: 'host',
-            shape: 'square',
-            size: 20,
-            color: themeColors().hostBg,
-            hostname: d.hostname,
-            addresses: d.addresses,
-          })
-        } else {
-          const host = m.get(hId)!
-          m.set(hId, { ...host, addresses: d.addresses })
-        }
-        if (d.addresses) {
-          const ipInterfaces = new Map<string, string[]>()
-          for (const a of d.addresses) {
-            const existing = ipInterfaces.get(a.ip)
-            if (existing) {
-              ipInterfaces.set(a.ip, [...existing, ...a.interfaces])
-            } else {
-              ipInterfaces.set(a.ip, [...a.interfaces])
-            }
-          }
-          for (const [ip, interfaces] of ipInterfaces) {
-            const aId = addrId(ip)
-            const sorted = [...interfaces].sort()
-            if (!m.has(aId)) {
-              m.set(aId, {
-                id: aId,
-                label: ip,
-                group: 'address',
-                shape: 'triangle',
-                size: 12,
-                color: themeColors().addressBg,
-                interfaces: sorted,
-              })
-            } else {
-              const addr = m.get(aId)!
-              m.set(aId, { ...addr, interfaces: sorted })
-            }
-          }
-        }
-        return m
-      })
-
-      graphEdges.update((m) => {
-        m.set(`e:ti:${d.service_type}:${nId}`, {
-          id: `e:ti:${d.service_type}:${nId}`,
-          from: tId,
-          to: nId,
-          dashes: true,
-          color: themeColors().edgeTypeInstance,
+    nodes.set(nId, existing.offline ? applyOnlineStyle(updated) : updated)
+  }
+  if (!nodes.has(hId)) {
+    nodes.set(hId, {
+      id: hId,
+      label: d.hostname.replace('.local.', ''),
+      group: 'host',
+      shape: 'square',
+      size: 20,
+      color: themeColors().hostBg,
+      hostname: d.hostname,
+      addresses: d.addresses,
+    })
+  } else {
+    const host = nodes.get(hId)!
+    nodes.set(hId, { ...host, addresses: d.addresses })
+  }
+  if (d.addresses) {
+    const ipInterfaces = new Map<string, string[]>()
+    for (const a of d.addresses) {
+      const existingInterfaces = ipInterfaces.get(a.ip)
+      if (existingInterfaces) {
+        ipInterfaces.set(a.ip, [...existingInterfaces, ...a.interfaces])
+      } else {
+        ipInterfaces.set(a.ip, [...a.interfaces])
+      }
+    }
+    for (const [ip, interfaces] of ipInterfaces) {
+      const aId = addrId(ip)
+      const sorted = [...interfaces].sort()
+      const addr = nodes.get(aId)
+      if (!addr) {
+        nodes.set(aId, {
+          id: aId,
+          label: ip,
+          group: 'address',
+          shape: 'triangle',
+          size: 12,
+          color: themeColors().addressBg,
+          interfaces: sorted,
         })
-        m.set(`e:ih:${nId}:${hId}`, {
-          id: `e:ih:${nId}:${hId}`,
-          from: nId,
-          to: hId,
-          color: themeColors().edgeInstanceHost,
-        })
-        if (d.addresses) {
-          for (const a of d.addresses) {
-            const aId = addrId(a.ip)
-            const edgeId = `e:ha:${hId}:${aId}`
-            if (!m.has(edgeId)) {
-              m.set(edgeId, {
-                id: edgeId,
-                from: hId,
-                to: aId,
-                color: themeColors().edgeHostAddress,
-              })
-            }
-          }
-        }
-        return m
-      })
+      } else {
+        nodes.set(aId, { ...addr, interfaces: sorted })
+      }
+    }
+  }
 
-      if (d.addresses) {
-        const currentAddrIds = new Set(d.addresses.map((a) => addrId(a.ip)))
-        graphEdges.update((edges) => {
-          for (const [eid, e] of edges) {
-            if (eid.startsWith(`e:ha:${hId}:`) && !currentAddrIds.has(e.to)) {
-              edges.delete(eid)
-            }
-          }
-          return edges
-        })
-        graphNodes.update((nodes) => {
-          const connectedAddrs = new Set<string>()
-          for (const [, e] of get(graphEdges)) {
-            if (e.from.startsWith('host:') && e.to.startsWith('addr:')) {
-              connectedAddrs.add(e.to)
-            }
-          }
-          for (const [nid, n] of nodes) {
-            if (n.group === 'address' && !connectedAddrs.has(nid)) {
-              nodes.delete(nid)
-            }
-          }
-          return nodes
+  edges.set(`e:ti:${d.service_type}:${nId}`, {
+    id: `e:ti:${d.service_type}:${nId}`,
+    from: tId,
+    to: nId,
+    dashes: true,
+    color: themeColors().edgeTypeInstance,
+  })
+  edges.set(`e:ih:${nId}:${hId}`, {
+    id: `e:ih:${nId}:${hId}`,
+    from: nId,
+    to: hId,
+    color: themeColors().edgeInstanceHost,
+  })
+  if (d.addresses) {
+    for (const a of d.addresses) {
+      const aId = addrId(a.ip)
+      const edgeId = `e:ha:${hId}:${aId}`
+      if (!edges.has(edgeId)) {
+        edges.set(edgeId, {
+          id: edgeId,
+          from: hId,
+          to: aId,
+          color: themeColors().edgeHostAddress,
         })
       }
-      cascadeOffline()
-      break
     }
-    case 'service-removed': {
-      const r = p.data
-      const nId = instId(r.id, r.service_type)
-      graphNodes.update((m) => {
-        const node = m.get(nId)
-        if (node) {
-          m.set(nId, applyOfflineStyle(node))
-        }
-        return m
-      })
-      cascadeOffline()
-      break
+    const currentAddrIds = new Set(d.addresses.map((a) => addrId(a.ip)))
+    for (const [eid, e] of edges) {
+      if (eid.startsWith(`e:ha:${hId}:`) && !currentAddrIds.has(e.to)) {
+        edges.delete(eid)
+      }
     }
+  }
+}
+
+function applyServiceAdded(d: ServiceDiscovered) {
+  const nodes = new Map(get(graphNodes))
+  const edges = new Map(get(graphEdges))
+  const types = new Set(get(serviceTypes))
+  applyServiceAddedToMaps(d, nodes, edges, types)
+  cleanupOrphanAddressesOnMaps(nodes, edges)
+  serviceTypes.set(types)
+  graphNodes.set(nodes)
+  graphEdges.set(edges)
+  cascadeOffline()
+}
+
+function applyServiceRemovedToMaps(
+  r: { id: string; service_type: string },
+  nodes: Map<string, GraphNode>,
+) {
+  const nId = instId(r.id, r.service_type)
+  const node = nodes.get(nId)
+  if (node) {
+    nodes.set(nId, applyOfflineStyle(node))
+  }
+}
+
+function cleanupOrphanAddressesOnMaps(
+  nodes: Map<string, GraphNode>,
+  edges: Map<string, GraphEdge>,
+) {
+  const connectedAddrs = new Set<string>()
+  for (const [, e] of edges) {
+    if (e.from.startsWith('host:') && e.to.startsWith('addr:')) {
+      connectedAddrs.add(e.to)
+    }
+  }
+  for (const [nid, n] of nodes) {
+    if (n.group === 'address' && !connectedAddrs.has(nid)) {
+      nodes.delete(nid)
+    }
+  }
+}
+
+function flushEvents() {
+  if (eventQueue.length === 0 && pendingBrowseTypes.size === 0) return
+  const events = eventQueue.splice(0)
+  const browseTypesToRun = [...pendingBrowseTypes]
+  pendingBrowseTypes.clear()
+
+  const nodes = new Map(get(graphNodes))
+  const edges = new Map(get(graphEdges))
+  const types = new Set(get(serviceTypes))
+
+  for (const p of events) {
+    if (p.type === 'service-type-added') {
+      const st = p.data.service_type
+      if (!types.has(st)) {
+        types.add(st)
+        applyServiceTypeAddedToMaps(st, nodes)
+      }
+    } else if (p.type === 'service-added') {
+      applyServiceAddedToMaps(p.data, nodes, edges, types)
+    } else if (p.type === 'service-removed') {
+      applyServiceRemovedToMaps(p.data, nodes)
+    }
+  }
+
+  cleanupOrphanAddressesOnMaps(nodes, edges)
+  serviceTypes.set(types)
+  graphNodes.set(nodes)
+  graphEdges.set(edges)
+  cascadeOffline()
+
+  if (browseTypesToRun.length > 0) {
+    void browseMany(browseTypesToRun).catch((e) => {
+      console.warn('[zux] failed to browse service types:', e)
+    })
   }
 }
 
@@ -592,17 +687,16 @@ export function setupEventListeners(): Promise<UnlistenFn> {
     const unlistenType = await onServiceTypeFound(({ service_type }) => {
       if (service_type.includes('._sub.')) return
       if (get(serviceTypes).has(service_type)) return
-      handleMdnsEvent({ type: 'service-type-added', data: { service_type } })
-      void browseMany([service_type]).catch((e) => {
-        console.warn('[zux] failed to browse service type:', service_type, e)
-      })
+      if (pendingBrowseTypes.has(service_type)) return
+      enqueueServiceType(service_type)
+      enqueueEvent({ type: 'service-type-added', data: { service_type } })
     })
     const unlistenResolved = await onServiceResolved(({ service }) => {
       const discovered = resolvedToDiscovered(service, linkLocal)
       const prev = seenInstances.get(discovered.id)
       if (prev && JSON.stringify(prev) === JSON.stringify(discovered)) return
       seenInstances.set(discovered.id, discovered)
-      handleMdnsEvent({ type: 'service-added', data: discovered })
+      enqueueEvent({ type: 'service-added', data: discovered })
     })
     const unlistenRemoved = await onServiceRemoved(({ instance_name }) => {
       // The removal event carries no service type; resolve it through the
@@ -611,7 +705,7 @@ export function setupEventListeners(): Promise<UnlistenFn> {
       const stored = seenInstances.get(instance_name)
       if (!stored) return
       seenInstances.delete(instance_name)
-      handleMdnsEvent({
+      enqueueEvent({
         type: 'service-removed',
         data: { id: stored.name || stored.id, service_type: stored.service_type },
       })
@@ -807,9 +901,14 @@ const PREVIEW_SERVICES: PreviewService[] = [
 export function seedPreviewData() {
   console.debug('[zux] seeding preview data')
   for (const st of PREVIEW_SERVICE_TYPES) {
-    handleMdnsEvent({ type: 'service-type-added', data: { service_type: st } })
+    applyServiceTypeAdded(st)
   }
   for (const s of PREVIEW_SERVICES) {
-    handleMdnsEvent({ type: 'service-added', data: s })
+    applyServiceAdded(s)
   }
 }
+
+export { enqueueEvent as enqueueMdnsEvent }
+export { flushEvents as flushMdnsEvents }
+export { enqueueServiceType as enqueueBrowseType }
+export { clearEventQueue as clearMdnsEventQueue }

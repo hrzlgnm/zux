@@ -286,12 +286,51 @@
       selectedNodeId.set(null)
     })
 
-    const unsub1 = graphNodes.subscribe(syncGraph)
-    const unsub2 = graphEdges.subscribe(syncGraph)
+    let syncPending = false
+    let syncRaf = 0
+    let initialSyncDone = false
+    function requestSync() {
+      if (!initialSyncDone) {
+        initialSyncDone = true
+        syncGraph()
+        return
+      }
+      if (syncPending) return
+      syncPending = true
+      syncRaf = requestAnimationFrame(() => {
+        syncPending = false
+        syncRaf = 0
+        syncGraph()
+      })
+    }
+
+    function flushPendingSync() {
+      if (syncRaf) {
+        cancelAnimationFrame(syncRaf)
+        syncRaf = 0
+        syncPending = false
+      }
+      syncGraph()
+    }
+
+    syncGraph()
+    initialSyncDone = true
+
+    const unsub1 = graphNodes.subscribe(requestSync)
+    const unsub2 = graphEdges.subscribe(requestSync)
     const unsub3 = physicsConfig.subscribe(applyPhysics)
-    const unsub4 = filterQuery.subscribe(applyVisibility)
-    const unsub5 = disabledGroups.subscribe(applyVisibility)
-    const unsub6 = resolvedTheme.subscribe(applyGraphTheme)
+    const unsub4 = filterQuery.subscribe(() => {
+      flushPendingSync()
+      applyVisibility()
+    })
+    const unsub5 = disabledGroups.subscribe(() => {
+      flushPendingSync()
+      applyVisibility()
+    })
+    const unsub6 = resolvedTheme.subscribe(() => {
+      flushPendingSync()
+      applyGraphTheme()
+    })
 
     onDestroy(() => {
       unsub1()
@@ -299,6 +338,7 @@
       unsub3()
       unsub4()
       unsub5()
+      if (syncRaf) cancelAnimationFrame(syncRaf)
       unsub6()
       ro.disconnect()
       graphNetwork.set(null)
