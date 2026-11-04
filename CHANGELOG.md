@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.9](https://github.com/hrzlgnm/zux/compare/v1.21.8...v1.21.9) (2026-11-04)
+
+
+### Performance Improvements
+
+* batch mDNS events and coalesce graph syncs ([#605](https://github.com/hrzlgnm/zux/issues/605)) ([18cdf64](https://github.com/hrzlgnm/zux/commit/18cdf64eb0c9a5d35fbb0e3f67503ad43232a747))
+
+
+### Dependencies
+
+* lock file maintenance ([#606](https://github.com/hrzlgnm/zux/issues/606)) ([8d767f9](https://github.com/hrzlgnm/zux/commit/8d767f903fa257e44876b0d8c04283158b1a5701))
+* update dependency eslint to v10.14.0 ([#598](https://github.com/hrzlgnm/zux/issues/598)) ([da8637f](https://github.com/hrzlgnm/zux/commit/da8637fc99ad3902c62c527cf8f14bb6c49d6cab))
+* update dependency globals to v17.14.0 ([#603](https://github.com/hrzlgnm/zux/issues/603)) ([a42d02d](https://github.com/hrzlgnm/zux/commit/a42d02dccb4de9a349c6c9b57af1b2186179442c))
+* update dependency komac to v2.17.2 ([#601](https://github.com/hrzlgnm/zux/issues/601)) ([031b346](https://github.com/hrzlgnm/zux/commit/031b346549281385e07512b9f5069df100de2785))
+* update dependency svelte-check to v4.7.8 ([#604](https://github.com/hrzlgnm/zux/issues/604)) ([89df319](https://github.com/hrzlgnm/zux/commit/89df31970d2524bab9099cf4ea68c146e9fb91e2))
+* update hrzlgnm/actions action to v2.14.13 ([#602](https://github.com/hrzlgnm/zux/issues/602)) ([e9b5fb0](https://github.com/hrzlgnm/zux/commit/e9b5fb0251e8d92adc482ecd1f164b1efc0910ed))
+* update mikepenz/action-junit-report digest to 4a26df3 ([#600](https://github.com/hrzlgnm/zux/issues/600)) ([b98c764](https://github.com/hrzlgnm/zux/commit/b98c764a1e2ba44d6eef5664865aec9996eb9ca9))
+
 ## [1.21.8](https://github.com/hrzlgnm/zux/compare/v1.21.7...v1.21.8) (2026-11-02)
 
 
