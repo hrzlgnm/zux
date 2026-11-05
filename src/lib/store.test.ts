@@ -279,6 +279,29 @@ describe('local device highlighting', () => {
     expect(nodes.get('addr:192.168.1.2')?.isLocal).toBe(true)
   })
 
+  it('gives local nodes a thick border and glow, remote nodes neither', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    const nodes = get(graphNodes)
+    const local = nodes.get('host:host.local.')
+    expect(local?.borderWidth).toBe(4)
+    expect(local?.shadow).toMatchObject({ enabled: true, size: 12 })
+    enqueueMdnsEvent({
+      type: 'service-added',
+      data: discovered({
+        id: 'remote._http._tcp.local.',
+        name: 'remote',
+        hostname: 'remote.local.',
+        addresses: [{ ip: '192.168.1.99', interfaces: ['eth0'] }],
+      }),
+    })
+    vi.advanceTimersByTime(50)
+    const after = get(graphNodes)
+    expect(after.get('host:remote.local.')?.borderWidth).toBeUndefined()
+    expect(after.get('host:remote.local.')?.shadow).toBeUndefined()
+  })
+
   it('leaves remote services unflagged', () => {
     localAddresses.set(new Set(['10.0.0.1']))
     enqueueMdnsEvent({ type: 'service-added', data: discovered() })
@@ -296,10 +319,12 @@ describe('local device highlighting', () => {
     localAddresses.set(new Set(['192.168.1.2']))
     refreshLocalFlags()
     expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(true)
+    expect(get(graphNodes).get('host:host.local.')?.borderWidth).toBe(4)
     expect(get(graphNodes).get('addr:192.168.1.2')?.isLocal).toBe(true)
     localAddresses.set(new Set(['10.0.0.1']))
     refreshLocalFlags()
     expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(false)
+    expect(get(graphNodes).get('host:host.local.')?.borderWidth).toBeUndefined()
   })
 
   it('keeps a mixed local/remote host flagged local', () => {

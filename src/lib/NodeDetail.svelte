@@ -146,9 +146,8 @@
     color: var(--address-font);
   }
   .badge.local {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--bg-primary);
     margin-left: 6px;
   }
   .fields {

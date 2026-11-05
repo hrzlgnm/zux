@@ -555,24 +555,46 @@ function localTitle(isLocal: boolean | undefined): string | undefined {
   return isLocal ? LOCAL_DEVICE_TITLE : undefined
 }
 
-function applyOfflineStyle(n: GraphNode): GraphNode {
-  return {
-    ...n,
-    offline: true,
-    color: offlineColor(),
-    title: localTitle(n.isLocal),
-    font: offlineFont(),
-  }
+// Thick accent-bordered nodes with a glow stand out against the default
+// thin group-colored borders; offline nodes keep the grey palette but
+// retain the thick border so they stay recognizable as local.
+export const LOCAL_BORDER_WIDTH = 4
+const LOCAL_SHADOW_SIZE = 12
+
+function localShadow(): NonNullable<GraphNode['shadow']> {
+  return { enabled: true, color: themeColors().accent, size: LOCAL_SHADOW_SIZE, x: 0, y: 0 }
 }
 
-function applyOnlineStyle(n: GraphNode): GraphNode {
+function styleNode(n: GraphNode): GraphNode {
+  const isLocal = n.isLocal ?? false
+  if (n.offline) {
+    return {
+      ...n,
+      offline: true,
+      color: offlineColor(),
+      title: localTitle(isLocal),
+      font: offlineFont(),
+      borderWidth: isLocal ? LOCAL_BORDER_WIDTH : undefined,
+      shadow: undefined,
+    }
+  }
   return {
     ...n,
     offline: false,
-    color: onlineNodeColor(n.group, n.isLocal),
-    title: localTitle(n.isLocal),
+    color: onlineNodeColor(n.group, isLocal),
+    title: localTitle(isLocal),
     font: undefined,
+    borderWidth: isLocal ? LOCAL_BORDER_WIDTH : undefined,
+    shadow: isLocal ? localShadow() : undefined,
   }
+}
+
+function applyOfflineStyle(n: GraphNode): GraphNode {
+  return styleNode({ ...n, offline: true })
+}
+
+function applyOnlineStyle(n: GraphNode): GraphNode {
+  return styleNode({ ...n, offline: false })
 }
 
 function cascadeOffline() {
@@ -681,24 +703,26 @@ function applyServiceAddedToMaps(
 
   const existing = nodes.get(nId)
   if (!existing) {
-    nodes.set(nId, {
-      id: nId,
-      label: d.name || d.id.split('.')[0],
-      group: 'instance',
-      shape: 'dot',
-      size: 15,
-      color: onlineNodeColor('instance', serviceLocal),
-      title: localTitle(serviceLocal),
-      isLocal: serviceLocal,
-      serviceType: d.service_type,
-      subType: d.sub_type ?? undefined,
-      hostname: d.hostname,
-      port: d.port,
-      addresses: d.addresses,
-      txt: d.txt,
-      urls: d.urls,
-    })
+    nodes.set(
+      nId,
+      styleNode({
+        id: nId,
+        label: d.name || d.id.split('.')[0],
+        group: 'instance',
+        shape: 'dot',
+        size: 15,
+        isLocal: serviceLocal,
+        serviceType: d.service_type,
+        subType: d.sub_type ?? undefined,
+        hostname: d.hostname,
+        port: d.port,
+        addresses: d.addresses,
+        txt: d.txt,
+        urls: d.urls,
+      }),
+    )
   } else {
+    // A re-resolve revives an offline instance; a live one keeps its state.
     const updated: GraphNode = {
       ...existing,
       label: d.name || d.id.split('.')[0],
@@ -709,36 +733,36 @@ function applyServiceAddedToMaps(
       urls: d.urls,
       subType: d.sub_type ?? undefined,
       isLocal: serviceLocal,
-      color: onlineNodeColor(existing.group, serviceLocal),
-      title: localTitle(serviceLocal),
     }
-    nodes.set(nId, existing.offline ? applyOnlineStyle(updated) : updated)
+    nodes.set(nId, styleNode({ ...updated, offline: false }))
   }
   const prevHost = nodes.get(hId)
   const hostAddresses = mergeAddresses(prevHost?.addresses, d.addresses)
   const hostLocal = isLocalService(hostAddresses, local)
   if (!prevHost) {
-    nodes.set(hId, {
-      id: hId,
-      label: d.hostname.replace('.local.', ''),
-      group: 'host',
-      shape: 'square',
-      size: 20,
-      color: onlineNodeColor('host', hostLocal),
-      title: localTitle(hostLocal),
-      isLocal: hostLocal,
-      hostname: d.hostname,
-      addresses: hostAddresses,
-    })
+    nodes.set(
+      hId,
+      styleNode({
+        id: hId,
+        label: d.hostname.replace('.local.', ''),
+        group: 'host',
+        shape: 'square',
+        size: 20,
+        isLocal: hostLocal,
+        hostname: d.hostname,
+        addresses: hostAddresses,
+      }),
+    )
   } else {
-    const merged: GraphNode = {
-      ...prevHost,
-      addresses: hostAddresses,
-      isLocal: hostLocal,
-      color: prevHost.offline ? prevHost.color : onlineNodeColor(prevHost.group, hostLocal),
-      title: localTitle(hostLocal),
-    }
-    nodes.set(hId, merged)
+    nodes.set(
+      hId,
+      styleNode({
+        ...prevHost,
+        addresses: hostAddresses,
+        isLocal: hostLocal,
+        offline: prevHost.offline,
+      }),
+    )
   }
   if (d.addresses) {
     const ipInterfaces = new Map<string, string[]>()
@@ -756,26 +780,23 @@ function applyServiceAddedToMaps(
       const addr = nodes.get(aId)
       const addrLocal = local.has(normalizeLocalIp(ip))
       if (!addr) {
-        nodes.set(aId, {
-          id: aId,
-          label: ip,
-          group: 'address',
-          shape: 'triangle',
-          size: 12,
-          color: onlineNodeColor('address', addrLocal),
-          title: localTitle(addrLocal),
-          isLocal: addrLocal,
-          interfaces: sorted,
-        })
+        nodes.set(
+          aId,
+          styleNode({
+            id: aId,
+            label: ip,
+            group: 'address',
+            shape: 'triangle',
+            size: 12,
+            isLocal: addrLocal,
+            interfaces: sorted,
+          }),
+        )
       } else {
-        const merged: GraphNode = {
-          ...addr,
-          interfaces: sorted,
-          isLocal: addrLocal,
-          color: addr.offline ? addr.color : onlineNodeColor(addr.group, addrLocal),
-          title: localTitle(addrLocal),
-        }
-        nodes.set(aId, merged)
+        nodes.set(
+          aId,
+          styleNode({ ...addr, interfaces: sorted, isLocal: addrLocal, offline: addr.offline }),
+        )
       }
     }
   }
