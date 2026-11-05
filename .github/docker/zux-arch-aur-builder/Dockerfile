@@ -6,7 +6,6 @@ RUN pacman -Syu --noconfirm \
     && pacman -S --noconfirm --needed \
     appmenu-gtk-module \
     cargo \
-    cargo-auditable \
     coreutils \
     desktop-file-utils \
     gdk-pixbuf2 \
@@ -15,7 +14,6 @@ RUN pacman -Syu --noconfirm \
     github-cli \
     gtk3 \
     jq \
-    libappindicator-gtk3 \
     librsvg \
     libsoup3 \
     namcap \
@@ -24,11 +22,8 @@ RUN pacman -Syu --noconfirm \
     patchelf \
     pnpm \
     rust \
-    rust-wasm \
     sudo \
-    trunk \
     webkit2gtk-4.1 \
-    wget \
     && useradd -m -G wheel -s /bin/bash runner \
     && echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
     && pacman -Scc --noconfirm
