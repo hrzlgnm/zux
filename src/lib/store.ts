@@ -851,16 +851,7 @@ export async function restartBrowsing(): Promise<void> {
   if (get(discoveryMode) === 'phones') {
     // The phone list is static, so restart even before any type resolved.
     console.debug('[zux] restarting phone browsing after resume')
-    try {
-      await stopBrowse()
-    } catch (e) {
-      console.warn('[zux] failed to stop browsing for restart:', e)
-    }
-    try {
-      await browseMany(PHONE_SERVICE_TYPES)
-    } catch (e) {
-      console.warn('[zux] failed to restart browsing after resume:', e)
-    }
+    await startDiscovery()
     return
   }
   // Nothing known to re-query in full mode.
