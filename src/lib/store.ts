@@ -16,13 +16,13 @@ import {
 import type { LocalNetworkState } from './api'
 import { resolvedToDiscovered, hasOfflineNodes } from './mdns'
 import type {
+  DiscoveryMode,
   GraphNode,
   GraphEdge,
   PhysicsConfig,
   MdnsEvent,
   ServiceDiscovered,
   Solver,
-  DiscoveryMode,
   ThemeName,
   ThemeColors,
 } from './types'
@@ -318,6 +318,12 @@ export function setTheme(name: ThemeName) {
   currentTheme.set(name)
 }
 
+// Set when the mode changes while local-network access is blocked: the
+// stale graph is kept for inspection, but must be dropped once access
+// returns so old-mode nodes do not linger in the new mode. Reset by
+// clearGraph, which starts a fresh discovery session.
+let pendingClearOnGrant = false
+
 export function clearGraph() {
   clearEventQueue()
   graphNodes.set(new Map())
@@ -328,16 +334,11 @@ export function clearGraph() {
   pendingClearOnGrant = false
 }
 
-// Set when the mode changes while local-network access is blocked: the
-// stale graph is kept for inspection, but must be dropped once access
-// returns so old-mode nodes do not linger in the new mode. Reset by
-// clearGraph, which starts a fresh discovery session.
-let pendingClearOnGrant = false
-
 // ── Discovery mode ───────────────────────────────────────────────────────
 // `all` enumerates every type via browseTypes; `phones` skips enumeration
 // and browses only the types phones advertise for nearby sharing and
 // wireless development. Frontend-only: no CLI flag (mobile has no CLI).
+// `_FC9F5ED42C8A` is the hashed Quick Share / Nearby Share type.
 export const PHONE_SERVICE_TYPES: string[] = [
   '_companion-link._tcp.local.',
   '_apple-mobdev2._tcp.local.',
@@ -829,10 +830,8 @@ export async function startDiscovery(): Promise<void> {
     // after the service-type-found listener exists, otherwise the initial
     // answers are dropped and the types never show up.
     await stopBrowse()
-    if (pendingClearOnGrant) {
-      pendingClearOnGrant = false
-      clearGraph()
-    }
+    // A mode change while blocked defers its reset until access returns.
+    if (pendingClearOnGrant) clearGraph()
     if (get(discoveryMode) === 'phones') {
       await browseMany(PHONE_SERVICE_TYPES)
     } else {
