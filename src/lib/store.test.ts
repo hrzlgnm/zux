@@ -345,6 +345,45 @@ describe('local device highlighting', () => {
     expect(nodes.get('inst:other:_http._tcp.local.')?.isLocal).toBe(false)
   })
 
+  it('drops withdrawn host addresses when a service re-resolves', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(true)
+    enqueueMdnsEvent({
+      type: 'service-added',
+      data: discovered({ addresses: [{ ip: '192.168.1.5', interfaces: ['eth0'] }] }),
+    })
+    vi.advanceTimersByTime(50)
+    const host = get(graphNodes).get('host:host.local.')
+    expect(host?.addresses?.map((a) => a.ip)).toEqual(['192.168.1.5'])
+    expect(host?.isLocal).toBe(false)
+  })
+
+  it('rebuilds host addresses from live sibling instances', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    enqueueMdnsEvent({
+      type: 'service-added',
+      data: discovered({
+        id: 'other._http._tcp.local.',
+        name: 'other',
+        addresses: [{ ip: '192.168.1.99', interfaces: ['eth0'] }],
+      }),
+    })
+    vi.advanceTimersByTime(50)
+    // First instance moves to a new address; the sibling's stays.
+    enqueueMdnsEvent({
+      type: 'service-added',
+      data: discovered({ addresses: [{ ip: '192.168.1.5', interfaces: ['eth0'] }] }),
+    })
+    vi.advanceTimersByTime(50)
+    const host = get(graphNodes).get('host:host.local.')
+    expect(host?.addresses?.map((a) => a.ip).sort()).toEqual(['192.168.1.5', '192.168.1.99'])
+    expect(host?.isLocal).toBe(false)
+  })
+
   it('keeps the local flag through an offline/online cycle', () => {
     localAddresses.set(new Set(['192.168.1.2']))
     enqueueMdnsEvent({ type: 'service-added', data: discovered() })

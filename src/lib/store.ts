@@ -67,15 +67,10 @@ function isLocalService(addresses: AddressInfo[] | undefined, local: Set<string>
   return addresses.some((a) => local.has(normalizeLocalIp(a.ip)))
 }
 
-// Union of host addresses across every instance sharing the hostname,
-// keyed by IP with merged interface lists. A host stays local while any
-// member instance resolves to a local address.
-function mergeAddresses(
-  prev: AddressInfo[] | undefined,
-  next: AddressInfo[] | undefined,
-): AddressInfo[] {
+// Union of address lists keyed by IP with merged interface lists.
+function mergeAddressLists(lists: (AddressInfo[] | undefined)[]): AddressInfo[] {
   const byIp = new Map<string, Set<string>>()
-  for (const list of [prev, next]) {
+  for (const list of lists) {
     for (const a of list ?? []) {
       const ifaces = byIp.get(a.ip) ?? new Set<string>()
       for (const i of a.interfaces) ifaces.add(i)
@@ -83,6 +78,27 @@ function mergeAddresses(
     }
   }
   return [...byIp.entries()].map(([ip, ifaces]) => ({ ip, interfaces: [...ifaces].sort() }))
+}
+
+// The host's address list is rebuilt from its instances' latest addresses
+// on every resolve. Unioning with the previous host list would keep
+// withdrawn IPs (e.g. after a DHCP change) visible in the detail panel
+// and could pin a stale local flag; rebuilding from live instances keeps
+// mixed local/remote hosts flagged without going stale.
+function liveHostAddresses(
+  nodes: Map<string, GraphNode>,
+  edges: Map<string, GraphEdge>,
+  hId: string,
+  currentInstId: string,
+  current: AddressInfo[] | undefined,
+): AddressInfo[] {
+  const lists: (AddressInfo[] | undefined)[] = [current]
+  for (const e of edges.values()) {
+    if (e.id.startsWith('e:ih:') && e.to === hId && e.from !== currentInstId) {
+      lists.push(nodes.get(e.from)?.addresses)
+    }
+  }
+  return mergeAddressLists(lists)
 }
 
 export async function initLocalInterfaces(): Promise<UnlistenFn | null> {
@@ -737,7 +753,7 @@ function applyServiceAddedToMaps(
     nodes.set(nId, styleNode({ ...updated, offline: false }))
   }
   const prevHost = nodes.get(hId)
-  const hostAddresses = mergeAddresses(prevHost?.addresses, d.addresses)
+  const hostAddresses = liveHostAddresses(nodes, edges, hId, nId, d.addresses)
   const hostLocal = isLocalService(hostAddresses, local)
   if (!prevHost) {
     nodes.set(
