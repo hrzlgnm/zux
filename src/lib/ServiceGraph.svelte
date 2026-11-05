@@ -14,6 +14,7 @@
     graphNetwork,
     resolvedTheme,
     themeColors,
+    LOCAL_DEVICE_TITLE,
   } from './store'
   import type { GraphNode, GraphEdge, PhysicsConfig } from './types'
 
@@ -246,7 +247,7 @@
           id: n.id,
           color: { background: c.offlineBg, border: c.offlineBorder },
           font: { color: c.offlineFont },
-          title: n.isLocal ? 'Advertised by this device' : undefined,
+          title: n.isLocal ? LOCAL_DEVICE_TITLE : undefined,
         })
       } else {
         const fc = fontMap[n.group]
@@ -256,7 +257,7 @@
             id: n.id,
             color: n.isLocal ? { background: bg.background, border: c.accent } : bg,
             font: { color: fc },
-            title: n.isLocal ? 'Advertised by this device' : undefined,
+            title: n.isLocal ? LOCAL_DEVICE_TITLE : undefined,
           })
         }
       }

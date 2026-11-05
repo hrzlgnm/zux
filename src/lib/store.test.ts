@@ -302,6 +302,24 @@ describe('local device highlighting', () => {
     expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(false)
   })
 
+  it('keeps a mixed local/remote host flagged local', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    enqueueMdnsEvent({
+      type: 'service-added',
+      data: discovered({
+        id: 'other._http._tcp.local.',
+        name: 'other',
+        addresses: [{ ip: '192.168.1.99', interfaces: ['eth0'] }],
+      }),
+    })
+    vi.advanceTimersByTime(50)
+    const nodes = get(graphNodes)
+    expect(nodes.get('host:host.local.')?.isLocal).toBe(true)
+    expect(nodes.get('inst:other:_http._tcp.local.')?.isLocal).toBe(false)
+  })
+
   it('keeps the local flag through an offline/online cycle', () => {
     localAddresses.set(new Set(['192.168.1.2']))
     enqueueMdnsEvent({ type: 'service-added', data: discovered() })

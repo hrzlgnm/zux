@@ -27,7 +27,7 @@
     <div class="meta">
       <span class="badge type-{node.group}">{node.group}</span>
       {#if node.isLocal}
-        <span class="badge local" title="Advertised by this device">this device</span>
+        <span class="badge local" title="Advertised by this device">This device</span>
       {/if}
     </div>
     <div class="fields">
