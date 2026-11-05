@@ -177,9 +177,14 @@ jobs:
     needs: [changes, actionlint]
     if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-26.04
+    container: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1@sha256:9e6ab3e6984eb3866c19ff61e12966d7cd5e2d1e014cfb64a5bf22340b89a714
     env:
       RUSTFLAGS: "-D warnings"
     steps:
+      - name: 🔧 Configure Git safe directory
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -193,10 +198,6 @@ jobs:
           workspaces: src-tauri
           shared-key: "stable-ubuntu-24.04"
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - name: 🧰 Install dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@a2e70543f16acf3105219e0e944c323afe88b269 # v2.14.13
-        with:
-          command: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: 🔍 Check
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
