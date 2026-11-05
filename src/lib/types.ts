@@ -51,6 +51,8 @@ export interface GraphEdge {
 
 export type Solver = 'forceAtlas2Based' | 'barnesHut' | 'repulsion' | 'hierarchicalRepulsion'
 
+export type DiscoveryMode = 'all' | 'phones'
+
 export interface PhysicsConfig {
   solver: Solver
   gravitationalConstant: number

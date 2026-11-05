@@ -16,6 +16,7 @@ import {
 import type { LocalNetworkState } from './api'
 import { resolvedToDiscovered, hasOfflineNodes } from './mdns'
 import type {
+  DiscoveryMode,
   GraphNode,
   GraphEdge,
   PhysicsConfig,
@@ -317,6 +318,12 @@ export function setTheme(name: ThemeName) {
   currentTheme.set(name)
 }
 
+// Set when the mode changes while local-network access is blocked: the
+// stale graph is kept for inspection, but must be dropped once access
+// returns so old-mode nodes do not linger in the new mode. Reset by
+// clearGraph, which starts a fresh discovery session.
+let pendingClearOnGrant = false
+
 export function clearGraph() {
   clearEventQueue()
   graphNodes.set(new Map())
@@ -324,6 +331,78 @@ export function clearGraph() {
   selectedNodeId.set(null)
   serviceTypes.set(new Set())
   seenInstances.clear()
+  pendingClearOnGrant = false
+}
+
+// ── Discovery mode ───────────────────────────────────────────────────────
+// `all` enumerates every type via browseTypes; `phones` skips enumeration
+// and browses only the types phones advertise for nearby sharing and
+// wireless development. Frontend-only: no CLI flag (mobile has no CLI).
+// `_FC9F5ED42C8A` is the hashed Quick Share / Nearby Share type.
+export const PHONE_SERVICE_TYPES: string[] = [
+  '_companion-link._tcp.local.',
+  '_apple-mobdev2._tcp.local.',
+  '_adb-tls-connect._tcp.local.',
+  '_adb-tls-pairing._tcp.local.',
+  '_adb._tcp.local.',
+  '_FC9F5ED42C8A._tcp.local.',
+]
+
+const PHONE_SERVICE_TYPE_SET = new Set(PHONE_SERVICE_TYPES)
+
+export const discoveryMode = writable<DiscoveryMode>('all')
+
+const DISCOVERY_STORE_FILE = 'discovery-config.json'
+const DISCOVERY_MODE_KEY = 'discoveryMode'
+
+// Tracks whether the mode was already resolved this session (user choice
+// or loaded value). Prevents a slow store read at startup from clobbering
+// a choice the user made while it was loading.
+let discoveryModeResolved = false
+
+function loadDiscoveryStore() {
+  return Store.load(DISCOVERY_STORE_FILE)
+}
+
+export async function initDiscoveryMode() {
+  if (discoveryModeResolved) return
+  discoveryModeResolved = true
+  if (!isTauri()) return
+  try {
+    const store = await loadDiscoveryStore()
+    const saved = await store.get<DiscoveryMode>(DISCOVERY_MODE_KEY)
+    if (saved === 'all' || saved === 'phones') {
+      discoveryMode.set(saved)
+    }
+  } catch (e) {
+    console.error('[zux] failed to load discovery mode:', e)
+  }
+}
+
+let discoverySaveChain: Promise<void> = Promise.resolve()
+
+function persistDiscoveryMode(mode: DiscoveryMode) {
+  if (!isTauri()) return
+  discoverySaveChain = discoverySaveChain.then(async () => {
+    try {
+      const store = await loadDiscoveryStore()
+      await store.set(DISCOVERY_MODE_KEY, mode)
+      await store.save()
+    } catch (e) {
+      console.error('[zux] failed to save discovery mode:', e)
+    }
+  })
+}
+
+export function setDiscoveryMode(mode: DiscoveryMode) {
+  discoveryModeResolved = true
+  discoveryMode.set(mode)
+  persistDiscoveryMode(mode)
+}
+
+// Test hook: resets the startup-resolution marker so init tests start clean.
+export function resetDiscoveryModeResolved() {
+  discoveryModeResolved = false
 }
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
@@ -686,12 +765,15 @@ export function setupEventListeners(): Promise<UnlistenFn> {
     }
     const unlistenType = await onServiceTypeFound(({ service_type }) => {
       if (service_type.includes('._sub.')) return
+      if (get(discoveryMode) === 'phones' && !PHONE_SERVICE_TYPE_SET.has(service_type)) return
       if (get(serviceTypes).has(service_type)) return
       if (pendingBrowseTypes.has(service_type)) return
       enqueueServiceType(service_type)
       enqueueEvent({ type: 'service-type-added', data: { service_type } })
     })
     const unlistenResolved = await onServiceResolved(({ service }) => {
+      if (get(discoveryMode) === 'phones' && !PHONE_SERVICE_TYPE_SET.has(service.service_type))
+        return
       const discovered = resolvedToDiscovered(service, linkLocal)
       const prev = seenInstances.get(discovered.id)
       if (prev && JSON.stringify(prev) === JSON.stringify(discovered)) return
@@ -740,14 +822,46 @@ export async function initLocalNetworkAccess(): Promise<LocalNetworkState> {
 export async function startDiscovery(): Promise<void> {
   try {
     // Stop any previously started browsing so a restart never resumes
-    // stale browses, then trigger service-type discovery. This must happen
+    // stale browses, then trigger discovery. Phone mode skips type
+    // enumeration and browses only phone types directly. Note stopBrowse
+    // stops instance browses only: a previous type enumeration keeps
+    // running, but its events are ignored in phones mode (see
+    // setupEventListeners), so only phone types resolve. This must happen
     // after the service-type-found listener exists, otherwise the initial
     // answers are dropped and the types never show up.
     await stopBrowse()
-    await browseTypes()
+    // A mode change while blocked defers its reset until access returns.
+    if (pendingClearOnGrant) clearGraph()
+    if (get(discoveryMode) === 'phones') {
+      await browseMany(PHONE_SERVICE_TYPES)
+    } else {
+      await browseTypes()
+    }
   } catch (e) {
     console.warn('[zux] failed to start discovery:', e)
   }
+}
+
+// Switches mode and restarts browsing when access is granted. When
+// blocked there is no active browsing and nothing to repopulate, so the
+// mode is stored without discarding the current graph; the reset is
+// applied by startDiscovery once access returns.
+export async function switchDiscoveryMode(mode: DiscoveryMode): Promise<void> {
+  if (get(discoveryMode) === mode) return
+  setDiscoveryMode(mode)
+  if (!isTauri()) {
+    // Browser preview has no native discovery backend; reseed the sample
+    // graph instead of calling into it, so toggling never empties the page.
+    clearGraph()
+    seedPreviewData()
+    return
+  }
+  if (get(localNetworkAccess) !== 'granted') {
+    pendingClearOnGrant = true
+    return
+  }
+  clearGraph()
+  await startDiscovery()
 }
 
 // Cooldown between restart runs (focus events fire in storms).
@@ -765,13 +879,20 @@ export async function restartBrowsing(): Promise<void> {
   if (!/Android/i.test(navigator.userAgent)) return
   if (get(localNetworkAccess) !== 'granted') return
   if (!hasOfflineNodes(get(graphNodes))) return
-  if (get(serviceTypes).size === 0) return
   const now = Date.now()
   if (now - lastRestartAt < RESTART_COOLDOWN_MS) return
   lastRestartAt = now
   // A revocation mid-session silently starves discovery, so surface the
   // blocking panel instead of restarting.
   if ((await initLocalNetworkAccess()) !== 'granted') return
+  if (get(discoveryMode) === 'phones') {
+    // The phone list is static, so restart even before any type resolved.
+    console.debug('[zux] restarting phone browsing after resume')
+    await startDiscovery()
+    return
+  }
+  // Nothing known to re-query in full mode.
+  if (get(serviceTypes).size === 0) return
   const types = [...get(serviceTypes)]
   console.debug('[zux] restarting instance browsing after resume')
   try {
