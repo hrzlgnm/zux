@@ -11,7 +11,6 @@ RUN apt-get update \
     git \
     jq \
     librsvg2-dev \
-    libssl-dev \
     libwebkit2gtk-4.1-dev \
     patchelf \
     && rm -rf /var/lib/apt/lists/*
