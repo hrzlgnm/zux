@@ -17,6 +17,7 @@
     seedPreviewData,
     initPhysicsConfig,
     initTheme,
+    initDiscoveryMode,
     initLocalNetworkAccess,
     localNetworkAccess,
     startDiscovery,
@@ -161,6 +162,7 @@
       }
       void initPhysicsConfig()
       void initTheme()
+      void initDiscoveryMode()
       try {
         const fn = await setupEventListeners()
         if (mounted) {

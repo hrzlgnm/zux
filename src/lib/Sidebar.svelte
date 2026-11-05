@@ -12,6 +12,8 @@
     currentTheme,
     systemTheme,
     setTheme,
+    discoveryMode,
+    switchDiscoveryMode,
   } from './store'
   import { themes } from './themes'
   import type { Solver, ThemeName } from './types'
@@ -438,6 +440,31 @@
     }}
   />
 
+  <fieldset class="discovery">
+    <legend>Discovery</legend>
+    <label class="discovery-option">
+      <input
+        type="radio"
+        name="discovery-mode"
+        value="all"
+        checked={$discoveryMode === 'all'}
+        onchange={() => void switchDiscoveryMode('all')}
+      />
+      All services
+    </label>
+    <label class="discovery-option">
+      <input
+        type="radio"
+        name="discovery-mode"
+        value="phones"
+        checked={$discoveryMode === 'phones'}
+        onchange={() => void switchDiscoveryMode('phones')}
+      />
+      Phones only
+    </label>
+    <p class="discovery-hint">Nearby sharing + wireless debugging types.</p>
+  </fieldset>
+
   <button class="export-btn" onclick={exportSvg}>Export SVG</button>
 
   <p class="font-attribution">
@@ -704,6 +731,37 @@
   }
   .filter-input:focus {
     border-color: var(--accent);
+  }
+  .discovery {
+    margin: 0;
+    padding: 8px;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    background: var(--bg-primary);
+  }
+  .discovery legend {
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .discovery-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 2px 0;
+  }
+  .discovery-option input[type='radio'] {
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .discovery-hint {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: var(--text-muted);
   }
   .export-btn {
     width: 100%;

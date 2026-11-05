@@ -22,6 +22,7 @@ import type {
   MdnsEvent,
   ServiceDiscovered,
   Solver,
+  DiscoveryMode,
   ThemeName,
   ThemeColors,
 } from './types'
@@ -324,6 +325,63 @@ export function clearGraph() {
   selectedNodeId.set(null)
   serviceTypes.set(new Set())
   seenInstances.clear()
+}
+
+// ── Discovery mode ───────────────────────────────────────────────────────
+// `all` enumerates every type via browseTypes; `phones` skips enumeration
+// and browses only the types phones advertise for nearby sharing and
+// wireless development. Frontend-only: no CLI flag (mobile has no CLI).
+export const PHONE_SERVICE_TYPES: string[] = [
+  '_companion-link._tcp.local.',
+  '_apple-mobdev2._tcp.local.',
+  '_adb-tls-connect._tcp.local.',
+  '_adb-tls-pairing._tcp.local.',
+  '_adb._tcp.local.',
+  '_FC9F5ED42C8A._tcp.local.',
+]
+
+const PHONE_SERVICE_TYPE_SET = new Set(PHONE_SERVICE_TYPES)
+
+export const discoveryMode = writable<DiscoveryMode>('all')
+
+const DISCOVERY_STORE_FILE = 'discovery-config.json'
+const DISCOVERY_MODE_KEY = 'discoveryMode'
+
+function loadDiscoveryStore() {
+  return Store.load(DISCOVERY_STORE_FILE)
+}
+
+export async function initDiscoveryMode() {
+  if (!isTauri()) return
+  try {
+    const store = await loadDiscoveryStore()
+    const saved = await store.get<DiscoveryMode>(DISCOVERY_MODE_KEY)
+    if (saved === 'all' || saved === 'phones') {
+      discoveryMode.set(saved)
+    }
+  } catch (e) {
+    console.error('[zux] failed to load discovery mode:', e)
+  }
+}
+
+let discoverySaveChain: Promise<void> = Promise.resolve()
+
+function persistDiscoveryMode(mode: DiscoveryMode) {
+  if (!isTauri()) return
+  discoverySaveChain = discoverySaveChain.then(async () => {
+    try {
+      const store = await loadDiscoveryStore()
+      await store.set(DISCOVERY_MODE_KEY, mode)
+      await store.save()
+    } catch (e) {
+      console.error('[zux] failed to save discovery mode:', e)
+    }
+  })
+}
+
+export function setDiscoveryMode(mode: DiscoveryMode) {
+  discoveryMode.set(mode)
+  persistDiscoveryMode(mode)
 }
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
@@ -686,12 +744,15 @@ export function setupEventListeners(): Promise<UnlistenFn> {
     }
     const unlistenType = await onServiceTypeFound(({ service_type }) => {
       if (service_type.includes('._sub.')) return
+      if (get(discoveryMode) === 'phones' && !PHONE_SERVICE_TYPE_SET.has(service_type)) return
       if (get(serviceTypes).has(service_type)) return
       if (pendingBrowseTypes.has(service_type)) return
       enqueueServiceType(service_type)
       enqueueEvent({ type: 'service-type-added', data: { service_type } })
     })
     const unlistenResolved = await onServiceResolved(({ service }) => {
+      if (get(discoveryMode) === 'phones' && !PHONE_SERVICE_TYPE_SET.has(service.service_type))
+        return
       const discovered = resolvedToDiscovered(service, linkLocal)
       const prev = seenInstances.get(discovered.id)
       if (prev && JSON.stringify(prev) === JSON.stringify(discovered)) return
@@ -740,14 +801,29 @@ export async function initLocalNetworkAccess(): Promise<LocalNetworkState> {
 export async function startDiscovery(): Promise<void> {
   try {
     // Stop any previously started browsing so a restart never resumes
-    // stale browses, then trigger service-type discovery. This must happen
+    // stale browses, then trigger discovery. Phone mode skips type
+    // enumeration and browses only phone types directly. This must happen
     // after the service-type-found listener exists, otherwise the initial
     // answers are dropped and the types never show up.
     await stopBrowse()
-    await browseTypes()
+    if (get(discoveryMode) === 'phones') {
+      await browseMany(PHONE_SERVICE_TYPES)
+    } else {
+      await browseTypes()
+    }
   } catch (e) {
     console.warn('[zux] failed to start discovery:', e)
   }
+}
+
+// Switches mode, clears stale nodes, and restarts browsing when access is
+// granted. No-op when the mode is unchanged.
+export async function switchDiscoveryMode(mode: DiscoveryMode): Promise<void> {
+  if (get(discoveryMode) === mode) return
+  setDiscoveryMode(mode)
+  clearGraph()
+  if (get(localNetworkAccess) !== 'granted') return
+  await startDiscovery()
 }
 
 // Cooldown between restart runs (focus events fire in storms).
@@ -772,6 +848,20 @@ export async function restartBrowsing(): Promise<void> {
   // A revocation mid-session silently starves discovery, so surface the
   // blocking panel instead of restarting.
   if ((await initLocalNetworkAccess()) !== 'granted') return
+  if (get(discoveryMode) === 'phones') {
+    console.debug('[zux] restarting phone browsing after resume')
+    try {
+      await stopBrowse()
+    } catch (e) {
+      console.warn('[zux] failed to stop browsing for restart:', e)
+    }
+    try {
+      await browseMany(PHONE_SERVICE_TYPES)
+    } catch (e) {
+      console.warn('[zux] failed to restart browsing after resume:', e)
+    }
+    return
+  }
   const types = [...get(serviceTypes)]
   console.debug('[zux] restarting instance browsing after resume')
   try {

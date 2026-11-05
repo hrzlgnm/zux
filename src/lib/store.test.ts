@@ -19,6 +19,11 @@ import {
   enqueueMdnsEvent,
   clearMdnsEventQueue,
   enqueueBrowseType,
+  PHONE_SERVICE_TYPES,
+  discoveryMode,
+  startDiscovery,
+  switchDiscoveryMode,
+  localNetworkAccess,
 } from './store'
 
 function discovered(overrides: Record<string, unknown> = {}) {
@@ -93,5 +98,71 @@ describe('mdns event batching', () => {
     clearMdnsEventQueue()
     vi.advanceTimersByTime(50)
     expect(get(serviceTypes).size).toBe(0)
+  })
+})
+
+describe('phone discovery mode', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    clearGraph()
+    discoveryMode.set('all')
+    localNetworkAccess.set('granted')
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('lists nearby-sharing and wireless-debugging types only', () => {
+    expect(PHONE_SERVICE_TYPES).toEqual([
+      '_companion-link._tcp.local.',
+      '_apple-mobdev2._tcp.local.',
+      '_adb-tls-connect._tcp.local.',
+      '_adb-tls-pairing._tcp.local.',
+      '_adb._tcp.local.',
+      '_FC9F5ED42C8A._tcp.local.',
+    ])
+  })
+
+  it('browses all types by default', async () => {
+    const api = await import('./api')
+    vi.mocked(api.browseTypes).mockClear()
+    vi.mocked(api.browseMany).mockClear()
+    discoveryMode.set('all')
+    await startDiscovery()
+    expect(api.browseTypes).toHaveBeenCalled()
+    expect(api.browseMany).not.toHaveBeenCalled()
+  })
+
+  it('browses only phone types in phones mode', async () => {
+    const api = await import('./api')
+    vi.mocked(api.browseTypes).mockClear()
+    vi.mocked(api.browseMany).mockClear()
+    discoveryMode.set('phones')
+    await startDiscovery()
+    expect(api.browseTypes).not.toHaveBeenCalled()
+    expect(api.browseMany).toHaveBeenCalledWith(PHONE_SERVICE_TYPES)
+  })
+
+  it('switching mode clears the graph and restarts discovery', async () => {
+    const api = await import('./api')
+    vi.mocked(api.browseMany).mockClear()
+    enqueueMdnsEvent({ type: 'service-type-added', data: { service_type: '_http._tcp.local.' } })
+    vi.advanceTimersByTime(50)
+    expect(get(serviceTypes).size).toBe(1)
+    await switchDiscoveryMode('phones')
+    expect(get(discoveryMode)).toBe('phones')
+    expect(get(serviceTypes).size).toBe(0)
+    expect(api.browseMany).toHaveBeenCalledWith(PHONE_SERVICE_TYPES)
+  })
+
+  it('switching to the current mode does not restart browsing', async () => {
+    const api = await import('./api')
+    vi.mocked(api.browseMany).mockClear()
+    vi.mocked(api.browseTypes).mockClear()
+    discoveryMode.set('all')
+    await switchDiscoveryMode('all')
+    expect(api.browseMany).not.toHaveBeenCalled()
+    expect(api.browseTypes).not.toHaveBeenCalled()
   })
 })
