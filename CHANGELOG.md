@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.0](https://github.com/hrzlgnm/zux/compare/v1.21.9...v1.22.0) (2026-11-05)
+
+
+### Features
+
+* add phones-only discovery mode ([#610](https://github.com/hrzlgnm/zux/issues/610)) ([6f24514](https://github.com/hrzlgnm/zux/commit/6f24514cfce654fe9f6ea6684e2a0af2327438e1))
+
+
+### Dependencies
+
+* lock file maintenance ([#612](https://github.com/hrzlgnm/zux/issues/612)) ([41721a7](https://github.com/hrzlgnm/zux/commit/41721a7bce02b30568e87ebea44cb2fa909ec8a1))
+* update archlinux:base-devel docker digest to 767de6e ([#607](https://github.com/hrzlgnm/zux/issues/607)) ([6900e6e](https://github.com/hrzlgnm/zux/commit/6900e6e819d74cb1ede87f22498fe36a60baf146))
+* update dependency vitest to v5.1.0 ([#611](https://github.com/hrzlgnm/zux/issues/611)) ([d4a85f5](https://github.com/hrzlgnm/zux/commit/d4a85f5704b985d45b44e8fdf5cdeca9702daa52))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 1a4598c ([#609](https://github.com/hrzlgnm/zux/issues/609)) ([bc0294e](https://github.com/hrzlgnm/zux/commit/bc0294e144fb5b005c6e2f71152c35f13785faf2))
+
 ## [1.21.9](https://github.com/hrzlgnm/zux/compare/v1.21.8...v1.21.9) (2026-11-04)
 
 
