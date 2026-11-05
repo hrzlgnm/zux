@@ -165,4 +165,17 @@ describe('phone discovery mode', () => {
     expect(api.browseMany).not.toHaveBeenCalled()
     expect(api.browseTypes).not.toHaveBeenCalled()
   })
+
+  it('switching while blocked stores the mode without clearing', async () => {
+    const api = await import('./api')
+    vi.mocked(api.browseMany).mockClear()
+    localNetworkAccess.set('denied')
+    enqueueMdnsEvent({ type: 'service-type-added', data: { service_type: '_http._tcp.local.' } })
+    vi.advanceTimersByTime(50)
+    expect(get(serviceTypes).size).toBe(1)
+    await switchDiscoveryMode('phones')
+    expect(get(discoveryMode)).toBe('phones')
+    expect(get(serviceTypes).size).toBe(1)
+    expect(api.browseMany).not.toHaveBeenCalled()
+  })
 })

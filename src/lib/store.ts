@@ -816,13 +816,14 @@ export async function startDiscovery(): Promise<void> {
   }
 }
 
-// Switches mode, clears stale nodes, and restarts browsing when access is
-// granted. No-op when the mode is unchanged.
+// Switches mode and restarts browsing when access is granted. When
+// blocked there is no active browsing and nothing to repopulate, so the
+// mode is stored without discarding the current graph.
 export async function switchDiscoveryMode(mode: DiscoveryMode): Promise<void> {
   if (get(discoveryMode) === mode) return
   setDiscoveryMode(mode)
-  clearGraph()
   if (get(localNetworkAccess) !== 'granted') return
+  clearGraph()
   await startDiscovery()
 }
 
@@ -841,7 +842,6 @@ export async function restartBrowsing(): Promise<void> {
   if (!/Android/i.test(navigator.userAgent)) return
   if (get(localNetworkAccess) !== 'granted') return
   if (!hasOfflineNodes(get(graphNodes))) return
-  if (get(serviceTypes).size === 0) return
   const now = Date.now()
   if (now - lastRestartAt < RESTART_COOLDOWN_MS) return
   lastRestartAt = now
@@ -849,6 +849,7 @@ export async function restartBrowsing(): Promise<void> {
   // blocking panel instead of restarting.
   if ((await initLocalNetworkAccess()) !== 'granted') return
   if (get(discoveryMode) === 'phones') {
+    // The phone list is static, so restart even before any type resolved.
     console.debug('[zux] restarting phone browsing after resume')
     try {
       await stopBrowse()
@@ -862,6 +863,8 @@ export async function restartBrowsing(): Promise<void> {
     }
     return
   }
+  // Nothing known to re-query in full mode.
+  if (get(serviceTypes).size === 0) return
   const types = [...get(serviceTypes)]
   console.debug('[zux] restarting instance browsing after resume')
   try {

@@ -162,7 +162,9 @@
       }
       void initPhysicsConfig()
       void initTheme()
-      void initDiscoveryMode()
+      // Awaited: setupEventListeners filters by mode and startDiscovery
+      // branches on it, so the saved mode must land first.
+      await initDiscoveryMode()
       try {
         const fn = await setupEventListeners()
         if (mounted) {
