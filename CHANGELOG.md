@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.0](https://github.com/hrzlgnm/zux/compare/v1.22.0...v1.23.0) (2026-11-05)
+
+
+### Features
+
+* add zux ubuntu builder image ([#613](https://github.com/hrzlgnm/zux/issues/613)) ([b4f76c4](https://github.com/hrzlgnm/zux/commit/b4f76c414cf7b926e670fd88a4dee6ecb1992957))
+* drop unused packages from ubuntu builder image ([#617](https://github.com/hrzlgnm/zux/issues/617)) ([e91a484](https://github.com/hrzlgnm/zux/commit/e91a4841919bc1c9367d3193d803383c5c44300f))
+* highlight services advertised by the local device ([#620](https://github.com/hrzlgnm/zux/issues/620)) ([29ec546](https://github.com/hrzlgnm/zux/commit/29ec5462593d3f94a19e89bd8dfefc68883b747d))
+* run release ubuntu job in zux builder image ([#614](https://github.com/hrzlgnm/zux/issues/614)) ([0b685f1](https://github.com/hrzlgnm/zux/commit/0b685f1bcd71d952ee9f9572645ae71fee1d14ea))
+* slim arch builder image and make AUR binaries auditable ([#618](https://github.com/hrzlgnm/zux/issues/618)) ([28a02cc](https://github.com/hrzlgnm/zux/commit/28a02ccf3a7c245313bc0db1fa412d304f1cfc48))
+
+
+### Dependencies
+
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to dd84387 ([#621](https://github.com/hrzlgnm/zux/issues/621)) ([383466e](https://github.com/hrzlgnm/zux/commit/383466ee312df401d66cba0d3233707592a40aec))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to e83bb7f ([#619](https://github.com/hrzlgnm/zux/issues/619)) ([52362a6](https://github.com/hrzlgnm/zux/commit/52362a6b4d9fb0b3cbca10a56b3b4876b154821e))
+
 ## [1.22.0](https://github.com/hrzlgnm/zux/compare/v1.21.9...v1.22.0) (2026-11-05)
 
 
