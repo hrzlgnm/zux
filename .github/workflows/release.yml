@@ -102,9 +102,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            # Floating :v1 until the first publish; pin @sha256 digest
-            # afterwards like zux-arch-aur-builder in aur-reusable.yml.
-            container_image: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1
+            container_image: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1@sha256:9e6ab3e6984eb3866c19ff61e12966d7cd5e2d1e014cfb64a5bf22340b89a714
           - os: macos-latest
             target: universal-apple-darwin
             args: --target universal-apple-darwin
