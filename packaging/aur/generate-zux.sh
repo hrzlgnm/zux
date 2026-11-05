@@ -24,7 +24,7 @@ url="https://github.com/hrzlgnm/zux"
 license=('MIT' 'OFL-1.1')
 depends=('cairo' 'desktop-file-utils' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libsoup3' 'pango' 'webkit2gtk-4.1')
 conflicts=('zux-bin')
-makedepends=('cargo' 'git' 'file' 'nodejs' 'pnpm' 'base-devel' 'rust' 'librsvg' 'patchelf')
+makedepends=('cargo' 'cargo-auditable' 'git' 'file' 'nodejs' 'pnpm' 'base-devel' 'rust' 'librsvg' 'patchelf')
 options=('!strip' '!emptydirs')
 source=("\$pkgname-v\$pkgver.tar.gz::https://github.com/hrzlgnm/\$pkgname/archive/refs/tags/v\$pkgver.tar.gz")
 sha256sums=('$sha256sum')
@@ -38,6 +38,8 @@ prepare() {
 build() {
     cd "\$srcdir/\$_builddir" || exit 1
     export CFLAGS="\${CFLAGS//-flto=auto//}"
+    # route the cargo spawned by 'pnpm tauri' through cargo-auditable
+    export PATH="\$PWD/scripts:\$PATH"
     pnpm run tauri build --no-bundle
     # bundle the already-built binary as deb to get required icons and
     # desktop file for packaging, without building a second time
