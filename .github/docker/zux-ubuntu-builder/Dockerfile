@@ -10,7 +10,6 @@ RUN apt-get update \
     file \
     git \
     jq \
-    libappindicator3-dev \
     librsvg2-dev \
     libssl-dev \
     libwebkit2gtk-4.1-dev \
