@@ -9,15 +9,10 @@ RUN apt-get update \
     curl \
     file \
     git \
-    gh \
     jq \
-    libappindicator3-dev \
     librsvg2-dev \
-    libssl-dev \
     libwebkit2gtk-4.1-dev \
     patchelf \
-    unzip \
-    wget \
     && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.source="https://github.com/hrzlgnm/zux"
