@@ -15,7 +15,6 @@ RUN apt-get update \
     libssl-dev \
     libwebkit2gtk-4.1-dev \
     patchelf \
-    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.source="https://github.com/hrzlgnm/zux"
