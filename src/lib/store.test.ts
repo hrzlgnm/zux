@@ -12,6 +12,28 @@ vi.mock('./api', () => ({
   linkLocalOnly: vi.fn().mockResolvedValue(true),
 }))
 
+const tauriMocks = vi.hoisted(() => ({ isTauri: true }))
+
+vi.mock('@tauri-apps/api/core', () => ({
+  isTauri: () => tauriMocks.isTauri,
+}))
+
+const storeData = vi.hoisted(() => ({ data: new Map<string, unknown>() }))
+
+vi.mock('@tauri-apps/plugin-store', () => ({
+  Store: {
+    load: () =>
+      Promise.resolve({
+        get: (key: string) => Promise.resolve(storeData.data.get(key) ?? null),
+        set: (key: string, value: unknown) => {
+          storeData.data.set(key, value)
+          return Promise.resolve()
+        },
+        save: () => Promise.resolve(),
+      }),
+  },
+}))
+
 import {
   graphNodes,
   serviceTypes,
@@ -24,6 +46,9 @@ import {
   startDiscovery,
   switchDiscoveryMode,
   localNetworkAccess,
+  initDiscoveryMode,
+  setDiscoveryMode,
+  resetDiscoveryModeResolved,
 } from './store'
 
 function discovered(overrides: Record<string, unknown> = {}) {
@@ -106,6 +131,9 @@ describe('phone discovery mode', () => {
     vi.useFakeTimers()
     clearGraph()
     discoveryMode.set('all')
+    resetDiscoveryModeResolved()
+    storeData.data.clear()
+    tauriMocks.isTauri = true
     localNetworkAccess.set('granted')
   })
 
@@ -177,5 +205,29 @@ describe('phone discovery mode', () => {
     expect(get(discoveryMode)).toBe('phones')
     expect(get(serviceTypes).size).toBe(1)
     expect(api.browseMany).not.toHaveBeenCalled()
+  })
+
+  it('init applies the saved mode when untouched', async () => {
+    storeData.data.set('discoveryMode', 'phones')
+    await initDiscoveryMode()
+    expect(get(discoveryMode)).toBe('phones')
+  })
+
+  it('init does not clobber a choice made while loading', async () => {
+    storeData.data.set('discoveryMode', 'all')
+    setDiscoveryMode('phones')
+    await initDiscoveryMode()
+    expect(get(discoveryMode)).toBe('phones')
+  })
+
+  it('toggle in browser preview reseeds the sample graph', async () => {
+    tauriMocks.isTauri = false
+    const api = await import('./api')
+    vi.mocked(api.browseMany).mockClear()
+    await switchDiscoveryMode('phones')
+    expect(get(discoveryMode)).toBe('phones')
+    expect(api.browseMany).not.toHaveBeenCalled()
+    expect(get(graphNodes).size).toBeGreaterThan(0)
+    expect(get(serviceTypes).size).toBeGreaterThan(0)
   })
 })

@@ -347,11 +347,18 @@ export const discoveryMode = writable<DiscoveryMode>('all')
 const DISCOVERY_STORE_FILE = 'discovery-config.json'
 const DISCOVERY_MODE_KEY = 'discoveryMode'
 
+// Tracks whether the mode was already resolved this session (user choice
+// or loaded value). Prevents a slow store read at startup from clobbering
+// a choice the user made while it was loading.
+let discoveryModeResolved = false
+
 function loadDiscoveryStore() {
   return Store.load(DISCOVERY_STORE_FILE)
 }
 
 export async function initDiscoveryMode() {
+  if (discoveryModeResolved) return
+  discoveryModeResolved = true
   if (!isTauri()) return
   try {
     const store = await loadDiscoveryStore()
@@ -380,8 +387,14 @@ function persistDiscoveryMode(mode: DiscoveryMode) {
 }
 
 export function setDiscoveryMode(mode: DiscoveryMode) {
+  discoveryModeResolved = true
   discoveryMode.set(mode)
   persistDiscoveryMode(mode)
+}
+
+// Test hook: resets the startup-resolution marker so init tests start clean.
+export function resetDiscoveryModeResolved() {
+  discoveryModeResolved = false
 }
 
 export const stats = derived([graphNodes, graphEdges], ([$nodes, $edges]) => {
@@ -822,6 +835,13 @@ export async function startDiscovery(): Promise<void> {
 export async function switchDiscoveryMode(mode: DiscoveryMode): Promise<void> {
   if (get(discoveryMode) === mode) return
   setDiscoveryMode(mode)
+  if (!isTauri()) {
+    // Browser preview has no native discovery backend; reseed the sample
+    // graph instead of calling into it, so toggling never empties the page.
+    clearGraph()
+    seedPreviewData()
+    return
+  }
   if (get(localNetworkAccess) !== 'granted') return
   clearGraph()
   await startDiscovery()
