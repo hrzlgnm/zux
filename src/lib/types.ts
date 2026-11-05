@@ -38,6 +38,9 @@ export interface GraphNode {
   txt?: Record<string, string>
   urls?: string[]
   offline?: boolean
+  isLocal?: boolean
+  borderWidth?: number
+  shadow?: boolean | { enabled?: boolean; color?: string; size?: number; x?: number; y?: number }
 }
 
 export interface GraphEdge {

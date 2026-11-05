@@ -14,6 +14,8 @@
     graphNetwork,
     resolvedTheme,
     themeColors,
+    LOCAL_BORDER_WIDTH,
+    LOCAL_DEVICE_TITLE,
   } from './store'
   import type { GraphNode, GraphEdge, PhysicsConfig } from './types'
 
@@ -103,7 +105,16 @@
         addN.push(n)
       } else {
         const prev = prevNodeData.get(id)
-        if (prev && (prev.offline !== n.offline || prev.label !== n.label)) {
+        if (
+          prev &&
+          (prev.offline !== n.offline ||
+            prev.label !== n.label ||
+            prev.isLocal !== n.isLocal ||
+            prev.borderWidth !== n.borderWidth ||
+            JSON.stringify(prev.color) !== JSON.stringify(n.color) ||
+            JSON.stringify(prev.shadow) !== JSON.stringify(n.shadow) ||
+            prev.title !== n.title)
+        ) {
           updateN.push(n)
         }
       }
@@ -231,6 +242,10 @@
       id: string
       color: { background: string; border: string }
       font: { color: string }
+      title?: string
+      borderWidth?: number
+      shadow?:
+        boolean | { enabled?: boolean; color?: string; size?: number; x?: number; y?: number }
     }[] = []
     for (const n of get(graphNodes).values()) {
       if (n.offline) {
@@ -238,12 +253,24 @@
           id: n.id,
           color: { background: c.offlineBg, border: c.offlineBorder },
           font: { color: c.offlineFont },
+          title: n.isLocal ? LOCAL_DEVICE_TITLE : undefined,
+          borderWidth: n.isLocal ? LOCAL_BORDER_WIDTH : undefined,
+          shadow: undefined,
         })
       } else {
         const fc = fontMap[n.group]
         const bg = colorMap[n.group]
         if (fc && bg) {
-          nodeUpdates.push({ id: n.id, color: bg, font: { color: fc } })
+          nodeUpdates.push({
+            id: n.id,
+            color: n.isLocal ? { background: bg.background, border: c.accent } : bg,
+            font: { color: fc },
+            title: n.isLocal ? LOCAL_DEVICE_TITLE : undefined,
+            borderWidth: n.isLocal ? LOCAL_BORDER_WIDTH : undefined,
+            shadow: n.isLocal
+              ? { enabled: true, color: c.accent, size: 12, x: 0, y: 0 }
+              : undefined,
+          })
         }
       }
     }

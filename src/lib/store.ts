@@ -8,14 +8,17 @@ import {
   browseTypes,
   linkLocalOnly,
   localNetworkStatus,
+  onInterfacesChanged,
   onServiceRemoved,
   onServiceResolved,
   onServiceTypeFound,
   stopBrowse,
+  subscribeInterfaces,
 } from './api'
-import type { LocalNetworkState } from './api'
+import type { LocalNetworkState, NetworkInterface } from './api'
 import { resolvedToDiscovered, hasOfflineNodes } from './mdns'
 import type {
+  AddressInfo,
   DiscoveryMode,
   GraphNode,
   GraphEdge,
@@ -35,6 +38,106 @@ export const selectedNodeId = writable<string | null>(null)
 export const serviceTypes = writable<Set<string>>(new Set())
 export const filterQuery = writable<string>('')
 export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
+
+// Local interface addresses of the discovery device, normalized to
+// lowercase without `%scope` suffixes. Services, hosts, and addresses
+// overlapping this set are flagged `isLocal` on their graph nodes.
+export const localAddresses = writable<Set<string>>(new Set())
+
+// Tooltip for nodes advertised by the device running discovery.
+export const LOCAL_DEVICE_TITLE = 'Advertised by this device'
+
+export function normalizeLocalIp(ip: string): string {
+  const withoutScope = ip.split('%')[0] ?? ip
+  return withoutScope.toLowerCase()
+}
+
+function collectInterfaceAddresses(interfaces: NetworkInterface[]): Set<string> {
+  const out = new Set<string>()
+  for (const iface of interfaces) {
+    for (const addr of iface.addresses ?? []) {
+      out.add(normalizeLocalIp(addr))
+    }
+  }
+  return out
+}
+
+function isLocalService(addresses: AddressInfo[] | undefined, local: Set<string>): boolean {
+  if (!addresses) return false
+  return addresses.some((a) => local.has(normalizeLocalIp(a.ip)))
+}
+
+// Union of address lists keyed by IP with merged interface lists.
+function mergeAddressLists(lists: (AddressInfo[] | undefined)[]): AddressInfo[] {
+  const byIp = new Map<string, Set<string>>()
+  for (const list of lists) {
+    for (const a of list ?? []) {
+      const ifaces = byIp.get(a.ip) ?? new Set<string>()
+      for (const i of a.interfaces) ifaces.add(i)
+      byIp.set(a.ip, ifaces)
+    }
+  }
+  return [...byIp.entries()].map(([ip, ifaces]) => ({ ip, interfaces: [...ifaces].sort() }))
+}
+
+// The host's address list is rebuilt from its instances' latest addresses
+// on every resolve. Unioning with the previous host list would keep
+// withdrawn IPs (e.g. after a DHCP change) visible in the detail panel
+// and could pin a stale local flag; rebuilding from live instances keeps
+// mixed local/remote hosts flagged without going stale.
+function liveHostAddresses(
+  nodes: Map<string, GraphNode>,
+  edges: Map<string, GraphEdge>,
+  hId: string,
+  currentInstId: string,
+  current: AddressInfo[] | undefined,
+): AddressInfo[] {
+  const lists: (AddressInfo[] | undefined)[] = [current]
+  for (const e of edges.values()) {
+    if (e.id.startsWith('e:ih:') && e.to === hId && e.from !== currentInstId) {
+      lists.push(nodes.get(e.from)?.addresses)
+    }
+  }
+  return mergeAddressLists(lists)
+}
+
+export async function initLocalInterfaces(): Promise<UnlistenFn | null> {
+  if (!isTauri()) return null
+  const apply = (interfaces: NetworkInterface[]) => {
+    localAddresses.set(collectInterfaceAddresses(interfaces))
+    refreshLocalFlags()
+  }
+  try {
+    const unlisten = await onInterfacesChanged(({ interfaces }) => apply(interfaces))
+    try {
+      await subscribeInterfaces()
+    } catch (e) {
+      console.warn('[zux] failed to subscribe to interface changes:', e)
+    }
+    return unlisten
+  } catch (e) {
+    console.warn('[zux] failed to listen for interface changes:', e)
+    return null
+  }
+}
+
+function refreshLocalFlags() {
+  const local = get(localAddresses)
+  graphNodes.update((nodes) => {
+    for (const n of nodes.values()) {
+      let isLocal = false
+      if (n.group === 'address') {
+        isLocal = local.has(normalizeLocalIp(n.label))
+      } else if (n.addresses) {
+        isLocal = isLocalService(n.addresses, local)
+      }
+      if (n.isLocal === isLocal) continue
+      const updated = { ...n, isLocal }
+      nodes.set(n.id, n.offline ? applyOfflineStyle(updated) : applyOnlineStyle(updated))
+    }
+    return nodes
+  })
+}
 
 // Seen instances by fullname: unchanged re-resolves are skipped so the
 // graph does not redraw on every update.
@@ -455,17 +558,59 @@ function onlineColor(group: string): string {
   }
 }
 
-function applyOfflineStyle(n: GraphNode): GraphNode {
-  return { ...n, offline: true, color: offlineColor(), font: offlineFont() }
+function onlineNodeColor(
+  group: string,
+  isLocal: boolean | undefined,
+): string | { background: string; border: string } {
+  const background = onlineColor(group)
+  if (!isLocal) return background
+  return { background, border: themeColors().accent }
 }
 
-function applyOnlineStyle(n: GraphNode): GraphNode {
+function localTitle(isLocal: boolean | undefined): string | undefined {
+  return isLocal ? LOCAL_DEVICE_TITLE : undefined
+}
+
+// Thick accent-bordered nodes with a glow stand out against the default
+// thin group-colored borders; offline nodes keep the grey palette but
+// retain the thick border so they stay recognizable as local.
+export const LOCAL_BORDER_WIDTH = 4
+const LOCAL_SHADOW_SIZE = 12
+
+function localShadow(): NonNullable<GraphNode['shadow']> {
+  return { enabled: true, color: themeColors().accent, size: LOCAL_SHADOW_SIZE, x: 0, y: 0 }
+}
+
+function styleNode(n: GraphNode): GraphNode {
+  const isLocal = n.isLocal ?? false
+  if (n.offline) {
+    return {
+      ...n,
+      offline: true,
+      color: offlineColor(),
+      title: localTitle(isLocal),
+      font: offlineFont(),
+      borderWidth: isLocal ? LOCAL_BORDER_WIDTH : undefined,
+      shadow: undefined,
+    }
+  }
   return {
     ...n,
     offline: false,
-    color: onlineColor(n.group),
+    color: onlineNodeColor(n.group, isLocal),
+    title: localTitle(isLocal),
     font: undefined,
+    borderWidth: isLocal ? LOCAL_BORDER_WIDTH : undefined,
+    shadow: isLocal ? localShadow() : undefined,
   }
+}
+
+function applyOfflineStyle(n: GraphNode): GraphNode {
+  return styleNode({ ...n, offline: true })
+}
+
+function applyOnlineStyle(n: GraphNode): GraphNode {
+  return styleNode({ ...n, offline: false })
 }
 
 function cascadeOffline() {
@@ -561,6 +706,11 @@ function applyServiceAddedToMaps(
   const nId = instId(d.name || d.id, d.service_type)
   const hId = hostId(d.hostname || 'unknown')
   const tId = typeId(d.service_type)
+  const local = get(localAddresses)
+  // One service's addresses decide its own instance flag; the host flag
+  // ORs across every instance sharing the hostname (see union merge
+  // below) so a mixed local/remote host does not flap with resolve order.
+  const serviceLocal = isLocalService(d.addresses, local)
 
   if (!types.has(d.service_type)) {
     types.add(d.service_type)
@@ -569,23 +719,27 @@ function applyServiceAddedToMaps(
 
   const existing = nodes.get(nId)
   if (!existing) {
-    nodes.set(nId, {
-      id: nId,
-      label: d.name || d.id.split('.')[0],
-      group: 'instance',
-      shape: 'dot',
-      size: 15,
-      color: themeColors().instanceBg,
-      serviceType: d.service_type,
-      subType: d.sub_type ?? undefined,
-      hostname: d.hostname,
-      port: d.port,
-      addresses: d.addresses,
-      txt: d.txt,
-      urls: d.urls,
-    })
+    nodes.set(
+      nId,
+      styleNode({
+        id: nId,
+        label: d.name || d.id.split('.')[0],
+        group: 'instance',
+        shape: 'dot',
+        size: 15,
+        isLocal: serviceLocal,
+        serviceType: d.service_type,
+        subType: d.sub_type ?? undefined,
+        hostname: d.hostname,
+        port: d.port,
+        addresses: d.addresses,
+        txt: d.txt,
+        urls: d.urls,
+      }),
+    )
   } else {
-    const updated = {
+    // A re-resolve revives an offline instance; a live one keeps its state.
+    const updated: GraphNode = {
       ...existing,
       label: d.name || d.id.split('.')[0],
       hostname: d.hostname,
@@ -594,23 +748,37 @@ function applyServiceAddedToMaps(
       txt: d.txt,
       urls: d.urls,
       subType: d.sub_type ?? undefined,
+      isLocal: serviceLocal,
     }
-    nodes.set(nId, existing.offline ? applyOnlineStyle(updated) : updated)
+    nodes.set(nId, styleNode({ ...updated, offline: false }))
   }
-  if (!nodes.has(hId)) {
-    nodes.set(hId, {
-      id: hId,
-      label: d.hostname.replace('.local.', ''),
-      group: 'host',
-      shape: 'square',
-      size: 20,
-      color: themeColors().hostBg,
-      hostname: d.hostname,
-      addresses: d.addresses,
-    })
+  const prevHost = nodes.get(hId)
+  const hostAddresses = liveHostAddresses(nodes, edges, hId, nId, d.addresses)
+  const hostLocal = isLocalService(hostAddresses, local)
+  if (!prevHost) {
+    nodes.set(
+      hId,
+      styleNode({
+        id: hId,
+        label: d.hostname.replace('.local.', ''),
+        group: 'host',
+        shape: 'square',
+        size: 20,
+        isLocal: hostLocal,
+        hostname: d.hostname,
+        addresses: hostAddresses,
+      }),
+    )
   } else {
-    const host = nodes.get(hId)!
-    nodes.set(hId, { ...host, addresses: d.addresses })
+    nodes.set(
+      hId,
+      styleNode({
+        ...prevHost,
+        addresses: hostAddresses,
+        isLocal: hostLocal,
+        offline: prevHost.offline,
+      }),
+    )
   }
   if (d.addresses) {
     const ipInterfaces = new Map<string, string[]>()
@@ -626,18 +794,25 @@ function applyServiceAddedToMaps(
       const aId = addrId(ip)
       const sorted = [...interfaces].sort()
       const addr = nodes.get(aId)
+      const addrLocal = local.has(normalizeLocalIp(ip))
       if (!addr) {
-        nodes.set(aId, {
-          id: aId,
-          label: ip,
-          group: 'address',
-          shape: 'triangle',
-          size: 12,
-          color: themeColors().addressBg,
-          interfaces: sorted,
-        })
+        nodes.set(
+          aId,
+          styleNode({
+            id: aId,
+            label: ip,
+            group: 'address',
+            shape: 'triangle',
+            size: 12,
+            isLocal: addrLocal,
+            interfaces: sorted,
+          }),
+        )
       } else {
-        nodes.set(aId, { ...addr, interfaces: sorted })
+        nodes.set(
+          aId,
+          styleNode({ ...addr, interfaces: sorted, isLocal: addrLocal, offline: addr.offline }),
+        )
       }
     }
   }
@@ -1033,3 +1208,4 @@ export { enqueueEvent as enqueueMdnsEvent }
 export { flushEvents as flushMdnsEvents }
 export { enqueueServiceType as enqueueBrowseType }
 export { clearEventQueue as clearMdnsEventQueue }
+export { refreshLocalFlags }
