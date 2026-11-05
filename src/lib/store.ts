@@ -325,7 +325,14 @@ export function clearGraph() {
   selectedNodeId.set(null)
   serviceTypes.set(new Set())
   seenInstances.clear()
+  pendingClearOnGrant = false
 }
+
+// Set when the mode changes while local-network access is blocked: the
+// stale graph is kept for inspection, but must be dropped once access
+// returns so old-mode nodes do not linger in the new mode. Reset by
+// clearGraph, which starts a fresh discovery session.
+let pendingClearOnGrant = false
 
 // ── Discovery mode ───────────────────────────────────────────────────────
 // `all` enumerates every type via browseTypes; `phones` skips enumeration
@@ -815,10 +822,17 @@ export async function startDiscovery(): Promise<void> {
   try {
     // Stop any previously started browsing so a restart never resumes
     // stale browses, then trigger discovery. Phone mode skips type
-    // enumeration and browses only phone types directly. This must happen
+    // enumeration and browses only phone types directly. Note stopBrowse
+    // stops instance browses only: a previous type enumeration keeps
+    // running, but its events are ignored in phones mode (see
+    // setupEventListeners), so only phone types resolve. This must happen
     // after the service-type-found listener exists, otherwise the initial
     // answers are dropped and the types never show up.
     await stopBrowse()
+    if (pendingClearOnGrant) {
+      pendingClearOnGrant = false
+      clearGraph()
+    }
     if (get(discoveryMode) === 'phones') {
       await browseMany(PHONE_SERVICE_TYPES)
     } else {
@@ -831,7 +845,8 @@ export async function startDiscovery(): Promise<void> {
 
 // Switches mode and restarts browsing when access is granted. When
 // blocked there is no active browsing and nothing to repopulate, so the
-// mode is stored without discarding the current graph.
+// mode is stored without discarding the current graph; the reset is
+// applied by startDiscovery once access returns.
 export async function switchDiscoveryMode(mode: DiscoveryMode): Promise<void> {
   if (get(discoveryMode) === mode) return
   setDiscoveryMode(mode)
@@ -842,7 +857,10 @@ export async function switchDiscoveryMode(mode: DiscoveryMode): Promise<void> {
     seedPreviewData()
     return
   }
-  if (get(localNetworkAccess) !== 'granted') return
+  if (get(localNetworkAccess) !== 'granted') {
+    pendingClearOnGrant = true
+    return
+  }
   clearGraph()
   await startDiscovery()
 }

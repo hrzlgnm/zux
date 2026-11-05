@@ -207,6 +207,21 @@ describe('phone discovery mode', () => {
     expect(api.browseMany).not.toHaveBeenCalled()
   })
 
+  it('applies the pending reset when access returns', async () => {
+    const api = await import('./api')
+    vi.mocked(api.browseMany).mockClear()
+    localNetworkAccess.set('denied')
+    enqueueMdnsEvent({ type: 'service-type-added', data: { service_type: '_http._tcp.local.' } })
+    vi.advanceTimersByTime(50)
+    expect(get(serviceTypes).size).toBe(1)
+    await switchDiscoveryMode('phones')
+    expect(get(serviceTypes).size).toBe(1)
+    localNetworkAccess.set('granted')
+    await startDiscovery()
+    expect(get(serviceTypes).size).toBe(0)
+    expect(api.browseMany).toHaveBeenCalledWith(PHONE_SERVICE_TYPES)
+  })
+
   it('init applies the saved mode when untouched', async () => {
     storeData.data.set('discoveryMode', 'phones')
     await initDiscoveryMode()
