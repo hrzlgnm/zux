@@ -18,6 +18,7 @@
     initPhysicsConfig,
     initTheme,
     initDiscoveryMode,
+    initLocalInterfaces,
     initLocalNetworkAccess,
     localNetworkAccess,
     startDiscovery,
@@ -32,6 +33,7 @@
 
   let unlisten: UnlistenFn | null = null
   let unlistenLogger: UnlistenFn | null = null
+  let unlistenInterfaces: UnlistenFn | null = null
   let unlistenWindowFocus: Promise<UnlistenFn | undefined> | null = null
   let mounted = true
   let requesting = $state(false)
@@ -166,6 +168,15 @@
       // branches on it, so the saved mode must land first.
       await initDiscoveryMode()
       try {
+        unlistenInterfaces = await initLocalInterfaces()
+        if (!mounted && unlistenInterfaces) {
+          unlistenInterfaces()
+          unlistenInterfaces = null
+        }
+      } catch (e) {
+        console.warn('[zux] failed to track local interfaces:', e)
+      }
+      try {
         const fn = await setupEventListeners()
         if (mounted) {
           unlisten = fn
@@ -200,6 +211,10 @@
     if (unlisten) {
       unlisten()
       unlisten = null
+    }
+    if (unlistenInterfaces) {
+      unlistenInterfaces()
+      unlistenInterfaces = null
     }
     if (unlistenLogger) {
       unlistenLogger()

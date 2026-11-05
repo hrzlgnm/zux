@@ -8,14 +8,17 @@ import {
   browseTypes,
   linkLocalOnly,
   localNetworkStatus,
+  onInterfacesChanged,
   onServiceRemoved,
   onServiceResolved,
   onServiceTypeFound,
   stopBrowse,
+  subscribeInterfaces,
 } from './api'
-import type { LocalNetworkState } from './api'
+import type { LocalNetworkState, NetworkInterface } from './api'
 import { resolvedToDiscovered, hasOfflineNodes } from './mdns'
 import type {
+  AddressInfo,
   DiscoveryMode,
   GraphNode,
   GraphEdge,
@@ -35,6 +38,69 @@ export const selectedNodeId = writable<string | null>(null)
 export const serviceTypes = writable<Set<string>>(new Set())
 export const filterQuery = writable<string>('')
 export const disabledGroups = writable<Set<string>>(new Set(['service-type']))
+
+// Local interface addresses of the discovery device, normalized to
+// lowercase without `%scope` suffixes. Services, hosts, and addresses
+// overlapping this set are flagged `isLocal` on their graph nodes.
+export const localAddresses = writable<Set<string>>(new Set())
+
+export function normalizeLocalIp(ip: string): string {
+  const withoutScope = ip.split('%')[0] ?? ip
+  return withoutScope.toLowerCase()
+}
+
+function collectInterfaceAddresses(interfaces: NetworkInterface[]): Set<string> {
+  const out = new Set<string>()
+  for (const iface of interfaces) {
+    for (const addr of iface.addresses ?? []) {
+      out.add(normalizeLocalIp(addr))
+    }
+  }
+  return out
+}
+
+function isLocalService(addresses: AddressInfo[] | undefined, local: Set<string>): boolean {
+  if (!addresses) return false
+  return addresses.some((a) => local.has(normalizeLocalIp(a.ip)))
+}
+
+export async function initLocalInterfaces(): Promise<UnlistenFn | null> {
+  if (!isTauri()) return null
+  const apply = (interfaces: NetworkInterface[]) => {
+    localAddresses.set(collectInterfaceAddresses(interfaces))
+    refreshLocalFlags()
+  }
+  try {
+    const unlisten = await onInterfacesChanged(({ interfaces }) => apply(interfaces))
+    try {
+      await subscribeInterfaces()
+    } catch (e) {
+      console.warn('[zux] failed to subscribe to interface changes:', e)
+    }
+    return unlisten
+  } catch (e) {
+    console.warn('[zux] failed to listen for interface changes:', e)
+    return null
+  }
+}
+
+function refreshLocalFlags() {
+  const local = get(localAddresses)
+  graphNodes.update((nodes) => {
+    for (const n of nodes.values()) {
+      let isLocal = false
+      if (n.group === 'address') {
+        isLocal = local.has(normalizeLocalIp(n.label))
+      } else if (n.addresses) {
+        isLocal = isLocalService(n.addresses, local)
+      }
+      if (n.isLocal === isLocal) continue
+      const updated = { ...n, isLocal }
+      nodes.set(n.id, n.offline ? applyOfflineStyle(updated) : applyOnlineStyle(updated))
+    }
+    return nodes
+  })
+}
 
 // Seen instances by fullname: unchanged re-resolves are skipped so the
 // graph does not redraw on every update.
@@ -455,6 +521,23 @@ function onlineColor(group: string): string {
   }
 }
 
+function groupBackground(group: string): string {
+  return onlineColor(group)
+}
+
+function onlineNodeColor(
+  group: string,
+  isLocal: boolean | undefined,
+): string | { background: string; border: string } {
+  const background = groupBackground(group)
+  if (!isLocal) return background
+  return { background, border: themeColors().accent }
+}
+
+function localTitle(isLocal: boolean | undefined): string | undefined {
+  return isLocal ? 'Advertised by this device' : undefined
+}
+
 function applyOfflineStyle(n: GraphNode): GraphNode {
   return { ...n, offline: true, color: offlineColor(), font: offlineFont() }
 }
@@ -463,7 +546,8 @@ function applyOnlineStyle(n: GraphNode): GraphNode {
   return {
     ...n,
     offline: false,
-    color: onlineColor(n.group),
+    color: onlineNodeColor(n.group, n.isLocal),
+    title: localTitle(n.isLocal),
     font: undefined,
   }
 }
@@ -561,6 +645,8 @@ function applyServiceAddedToMaps(
   const nId = instId(d.name || d.id, d.service_type)
   const hId = hostId(d.hostname || 'unknown')
   const tId = typeId(d.service_type)
+  const local = get(localAddresses)
+  const instanceLocal = isLocalService(d.addresses, local)
 
   if (!types.has(d.service_type)) {
     types.add(d.service_type)
@@ -575,7 +661,9 @@ function applyServiceAddedToMaps(
       group: 'instance',
       shape: 'dot',
       size: 15,
-      color: themeColors().instanceBg,
+      color: onlineNodeColor('instance', instanceLocal),
+      title: localTitle(instanceLocal),
+      isLocal: instanceLocal,
       serviceType: d.service_type,
       subType: d.sub_type ?? undefined,
       hostname: d.hostname,
@@ -585,7 +673,7 @@ function applyServiceAddedToMaps(
       urls: d.urls,
     })
   } else {
-    const updated = {
+    const updated: GraphNode = {
       ...existing,
       label: d.name || d.id.split('.')[0],
       hostname: d.hostname,
@@ -594,9 +682,13 @@ function applyServiceAddedToMaps(
       txt: d.txt,
       urls: d.urls,
       subType: d.sub_type ?? undefined,
+      isLocal: instanceLocal,
+      color: onlineNodeColor(existing.group, instanceLocal),
+      title: localTitle(instanceLocal),
     }
     nodes.set(nId, existing.offline ? applyOnlineStyle(updated) : updated)
   }
+  const hostLocal = isLocalService(d.addresses, local)
   if (!nodes.has(hId)) {
     nodes.set(hId, {
       id: hId,
@@ -604,13 +696,22 @@ function applyServiceAddedToMaps(
       group: 'host',
       shape: 'square',
       size: 20,
-      color: themeColors().hostBg,
+      color: onlineNodeColor('host', hostLocal),
+      title: localTitle(hostLocal),
+      isLocal: hostLocal,
       hostname: d.hostname,
       addresses: d.addresses,
     })
   } else {
     const host = nodes.get(hId)!
-    nodes.set(hId, { ...host, addresses: d.addresses })
+    const merged: GraphNode = {
+      ...host,
+      addresses: d.addresses,
+      isLocal: hostLocal,
+      color: host.offline ? host.color : onlineNodeColor(host.group, hostLocal),
+      title: localTitle(hostLocal),
+    }
+    nodes.set(hId, merged)
   }
   if (d.addresses) {
     const ipInterfaces = new Map<string, string[]>()
@@ -626,6 +727,7 @@ function applyServiceAddedToMaps(
       const aId = addrId(ip)
       const sorted = [...interfaces].sort()
       const addr = nodes.get(aId)
+      const addrLocal = local.has(normalizeLocalIp(ip))
       if (!addr) {
         nodes.set(aId, {
           id: aId,
@@ -633,11 +735,20 @@ function applyServiceAddedToMaps(
           group: 'address',
           shape: 'triangle',
           size: 12,
-          color: themeColors().addressBg,
+          color: onlineNodeColor('address', addrLocal),
+          title: localTitle(addrLocal),
+          isLocal: addrLocal,
           interfaces: sorted,
         })
       } else {
-        nodes.set(aId, { ...addr, interfaces: sorted })
+        const merged: GraphNode = {
+          ...addr,
+          interfaces: sorted,
+          isLocal: addrLocal,
+          color: addr.offline ? addr.color : onlineNodeColor(addr.group, addrLocal),
+          title: localTitle(addrLocal),
+        }
+        nodes.set(aId, merged)
       }
     }
   }
@@ -1033,3 +1144,4 @@ export { enqueueEvent as enqueueMdnsEvent }
 export { flushEvents as flushMdnsEvents }
 export { enqueueServiceType as enqueueBrowseType }
 export { clearEventQueue as clearMdnsEventQueue }
+export { refreshLocalFlags }

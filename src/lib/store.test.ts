@@ -9,6 +9,8 @@ vi.mock('./api', () => ({
   onServiceResolved: vi.fn(),
   onServiceTypeFound: vi.fn(),
   onServiceRemoved: vi.fn(),
+  onInterfacesChanged: vi.fn(),
+  subscribeInterfaces: vi.fn().mockResolvedValue(undefined),
   linkLocalOnly: vi.fn().mockResolvedValue(true),
 }))
 
@@ -37,10 +39,13 @@ vi.mock('@tauri-apps/plugin-store', () => ({
 import {
   graphNodes,
   serviceTypes,
+  localAddresses,
   clearGraph,
   enqueueMdnsEvent,
   clearMdnsEventQueue,
   enqueueBrowseType,
+  normalizeLocalIp,
+  refreshLocalFlags,
   PHONE_SERVICE_TYPES,
   discoveryMode,
   startDiscovery,
@@ -244,5 +249,79 @@ describe('phone discovery mode', () => {
     expect(api.browseMany).not.toHaveBeenCalled()
     expect(get(graphNodes).size).toBeGreaterThan(0)
     expect(get(serviceTypes).size).toBeGreaterThan(0)
+  })
+})
+
+describe('local device highlighting', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    clearGraph()
+    localAddresses.set(new Set())
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    localAddresses.set(new Set())
+  })
+
+  it('normalizes IPs for comparison', () => {
+    expect(normalizeLocalIp('FE80::1%eth0')).toBe('fe80::1')
+    expect(normalizeLocalIp('192.168.1.2')).toBe('192.168.1.2')
+  })
+
+  it('flags instance, host, and address nodes overlapping local interfaces', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    const nodes = get(graphNodes)
+    expect(nodes.get('inst:inst:_http._tcp.local.')?.isLocal).toBe(true)
+    expect(nodes.get('host:host.local.')?.isLocal).toBe(true)
+    expect(nodes.get('addr:192.168.1.2')?.isLocal).toBe(true)
+  })
+
+  it('leaves remote services unflagged', () => {
+    localAddresses.set(new Set(['10.0.0.1']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    const nodes = get(graphNodes)
+    expect(nodes.get('inst:inst:_http._tcp.local.')?.isLocal).toBe(false)
+    expect(nodes.get('host:host.local.')?.isLocal).toBe(false)
+    expect(nodes.get('addr:192.168.1.2')?.isLocal).toBe(false)
+  })
+
+  it('re-evaluates flags when interfaces change', () => {
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(false)
+    localAddresses.set(new Set(['192.168.1.2']))
+    refreshLocalFlags()
+    expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(true)
+    expect(get(graphNodes).get('addr:192.168.1.2')?.isLocal).toBe(true)
+    localAddresses.set(new Set(['10.0.0.1']))
+    refreshLocalFlags()
+    expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(false)
+  })
+
+  it('keeps the local flag through an offline/online cycle', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    enqueueMdnsEvent({
+      type: 'service-removed',
+      data: { id: 'inst', service_type: '_http._tcp.local.' },
+    })
+    vi.advanceTimersByTime(50)
+    const offline = get(graphNodes).get('inst:inst:_http._tcp.local.')
+    expect(offline?.offline).toBe(true)
+    expect(offline?.isLocal).toBe(true)
+  })
+
+  it('survives clearGraph so identity persists across rediscovery', () => {
+    localAddresses.set(new Set(['192.168.1.2']))
+    clearGraph()
+    expect(get(localAddresses).has('192.168.1.2')).toBe(true)
+    enqueueMdnsEvent({ type: 'service-added', data: discovered() })
+    vi.advanceTimersByTime(50)
+    expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(true)
   })
 })

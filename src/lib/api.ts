@@ -10,11 +10,14 @@ export {
   onServiceRemoved,
   onServiceResolved,
   onServiceTypeFound,
+  onInterfacesChanged,
   requestLocalNetworkAccess,
   stopBrowse,
+  subscribeInterfaces,
 } from 'tauri-plugin-mdns-api'
 export type {
   LocalNetworkState,
+  NetworkInterface,
   ResolvedService,
   ScopedAddr,
   ServiceRemovedEvent,

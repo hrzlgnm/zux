@@ -103,7 +103,14 @@
         addN.push(n)
       } else {
         const prev = prevNodeData.get(id)
-        if (prev && (prev.offline !== n.offline || prev.label !== n.label)) {
+        if (
+          prev &&
+          (prev.offline !== n.offline ||
+            prev.label !== n.label ||
+            prev.isLocal !== n.isLocal ||
+            JSON.stringify(prev.color) !== JSON.stringify(n.color) ||
+            prev.title !== n.title)
+        ) {
           updateN.push(n)
         }
       }
@@ -231,6 +238,7 @@
       id: string
       color: { background: string; border: string }
       font: { color: string }
+      title?: string
     }[] = []
     for (const n of get(graphNodes).values()) {
       if (n.offline) {
@@ -238,12 +246,18 @@
           id: n.id,
           color: { background: c.offlineBg, border: c.offlineBorder },
           font: { color: c.offlineFont },
+          title: n.isLocal ? 'Advertised by this device' : undefined,
         })
       } else {
         const fc = fontMap[n.group]
         const bg = colorMap[n.group]
         if (fc && bg) {
-          nodeUpdates.push({ id: n.id, color: bg, font: { color: fc } })
+          nodeUpdates.push({
+            id: n.id,
+            color: n.isLocal ? { background: bg.background, border: c.accent } : bg,
+            font: { color: fc },
+            title: n.isLocal ? 'Advertised by this device' : undefined,
+          })
         }
       }
     }

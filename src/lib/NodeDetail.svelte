@@ -26,6 +26,9 @@
     <h3>{node.label}</h3>
     <div class="meta">
       <span class="badge type-{node.group}">{node.group}</span>
+      {#if node.isLocal}
+        <span class="badge local" title="Advertised by this device">this device</span>
+      {/if}
     </div>
     <div class="fields">
       {#if node.serviceType}
@@ -141,6 +144,12 @@
   .type-address {
     background: var(--address-bg);
     color: var(--address-font);
+  }
+  .badge.local {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    margin-left: 6px;
   }
   .fields {
     display: flex;
