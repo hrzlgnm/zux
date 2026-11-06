@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.1](https://github.com/hrzlgnm/zux/compare/v1.23.0...v1.23.1) (2026-11-06)
+
+
+### Dependencies
+
+* update archlinux:base-devel docker digest to 2de8010 ([#622](https://github.com/hrzlgnm/zux/issues/622)) ([002beae](https://github.com/hrzlgnm/zux/commit/002beaeac633d61e344e962b77fbaa7d052b5224))
+* update dependency eslint-plugin-svelte to v3.24.0 ([#627](https://github.com/hrzlgnm/zux/issues/627)) ([be66404](https://github.com/hrzlgnm/zux/commit/be66404295e02f11ffefcff8a47362aab9baa2e8))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to bf63e6f ([#625](https://github.com/hrzlgnm/zux/issues/625)) ([4fce5a7](https://github.com/hrzlgnm/zux/commit/4fce5a7d4fa58c7220f6f2b7b5c48e9e220c666d))
+* update mikepenz/action-junit-report digest to a16be3a ([#626](https://github.com/hrzlgnm/zux/issues/626)) ([5838f15](https://github.com/hrzlgnm/zux/commit/5838f1594675319a30d374750542a752586f9d73))
+* update pnpm to v12.17.0 ([#623](https://github.com/hrzlgnm/zux/issues/623)) ([2cb66ad](https://github.com/hrzlgnm/zux/commit/2cb66ad72edcb87afd143d1e03e597bbc4ba7c3a))
+
 ## [1.23.0](https://github.com/hrzlgnm/zux/compare/v1.22.0...v1.23.0) (2026-11-05)
 
 
