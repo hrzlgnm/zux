@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.1](https://github.com/hrzlgnm/zux/compare/v1.23.0...v1.23.1) (2026-11-10)
+
+
+### Dependencies
+
+* lock file maintenance ([#631](https://github.com/hrzlgnm/zux/issues/631)) ([a164fbb](https://github.com/hrzlgnm/zux/commit/a164fbb1e7e5feb53a9e8f0d2efd69d1ad1f1532))
+* lock file maintenance ([#638](https://github.com/hrzlgnm/zux/issues/638)) ([594c281](https://github.com/hrzlgnm/zux/commit/594c281dc369deb43fa9627b9cd09aad91767d4e))
+* update archlinux:base-devel docker digest to 2de8010 ([#622](https://github.com/hrzlgnm/zux/issues/622)) ([002beae](https://github.com/hrzlgnm/zux/commit/002beaeac633d61e344e962b77fbaa7d052b5224))
+* update archlinux:base-devel docker digest to fa2d4ce ([#632](https://github.com/hrzlgnm/zux/issues/632)) ([cee751d](https://github.com/hrzlgnm/zux/commit/cee751d0cb4b13875238036fee4f39ab9fea8827))
+* update dependency @playwright/test to v1.65.0 ([#630](https://github.com/hrzlgnm/zux/issues/630)) ([b3f5b66](https://github.com/hrzlgnm/zux/commit/b3f5b6633a0126f84be9b90c199875107bbcf461))
+* update dependency eslint-plugin-svelte to v3.24.0 ([#627](https://github.com/hrzlgnm/zux/issues/627)) ([be66404](https://github.com/hrzlgnm/zux/commit/be66404295e02f11ffefcff8a47362aab9baa2e8))
+* update dependency eslint-plugin-svelte to v3.24.1 ([#634](https://github.com/hrzlgnm/zux/issues/634)) ([5f19d0c](https://github.com/hrzlgnm/zux/commit/5f19d0c685509a5392ccdfbba2979dd417512e05))
+* update dependency vite to v8.3.6 ([#629](https://github.com/hrzlgnm/zux/issues/629)) ([4deca3c](https://github.com/hrzlgnm/zux/commit/4deca3c7705101fe2ca1e67619259f0cda92e51c))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to bf63e6f ([#625](https://github.com/hrzlgnm/zux/issues/625)) ([4fce5a7](https://github.com/hrzlgnm/zux/commit/4fce5a7d4fa58c7220f6f2b7b5c48e9e220c666d))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to ee3f848 ([#633](https://github.com/hrzlgnm/zux/issues/633)) ([9d089c3](https://github.com/hrzlgnm/zux/commit/9d089c37773c9893fea94795a29e22f74399f00f))
+* update mikepenz/action-junit-report digest to a16be3a ([#626](https://github.com/hrzlgnm/zux/issues/626)) ([5838f15](https://github.com/hrzlgnm/zux/commit/5838f1594675319a30d374750542a752586f9d73))
+* update pnpm to v12.17.0 ([#623](https://github.com/hrzlgnm/zux/issues/623)) ([2cb66ad](https://github.com/hrzlgnm/zux/commit/2cb66ad72edcb87afd143d1e03e597bbc4ba7c3a))
+* update pnpm to v12.18.0 ([#628](https://github.com/hrzlgnm/zux/issues/628)) ([1d6699c](https://github.com/hrzlgnm/zux/commit/1d6699c3f45c736f3e74bda6afab3ff140141998))
+* update tauri monorepo ([#635](https://github.com/hrzlgnm/zux/issues/635)) ([0538fac](https://github.com/hrzlgnm/zux/commit/0538fac43f53b7a69f2655400fa09235d59c8cff))
+* update tauri-plugin-android-update to v0.3.7 ([#636](https://github.com/hrzlgnm/zux/issues/636)) ([40feb29](https://github.com/hrzlgnm/zux/commit/40feb29d94a9597a217b23e046a4c091608ad8ed))
+* update tauri-plugin-mdns to v0.4.8 ([#637](https://github.com/hrzlgnm/zux/issues/637)) ([cdd7373](https://github.com/hrzlgnm/zux/commit/cdd7373230a0dd743a9fd0b9641a8a24f3cf24fc))
+
 ## [1.23.0](https://github.com/hrzlgnm/zux/compare/v1.22.0...v1.23.0) (2026-11-05)
 
 
