@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.2](https://github.com/hrzlgnm/zux/compare/v1.23.1...v1.23.2) (2026-11-14)
+
+
+### Dependencies
+
+* update actions/setup-java digest to d1374f8 ([#646](https://github.com/hrzlgnm/zux/issues/646)) ([5cbe70e](https://github.com/hrzlgnm/zux/commit/5cbe70edb565e57f75a6541b354833b7d3f9f15b))
+* update dependency @sveltejs/kit to v3.2.0 ([#645](https://github.com/hrzlgnm/zux/issues/645)) ([cb6a35a](https://github.com/hrzlgnm/zux/commit/cb6a35a900fa1527cfb18b79f517698cd22df2a4))
+* update dependency typescript-eslint to v8.72.2 ([#643](https://github.com/hrzlgnm/zux/issues/643)) ([60e53cd](https://github.com/hrzlgnm/zux/commit/60e53cd30a6e2a70c85cbf7ec575cda3e7a08129))
+* update dependency vite to v8.3.7 ([#642](https://github.com/hrzlgnm/zux/issues/642)) ([e2fc25b](https://github.com/hrzlgnm/zux/commit/e2fc25b1fa48fa65d2afa06f1258cfd270934025))
+* update dependency vite to v8.3.8 ([#647](https://github.com/hrzlgnm/zux/issues/647)) ([91b62ef](https://github.com/hrzlgnm/zux/commit/91b62efd01d36939ae8f1cf71ca945ae7e5b8198))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to b66e9cf ([#641](https://github.com/hrzlgnm/zux/issues/641)) ([21bf920](https://github.com/hrzlgnm/zux/commit/21bf920ba6aa597a92b8e67e21ae421f90fe87f8))
+* update pnpm/setup action to v3.2.0 ([#644](https://github.com/hrzlgnm/zux/issues/644)) ([0041c91](https://github.com/hrzlgnm/zux/commit/0041c91bd2ae8de1ee044f9a8a491d7f3bd92c6e))
+* update ubuntu:22.04 docker digest to 74b12b1 ([#639](https://github.com/hrzlgnm/zux/issues/639)) ([8b077ae](https://github.com/hrzlgnm/zux/commit/8b077aecc4e77a3dcc8634da9ff7e0d477a69e94))
+
 ## [1.23.1](https://github.com/hrzlgnm/zux/compare/v1.23.0...v1.23.1) (2026-11-10)
 
 
