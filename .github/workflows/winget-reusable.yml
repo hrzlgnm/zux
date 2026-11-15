@@ -67,7 +67,7 @@ jobs:
           echo "Version: $VERSION"
 
       - name: 🦀 Install Rust stable
-        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
 
       - name: 🔧 Install komac
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
