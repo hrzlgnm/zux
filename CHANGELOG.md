@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.2](https://github.com/hrzlgnm/zux/compare/v1.23.1...v1.23.2) (2026-11-17)
+
+
+### Dependencies
+
+* lock file maintenance ([#660](https://github.com/hrzlgnm/zux/issues/660)) ([4b459be](https://github.com/hrzlgnm/zux/commit/4b459bee3b6f5bd54bde5a2835cff8ff23613760))
+* update actions/setup-java digest to d1374f8 ([#646](https://github.com/hrzlgnm/zux/issues/646)) ([5cbe70e](https://github.com/hrzlgnm/zux/commit/5cbe70edb565e57f75a6541b354833b7d3f9f15b))
+* update dependency @playwright/test to v1.65.1 ([#655](https://github.com/hrzlgnm/zux/issues/655)) ([18757d8](https://github.com/hrzlgnm/zux/commit/18757d8adb714e1a7c2e724ec0faa5e0b7e170a9))
+* update dependency @sveltejs/kit to v3.2.0 ([#645](https://github.com/hrzlgnm/zux/issues/645)) ([cb6a35a](https://github.com/hrzlgnm/zux/commit/cb6a35a900fa1527cfb18b79f517698cd22df2a4))
+* update dependency eslint to v10.15.0 ([#657](https://github.com/hrzlgnm/zux/issues/657)) ([96a6636](https://github.com/hrzlgnm/zux/commit/96a66361b16bd3302298805665f85a3fa3a43caa))
+* update dependency prettier to v3.10.0 ([#648](https://github.com/hrzlgnm/zux/issues/648)) ([b1f9f63](https://github.com/hrzlgnm/zux/commit/b1f9f63955ffcea2b6bf275d0e5a10f16e4c2619))
+* update dependency prettier to v3.10.1 ([#651](https://github.com/hrzlgnm/zux/issues/651)) ([304b284](https://github.com/hrzlgnm/zux/commit/304b284fa482bf021c44b2fc9c2959c2da6669d9))
+* update dependency typescript-eslint to v8.72.2 ([#643](https://github.com/hrzlgnm/zux/issues/643)) ([60e53cd](https://github.com/hrzlgnm/zux/commit/60e53cd30a6e2a70c85cbf7ec575cda3e7a08129))
+* update dependency vite to v8.3.7 ([#642](https://github.com/hrzlgnm/zux/issues/642)) ([e2fc25b](https://github.com/hrzlgnm/zux/commit/e2fc25b1fa48fa65d2afa06f1258cfd270934025))
+* update dependency vite to v8.3.8 ([#647](https://github.com/hrzlgnm/zux/issues/647)) ([91b62ef](https://github.com/hrzlgnm/zux/commit/91b62efd01d36939ae8f1cf71ca945ae7e5b8198))
+* update dtolnay/rust-toolchain digest to 3900882 ([#649](https://github.com/hrzlgnm/zux/issues/649)) ([af98fc1](https://github.com/hrzlgnm/zux/commit/af98fc181b144d87dea1eea68f4ccff2021ad9de))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to 8f591fc ([#653](https://github.com/hrzlgnm/zux/issues/653)) ([567efb9](https://github.com/hrzlgnm/zux/commit/567efb9c5cffa585475f4cad115406d4a91b428c))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to b66e9cf ([#641](https://github.com/hrzlgnm/zux/issues/641)) ([21bf920](https://github.com/hrzlgnm/zux/commit/21bf920ba6aa597a92b8e67e21ae421f90fe87f8))
+* update pnpm to v12.20.0 ([#650](https://github.com/hrzlgnm/zux/issues/650)) ([2a773d5](https://github.com/hrzlgnm/zux/commit/2a773d543a88108b2d9ecd754123fdb594b7575d))
+* update pnpm to v12.21.0 ([#658](https://github.com/hrzlgnm/zux/issues/658)) ([f98a01c](https://github.com/hrzlgnm/zux/commit/f98a01c06438d8d9ce9fb63f8d837bac5a8b96e7))
+* update pnpm/setup action to v3.2.0 ([#644](https://github.com/hrzlgnm/zux/issues/644)) ([0041c91](https://github.com/hrzlgnm/zux/commit/0041c91bd2ae8de1ee044f9a8a491d7f3bd92c6e))
+* update rust crate clap to v4.6.8 ([#656](https://github.com/hrzlgnm/zux/issues/656)) ([1eade56](https://github.com/hrzlgnm/zux/commit/1eade569935d5525cf397e5d760f463fa5ff8fdc))
+* update tauri monorepo ([#654](https://github.com/hrzlgnm/zux/issues/654)) ([11008d4](https://github.com/hrzlgnm/zux/commit/11008d4a12fe0a99fb38116ab15e6d27150a1056))
+* update tauri-plugin-mdns to 0.5 ([#659](https://github.com/hrzlgnm/zux/issues/659)) ([a50ab1e](https://github.com/hrzlgnm/zux/commit/a50ab1e99a7107f306fb41264028ceff5926297e))
+* update ubuntu:22.04 docker digest to 74b12b1 ([#639](https://github.com/hrzlgnm/zux/issues/639)) ([8b077ae](https://github.com/hrzlgnm/zux/commit/8b077aecc4e77a3dcc8634da9ff7e0d477a69e94))
+* update ubuntu:22.04 docker digest to 9abcaff ([#652](https://github.com/hrzlgnm/zux/issues/652)) ([436bb34](https://github.com/hrzlgnm/zux/commit/436bb34d56b4b989455ae616460347b9578ccf4f))
+
 ## [1.23.1](https://github.com/hrzlgnm/zux/compare/v1.23.0...v1.23.1) (2026-11-10)
 
 
