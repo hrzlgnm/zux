@@ -71,9 +71,11 @@ Before each commit, compare its complete diff with the filters in `.github/workf
 - Add both trailers to every regular commit and every `amend!` replacement with `--trailer`; plain `fixup!` messages are discarded and need no trailers. Never use `--author` or `--committer` for attribution:
 
   ```text
-  Co-authored-by: opencode <noreply@opencode.ai>
-  Assisted-by: opencode (<model-name>)
+  Co-authored-by: <tool> <noreply address>
+  Assisted-by: <tool> (<model-name>)
   ```
+
+  Name the agent tool that made the commit and the model it ran. When your tool prescribes its own co-author line, use exactly that line (e.g. `Co-authored-by: opencode <noreply@opencode.ai>`).
 
 ### Refining Existing Commits
 
