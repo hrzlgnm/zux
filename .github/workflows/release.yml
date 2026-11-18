@@ -84,7 +84,7 @@ jobs:
       contents: read
       pull-requests: read
     name: "✅ Approve Release PR workflows"
-    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@a2e70543f16acf3105219e0e944c323afe88b269 # v2.14.13
+    uses: hrzlgnm/actions/.github/workflows/approve-bot-pr-reusable.yml@0d30078875c008b02cb2575ce5af3bd222ef2ee3 # v2.15.0
     with:
       branch: release-please--branches--main--components--zux
 
@@ -136,7 +136,7 @@ jobs:
           targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || matrix.target }}
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@a2e70543f16acf3105219e0e944c323afe88b269 # v2.14.13
+        uses: hrzlgnm/actions/.github/actions/retry@0d30078875c008b02cb2575ce5af3bd222ef2ee3 # v2.15.0
         with:
           command: pnpm install --frozen-lockfile
 
@@ -319,7 +319,7 @@ jobs:
           packages: platform-tools
 
       - name: ⚙️ Install NDK
-        uses: hrzlgnm/actions/.github/actions/retry@a2e70543f16acf3105219e0e944c323afe88b269 # v2.14.13
+        uses: hrzlgnm/actions/.github/actions/retry@0d30078875c008b02cb2575ce5af3bd222ef2ee3 # v2.15.0
         with:
           timeout_minutes: 10
           command: android sdk install "ndk;$NDK_VERSION"
@@ -329,7 +329,7 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: 📦 Install frontend dependencies
-        uses: hrzlgnm/actions/.github/actions/retry@a2e70543f16acf3105219e0e944c323afe88b269 # v2.14.13
+        uses: hrzlgnm/actions/.github/actions/retry@0d30078875c008b02cb2575ce5af3bd222ef2ee3 # v2.15.0
         with:
           command: pnpm install --frozen-lockfile
 
@@ -390,7 +390,7 @@ jobs:
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
       - name: 🚀 Publish APK
-        uses: hrzlgnm/actions/.github/actions/retry@a2e70543f16acf3105219e0e944c323afe88b269 # v2.14.13
+        uses: hrzlgnm/actions/.github/actions/retry@0d30078875c008b02cb2575ce5af3bd222ef2ee3 # v2.15.0
         env:
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
           VERSION: ${{ needs.release-please.outputs.version }}
