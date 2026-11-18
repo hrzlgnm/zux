@@ -1,3 +1,6 @@
+// Copyright 2026 hrzlgnm
+// SPDX-License-Identifier: MIT
+
 import { defineConfig, devices } from '@playwright/test'
 
 const port = 4173
