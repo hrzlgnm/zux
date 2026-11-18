@@ -1,3 +1,6 @@
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT
+
 [default]
 # Ignore short commit SHAs in release-please CHANGELOG links
 # (e.g. `[ba24398]`), which tokenize into false positives.

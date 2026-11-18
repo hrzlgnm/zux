@@ -1,3 +1,6 @@
+// Copyright 2026 hrzlgnm
+// SPDX-License-Identifier: MIT
+
 import type { ResolvedService, ScopedAddr } from 'tauri-plugin-mdns-api'
 import type { AddressInfo, GraphNode, ServiceDiscovered } from './types'
 

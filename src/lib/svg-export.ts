@@ -1,3 +1,6 @@
+// Copyright 2026 hrzlgnm
+// SPDX-License-Identifier: MIT
+
 import type { Network, Node, Edge, Position, IdType } from 'vis-network'
 import { isTauri } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'

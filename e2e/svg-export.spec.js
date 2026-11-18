@@ -1,3 +1,6 @@
+// Copyright 2026 hrzlgnm
+// SPDX-License-Identifier: MIT
+
 import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
 

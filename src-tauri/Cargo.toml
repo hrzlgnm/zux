@@ -1,3 +1,6 @@
+# Copyright 2026 hrzlgnm
+# SPDX-License-Identifier: MIT
+
 [package]
 name = "zux"
 version = "1.23.2"
