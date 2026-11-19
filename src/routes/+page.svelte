@@ -18,6 +18,7 @@
     initPhysicsConfig,
     initTheme,
     initDiscoveryMode,
+    initDaemonStatus,
     initLocalInterfaces,
     initLocalNetworkAccess,
     localNetworkAccess,
@@ -34,6 +35,7 @@
   let unlisten: UnlistenFn | null = null
   let unlistenLogger: UnlistenFn | null = null
   let unlistenInterfaces: UnlistenFn | null = null
+  let unlistenDaemonStatus: UnlistenFn | null = null
   let unlistenWindowFocus: Promise<UnlistenFn | undefined> | null = null
   let mounted = true
   let requesting = $state(false)
@@ -177,6 +179,15 @@
         console.warn('[zux] failed to track local interfaces:', e)
       }
       try {
+        unlistenDaemonStatus = await initDaemonStatus()
+        if (!mounted && unlistenDaemonStatus) {
+          unlistenDaemonStatus()
+          unlistenDaemonStatus = null
+        }
+      } catch (e) {
+        console.warn('[zux] failed to track daemon status:', e)
+      }
+      try {
         const fn = await setupEventListeners()
         if (mounted) {
           unlisten = fn
@@ -215,6 +226,10 @@
     if (unlistenInterfaces) {
       unlistenInterfaces()
       unlistenInterfaces = null
+    }
+    if (unlistenDaemonStatus) {
+      unlistenDaemonStatus()
+      unlistenDaemonStatus = null
     }
     if (unlistenLogger) {
       unlistenLogger()

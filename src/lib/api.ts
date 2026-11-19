@@ -10,22 +10,28 @@ export {
   browseMany,
   browseTypes,
   localNetworkStatus,
+  onDaemonStatusChanged,
   onServiceRemoved,
   onServiceResolved,
   onServiceTypeFound,
   onInterfacesChanged,
   requestLocalNetworkAccess,
   stopBrowse,
+  subscribeDaemonStatus,
   subscribeInterfaces,
 } from 'tauri-plugin-mdns-api'
 export type {
+  DaemonStatus,
+  EnabledInterface,
   LocalNetworkState,
+  Membership,
   NetworkInterface,
   ResolvedService,
   ScopedAddr,
   ServiceRemovedEvent,
   ServiceResolvedEvent,
   ServiceTypeFoundEvent,
+  SocketState,
 } from 'tauri-plugin-mdns-api'
 
 // App commands still implemented by the backend itself.

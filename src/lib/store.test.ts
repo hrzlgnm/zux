@@ -13,7 +13,9 @@ vi.mock('./api', () => ({
   onServiceTypeFound: vi.fn(),
   onServiceRemoved: vi.fn(),
   onInterfacesChanged: vi.fn(),
+  onDaemonStatusChanged: vi.fn(),
   subscribeInterfaces: vi.fn().mockResolvedValue(undefined),
+  subscribeDaemonStatus: vi.fn().mockResolvedValue(undefined),
   linkLocalOnly: vi.fn().mockResolvedValue(true),
 }))
 
@@ -57,7 +59,10 @@ import {
   initDiscoveryMode,
   setDiscoveryMode,
   resetDiscoveryModeResolved,
+  daemonStatus,
+  initDaemonStatus,
 } from './store'
+import type { DaemonStatus } from './api'
 
 function discovered(overrides: Record<string, unknown> = {}) {
   return {
@@ -408,5 +413,64 @@ describe('local device highlighting', () => {
     enqueueMdnsEvent({ type: 'service-added', data: discovered() })
     vi.advanceTimersByTime(50)
     expect(get(graphNodes).get('host:host.local.')?.isLocal).toBe(true)
+  })
+})
+
+describe('daemon status', () => {
+  const running: DaemonStatus = {
+    status: 'running',
+    ipv4_socket: { bound: true, bind_error: null },
+    ipv6_socket: { bound: false, bind_error: 'no IPv6' },
+    enabled_interfaces: [],
+  }
+
+  beforeEach(() => {
+    tauriMocks.isTauri = true
+    daemonStatus.set(null)
+  })
+
+  afterEach(async () => {
+    const api = await import('./api')
+    vi.mocked(api.onDaemonStatusChanged).mockReset()
+    vi.mocked(api.subscribeDaemonStatus).mockReset().mockResolvedValue(undefined)
+    daemonStatus.set(null)
+  })
+
+  it('stores daemon status events', async () => {
+    const api = await import('./api')
+    vi.mocked(api.onDaemonStatusChanged).mockImplementation((cb) => {
+      cb({ status: running })
+      return Promise.resolve(() => {})
+    })
+    vi.mocked(api.subscribeDaemonStatus).mockResolvedValue(undefined)
+    const unlisten = await initDaemonStatus()
+    expect(unlisten).toBeTypeOf('function')
+    expect(get(daemonStatus)).toEqual(running)
+  })
+
+  it('treats a failed subscription as non-fatal', async () => {
+    const api = await import('./api')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(api.onDaemonStatusChanged).mockResolvedValue(() => {})
+    vi.mocked(api.subscribeDaemonStatus).mockRejectedValue(new Error('queue full'))
+    const unlisten = await initDaemonStatus()
+    expect(unlisten).toBeTypeOf('function')
+    expect(get(daemonStatus)).toBeNull()
+    expect(warn).toHaveBeenCalledWith(
+      '[zux] failed to subscribe to daemon status:',
+      expect.any(Error),
+    )
+    warn.mockRestore()
+  })
+
+  it('resolves with null off-device', async () => {
+    tauriMocks.isTauri = false
+    try {
+      const unlisten = await initDaemonStatus()
+      expect(unlisten).toBeNull()
+      expect(get(daemonStatus)).toBeNull()
+    } finally {
+      tauriMocks.isTauri = true
+    }
   })
 })

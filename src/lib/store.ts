@@ -11,14 +11,16 @@ import {
   browseTypes,
   linkLocalOnly,
   localNetworkStatus,
+  onDaemonStatusChanged,
   onInterfacesChanged,
   onServiceRemoved,
   onServiceResolved,
   onServiceTypeFound,
   stopBrowse,
+  subscribeDaemonStatus,
   subscribeInterfaces,
 } from './api'
-import type { LocalNetworkState, NetworkInterface } from './api'
+import type { DaemonStatus, LocalNetworkState, NetworkInterface } from './api'
 import { resolvedToDiscovered, hasOfflineNodes } from './mdns'
 import type {
   AddressInfo,
@@ -120,6 +122,26 @@ export async function initLocalInterfaces(): Promise<UnlistenFn | null> {
     return unlisten
   } catch (e) {
     console.warn('[zux] failed to listen for interface changes:', e)
+    return null
+  }
+}
+
+// The daemon's status, or `null` until the first `daemon-status-changed`
+// event arrives.
+export const daemonStatus = writable<DaemonStatus | null>(null)
+
+export async function initDaemonStatus(): Promise<UnlistenFn | null> {
+  if (!isTauri()) return null
+  try {
+    const unlisten = await onDaemonStatusChanged(({ status }) => daemonStatus.set(status))
+    try {
+      await subscribeDaemonStatus()
+    } catch (e) {
+      console.warn('[zux] failed to subscribe to daemon status:', e)
+    }
+    return unlisten
+  } catch (e) {
+    console.warn('[zux] failed to listen for daemon status:', e)
     return null
   }
 }
