@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.0](https://github.com/hrzlgnm/zux/compare/v1.23.2...v1.24.0) (2026-11-19)
+
+
+### Features
+
+* show daemon status diagnostics in the sidebar ([#667](https://github.com/hrzlgnm/zux/issues/667)) ([6ee2759](https://github.com/hrzlgnm/zux/commit/6ee2759fe51966995699ea9140af887071b674ea))
+
+
+### Bug Fixes
+
+* expose the Physics toggle's expanded state ([#668](https://github.com/hrzlgnm/zux/issues/668)) ([78ffbe3](https://github.com/hrzlgnm/zux/commit/78ffbe3e8975b36c93c76f588a752c2b26a04495))
+
+
+### Dependencies
+
+* lock file maintenance ([#670](https://github.com/hrzlgnm/zux/issues/670)) ([f187366](https://github.com/hrzlgnm/zux/commit/f187366fe45f912f94770d89e87c2a6a0333f3b7))
+* update dependency typescript-eslint to v8.73.0 ([#669](https://github.com/hrzlgnm/zux/issues/669)) ([41b91dc](https://github.com/hrzlgnm/zux/commit/41b91dcd2d9c9a98940f7e158e46c4caa8acf9e9))
+* update hrzlgnm/actions action to v2.15.0 ([#666](https://github.com/hrzlgnm/zux/issues/666)) ([aff49fc](https://github.com/hrzlgnm/zux/commit/aff49fc940baae05a818e603d7ac1353c0311091))
+* update tauri monorepo ([#663](https://github.com/hrzlgnm/zux/issues/663)) ([043b56a](https://github.com/hrzlgnm/zux/commit/043b56a00c5bcb592e446f1eed1b577409640801))
+
+
+### Documentation
+
+* **agents:** name the committing tool in AI attribution trailers ([#661](https://github.com/hrzlgnm/zux/issues/661)) ([42e4b07](https://github.com/hrzlgnm/zux/commit/42e4b0770897f2f8ae5b82ae5cd766d542172cf6))
+
+
+### Miscellaneous Chores
+
+* add missing SPDX license headers ([#664](https://github.com/hrzlgnm/zux/issues/664)) ([73b8022](https://github.com/hrzlgnm/zux/commit/73b802277c289ec03f31bbf265d8d1859a031313))
+
+
+### Continuous Integration
+
+* check SPDX headers with the shared reusable workflow ([#665](https://github.com/hrzlgnm/zux/issues/665)) ([08ec804](https://github.com/hrzlgnm/zux/commit/08ec804751e984e757366869527f4d77d18ca925))
+
 ## [1.23.2](https://github.com/hrzlgnm/zux/compare/v1.23.1...v1.23.2) (2026-11-17)
 
 
