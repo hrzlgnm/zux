@@ -292,7 +292,11 @@
   </div>
 
   <div class="section">
-    <button class="section-toggle" onclick={() => (physicsOpen = !physicsOpen)}>
+    <button
+      class="section-toggle"
+      aria-expanded={physicsOpen}
+      onclick={() => (physicsOpen = !physicsOpen)}
+    >
       <span class="arrow">{physicsOpen ? '▼' : '▶'}</span> Physics
     </button>
     {#if physicsOpen}
