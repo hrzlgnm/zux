@@ -17,7 +17,7 @@
     daemonStatus,
   } from './store'
   import { themes } from './themes'
-  import { membershipLabel, socketLabel } from './diagnostics'
+  import { membershipAddresses, membershipLabel, socketLabel } from './diagnostics'
   import type { Solver, ThemeName } from './types'
 
   let { open = false, onClose = () => {} }: { open?: boolean; onClose?: () => void } = $props()
@@ -444,11 +444,19 @@
           <div class="diag-line">IPv4 socket: {socketLabel(daemonRunning.ipv4_socket)}</div>
           <div class="diag-line">IPv6 socket: {socketLabel(daemonRunning.ipv6_socket)}</div>
           {#each daemonRunning.enabled_interfaces as iface (iface.index)}
+            {@const addresses = membershipAddresses(iface)}
             <div class="diag-line">
               {iface.name}: {membershipLabel('IPv4', iface.ipv4)}, {membershipLabel(
                 'IPv6',
                 iface.ipv6,
               )}
+              {#if addresses.length > 0}
+                <ul class="diag-addresses">
+                  {#each addresses as address (address)}
+                    <li>{address}</li>
+                  {/each}
+                </ul>
+              {/if}
             </div>
           {/each}
         {:else if daemonShutDown}
@@ -675,6 +683,10 @@
     font-size: 11px;
     line-height: 1.3;
     color: var(--text-secondary);
+  }
+  .diag-addresses {
+    margin: 0;
+    padding-left: 1.4em;
   }
   .ctrl {
     display: flex;

@@ -1,7 +1,7 @@
 // Copyright 2026 hrzlgnm
 // SPDX-License-Identifier: MIT
 
-import type { Membership, SocketState } from './api'
+import type { EnabledInterface, Membership, SocketState } from './api'
 
 // Human-readable labels for the sidebar's Diagnostics section. Membership
 // addresses arrive numerically sorted from the daemon, so they are rendered
@@ -14,8 +14,13 @@ export function socketLabel(socket: SocketState): string {
 
 export function membershipLabel(family: string, membership: Membership | null): string {
   if (membership === null) return `${family} none`
-  const label = `${family} ${membership.joined ? 'joined' : 'not joined'}`
-  const withAddrs =
-    membership.addresses.length > 0 ? `${label} (${membership.addresses.join(', ')})` : label
-  return membership.join_error === null ? withAddrs : `${withAddrs}: ${membership.join_error}`
+  if (membership.joined) return `${family} joined`
+  return membership.join_error === null
+    ? `${family} not joined`
+    : `${family} not joined (${membership.join_error})`
+}
+
+// The interface's addresses of every family present, in wire order.
+export function membershipAddresses(iface: EnabledInterface): Array<string> {
+  return [...(iface.ipv4?.addresses ?? []), ...(iface.ipv6?.addresses ?? [])]
 }

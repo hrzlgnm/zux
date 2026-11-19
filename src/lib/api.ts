@@ -22,6 +22,7 @@ export {
 } from 'tauri-plugin-mdns-api'
 export type {
   DaemonStatus,
+  EnabledInterface,
   LocalNetworkState,
   Membership,
   NetworkInterface,

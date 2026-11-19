@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from 'vitest'
-import { membershipLabel, socketLabel } from './diagnostics'
-import type { Membership } from './api'
+import { membershipAddresses, membershipLabel, socketLabel } from './diagnostics'
+import type { EnabledInterface, Membership } from './api'
 
 describe('socketLabel', () => {
   it('labels a bound socket', () => {
@@ -26,42 +26,58 @@ describe('membershipLabel', () => {
     expect(membershipLabel('IPv4', null)).toBe('IPv4 none')
   })
 
-  it('lists the joined addresses in wire order', () => {
-    const membership: Membership = {
-      addresses: ['192.168.1.2', '192.168.1.10'],
-      joined: true,
-      join_error: null,
-    }
-    expect(membershipLabel('IPv4', membership)).toBe('IPv4 joined (192.168.1.2, 192.168.1.10)')
+  it('labels a joined membership', () => {
+    const membership: Membership = { addresses: ['192.168.1.2'], joined: true, join_error: null }
+    expect(membershipLabel('IPv4', membership)).toBe('IPv4 joined')
   })
 
-  it('leaves a membership without addresses unparenthesized', () => {
-    const membership: Membership = { addresses: [], joined: true, join_error: null }
-    expect(membershipLabel('IPv6', membership)).toBe('IPv6 joined')
+  it('labels a not-joined membership without an error', () => {
+    const membership: Membership = { addresses: ['192.168.1.2'], joined: false, join_error: null }
+    expect(membershipLabel('IPv4', membership)).toBe('IPv4 not joined')
   })
 
-  it('appends the join error after the addresses', () => {
+  it('appends the join error', () => {
     const membership: Membership = {
       addresses: ['192.168.1.2'],
       joined: false,
       join_error: 'no route to host',
     }
-    expect(membershipLabel('IPv4', membership)).toBe(
-      'IPv4 not joined (192.168.1.2): no route to host',
-    )
+    expect(membershipLabel('IPv4', membership)).toBe('IPv4 not joined (no route to host)')
   })
 
-  it('appends the join error without addresses', () => {
-    const membership: Membership = { addresses: [], joined: false, join_error: 'down' }
-    expect(membershipLabel('IPv6', membership)).toBe('IPv6 not joined: down')
-  })
-
-  it('shows a stale join error on a joined membership', () => {
+  it('hides a stale join error on a joined membership', () => {
     const membership: Membership = {
       addresses: ['192.168.1.2'],
       joined: true,
       join_error: 'timed out',
     }
-    expect(membershipLabel('IPv4', membership)).toBe('IPv4 joined (192.168.1.2): timed out')
+    expect(membershipLabel('IPv4', membership)).toBe('IPv4 joined')
+  })
+})
+
+describe('membershipAddresses', () => {
+  const ipv4: Membership = {
+    addresses: ['192.168.1.2', '192.168.1.10'],
+    joined: true,
+    join_error: null,
+  }
+  const ipv6: Membership = {
+    addresses: ['fe80::a1b2:c3d4:eeee:0'],
+    joined: false,
+    join_error: null,
+  }
+
+  it('collects the addresses of every family present, in wire order', () => {
+    const iface: EnabledInterface = { name: 'wlan0', index: 2, ipv4, ipv6 }
+    expect(membershipAddresses(iface)).toEqual([
+      '192.168.1.2',
+      '192.168.1.10',
+      'fe80::a1b2:c3d4:eeee:0',
+    ])
+  })
+
+  it('skips missing families', () => {
+    const iface: EnabledInterface = { name: 'eth0', index: 1, ipv4, ipv6: null }
+    expect(membershipAddresses(iface)).toEqual(['192.168.1.2', '192.168.1.10'])
   })
 })
