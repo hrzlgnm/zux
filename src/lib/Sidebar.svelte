@@ -219,10 +219,10 @@
 
   function membershipLabel(family: string, membership: Membership | null): string {
     if (membership === null) return `${family} none`
-    if (membership.joined) return `${family} joined`
-    return membership.join_error === null
-      ? `${family} not joined`
-      : `${family} not joined (${membership.join_error})`
+    const label = `${family} ${membership.joined ? 'joined' : 'not joined'}`
+    const withAddrs =
+      membership.addresses.length > 0 ? `${label} (${membership.addresses.join(', ')})` : label
+    return membership.join_error === null ? withAddrs : `${withAddrs}: ${membership.join_error}`
   }
 </script>
 
