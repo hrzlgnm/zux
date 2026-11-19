@@ -14,7 +14,9 @@
     setTheme,
     discoveryMode,
     switchDiscoveryMode,
+    daemonStatus,
   } from './store'
+  import type { Membership, SocketState } from './api'
   import { themes } from './themes'
   import type { Solver, ThemeName } from './types'
 
@@ -201,6 +203,26 @@
       else s.add(key)
       return s
     })
+  }
+
+  let diagnosticsOpen = $state(false)
+
+  // The running variant of the daemon status, or null when shut down or
+  // not yet known.
+  const daemonRunning = $derived($daemonStatus?.status === 'running' ? $daemonStatus : null)
+  const daemonShutDown = $derived($daemonStatus?.status === 'shutdown')
+
+  function socketLabel(socket: SocketState): string {
+    if (socket.bound) return 'bound'
+    return socket.bind_error === null ? 'not bound' : `not bound (${socket.bind_error})`
+  }
+
+  function membershipLabel(family: string, membership: Membership | null): string {
+    if (membership === null) return `${family} none`
+    if (membership.joined) return `${family} joined`
+    return membership.join_error === null
+      ? `${family} not joined`
+      : `${family} not joined (${membership.join_error})`
   }
 </script>
 
@@ -424,6 +446,33 @@
     {/if}
   </div>
 
+  <div class="section">
+    <button class="section-toggle" onclick={() => (diagnosticsOpen = !diagnosticsOpen)}>
+      <span class="arrow">{diagnosticsOpen ? '▼' : '▶'}</span> Diagnostics
+    </button>
+    {#if diagnosticsOpen}
+      <div class="diagnostics">
+        {#if daemonRunning !== null}
+          <div class="diag-line">Daemon: running</div>
+          <div class="diag-line">IPv4 socket: {socketLabel(daemonRunning.ipv4_socket)}</div>
+          <div class="diag-line">IPv6 socket: {socketLabel(daemonRunning.ipv6_socket)}</div>
+          {#each daemonRunning.enabled_interfaces as iface (iface.index)}
+            <div class="diag-line">
+              {iface.name}: {membershipLabel('IPv4', iface.ipv4)}, {membershipLabel(
+                'IPv6',
+                iface.ipv6,
+              )}
+            </div>
+          {/each}
+        {:else if daemonShutDown}
+          <div class="diag-line">Daemon: shutdown</div>
+        {:else}
+          <div class="diag-line">Daemon: unknown</div>
+        {/if}
+      </div>
+    {/if}
+  </div>
+
   <input
     type="text"
     class="filter-input"
@@ -625,6 +674,20 @@
     background: var(--bg-primary);
     border-radius: 6px;
     margin-top: 4px;
+  }
+  .diagnostics {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+  .diag-line {
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--text-secondary);
   }
   .ctrl {
     display: flex;
