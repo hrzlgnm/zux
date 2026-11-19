@@ -16,8 +16,8 @@
     switchDiscoveryMode,
     daemonStatus,
   } from './store'
-  import type { Membership, SocketState } from './api'
   import { themes } from './themes'
+  import { membershipLabel, socketLabel } from './diagnostics'
   import type { Solver, ThemeName } from './types'
 
   let { open = false, onClose = () => {} }: { open?: boolean; onClose?: () => void } = $props()
@@ -211,19 +211,6 @@
   // not yet known.
   const daemonRunning = $derived($daemonStatus?.status === 'running' ? $daemonStatus : null)
   const daemonShutDown = $derived($daemonStatus?.status === 'shutdown')
-
-  function socketLabel(socket: SocketState): string {
-    if (socket.bound) return 'bound'
-    return socket.bind_error === null ? 'not bound' : `not bound (${socket.bind_error})`
-  }
-
-  function membershipLabel(family: string, membership: Membership | null): string {
-    if (membership === null) return `${family} none`
-    const label = `${family} ${membership.joined ? 'joined' : 'not joined'}`
-    const withAddrs =
-      membership.addresses.length > 0 ? `${label} (${membership.addresses.join(', ')})` : label
-    return membership.join_error === null ? withAddrs : `${withAddrs}: ${membership.join_error}`
-  }
 </script>
 
 <aside id="app-sidebar" class="sidebar" class:open aria-label="Filters and settings">
