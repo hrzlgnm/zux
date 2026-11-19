@@ -319,7 +319,7 @@ jobs:
             src-tauri/Cargo.lock
             src-tauri/Cargo.toml
             src-tauri/tauri.conf.json
-          # Tauri writes the wrapper distribution after this step, so the
+          # The Gradle wrapper is downloaded only after this step, so the
           # action's own wrapper cache (keyed on gradle-wrapper.properties)
           # is skipped; cache the distribution with the main cache.
           cache-path: |
