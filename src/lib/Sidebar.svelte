@@ -434,7 +434,11 @@
   </div>
 
   <div class="section">
-    <button class="section-toggle" onclick={() => (diagnosticsOpen = !diagnosticsOpen)}>
+    <button
+      class="section-toggle"
+      aria-expanded={diagnosticsOpen}
+      onclick={() => (diagnosticsOpen = !diagnosticsOpen)}
+    >
       <span class="arrow">{diagnosticsOpen ? '▼' : '▶'}</span> Diagnostics
     </button>
     {#if diagnosticsOpen}
