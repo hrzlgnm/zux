@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from 'vitest'
-import { membershipAddresses, membershipLabel, socketLabel } from './diagnostics'
+import { addressLabel, membershipAddresses, membershipLabel, socketLabel } from './diagnostics'
 import type { EnabledInterface, Membership } from './api'
 
 describe('socketLabel', () => {
@@ -79,5 +79,53 @@ describe('membershipAddresses', () => {
   it('skips missing families', () => {
     const iface: EnabledInterface = { name: 'eth0', index: 1, ipv4, ipv6: null }
     expect(membershipAddresses(iface)).toEqual(['192.168.1.2', '192.168.1.10'])
+  })
+})
+
+describe('addressLabel', () => {
+  it('shows private, link-local, and loopback IPv4 addresses', () => {
+    expect(
+      ['10.0.0.1', '172.16.0.1', '172.31.255.255', '192.168.1.2', '169.254.1.2', '127.0.0.1'].map(
+        addressLabel,
+      ),
+    ).toEqual([
+      '10.0.0.1',
+      '172.16.0.1',
+      '172.31.255.255',
+      '192.168.1.2',
+      '169.254.1.2',
+      '127.0.0.1',
+    ])
+  })
+
+  it('redacts public and out-of-range IPv4 addresses', () => {
+    expect(
+      ['8.8.8.8', '172.32.0.1', '169.253.1.2', '192.169.1.2', '300.1.1.1'].map(addressLabel),
+    ).toEqual(['redacted', 'redacted', 'redacted', 'redacted', 'redacted'])
+  })
+
+  it('shows link-local, unique-local, and loopback IPv6 addresses', () => {
+    expect(['fe80::1', 'febf::1', 'fc00::1', 'fd00::1', '::1'].map(addressLabel)).toEqual([
+      'fe80::1',
+      'febf::1',
+      'fc00::1',
+      'fd00::1',
+      '::1',
+    ])
+  })
+
+  it('redacts public IPv6 addresses', () => {
+    expect(
+      ['fec0::1', '2001:db8::1', '2003:e8:bf14:ee00:dfc2:37eb:cc13:aa9a', '::ffff:8.8.8.8'].map(
+        addressLabel,
+      ),
+    ).toEqual(['redacted', 'redacted', 'redacted', 'redacted'])
+  })
+
+  it('classifies IPv4-mapped IPv6 addresses by their IPv4 tail', () => {
+    expect(['::ffff:192.168.1.2', '::ffff:127.0.0.1'].map(addressLabel)).toEqual([
+      '::ffff:192.168.1.2',
+      '::ffff:127.0.0.1',
+    ])
   })
 })

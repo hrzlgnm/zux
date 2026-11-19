@@ -17,7 +17,7 @@
     daemonStatus,
   } from './store'
   import { themes } from './themes'
-  import { membershipAddresses, membershipLabel, socketLabel } from './diagnostics'
+  import { addressLabel, membershipAddresses, membershipLabel, socketLabel } from './diagnostics'
   import type { Solver, ThemeName } from './types'
 
   let { open = false, onClose = () => {} }: { open?: boolean; onClose?: () => void } = $props()
@@ -453,7 +453,7 @@
               {#if addresses.length > 0}
                 <ul class="diag-addresses">
                   {#each addresses as address (address)}
-                    <li>{address}</li>
+                    <li>{addressLabel(address)}</li>
                   {/each}
                 </ul>
               {/if}
@@ -687,6 +687,9 @@
   .diag-addresses {
     margin: 0;
     padding-left: 1.4em;
+  }
+  .diag-addresses li {
+    overflow-wrap: anywhere;
   }
   .ctrl {
     display: flex;
