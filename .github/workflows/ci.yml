@@ -190,7 +190,7 @@ jobs:
     needs: [changes, actionlint]
     if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-26.04
-    container: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1@sha256:8f591fc5f2f0e74b0db1f5322610e91d9ff0f7188c1e39f936db5bf7b71d9dcc
+    container: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1@sha256:3f645311427cba5f4a2d0d65fac9130834084f1a62eb6928202847a8eae44ec5
     env:
       RUSTFLAGS: "-D warnings"
     steps:
