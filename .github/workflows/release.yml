@@ -102,7 +102,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            container_image: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1@sha256:8f591fc5f2f0e74b0db1f5322610e91d9ff0f7188c1e39f936db5bf7b71d9dcc
+            container_image: ghcr.io/hrzlgnm/zux-ubuntu-builder:v1@sha256:3f645311427cba5f4a2d0d65fac9130834084f1a62eb6928202847a8eae44ec5
           - os: macos-latest
             target: universal-apple-darwin
             args: --target universal-apple-darwin
