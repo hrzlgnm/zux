@@ -78,8 +78,9 @@
               class="url-link"
               onclick={() =>
                 openUrl(url).catch((e) => console.warn('[zux] failed to open URL:', e))}
-              >{url}</button
             >
+              {url}
+            </button>
           {/each}
         </div>
       {/if}

@@ -216,9 +216,9 @@
 <aside id="app-sidebar" class="sidebar" class:open aria-label="Filters and settings">
   <div class="drawer-header-row">
     <h2 class="title">zux <span class="version">v{pkg.version}</span></h2>
-    <button class="drawer-close" type="button" aria-label="Close menu" onclick={onClose}
-      >&times;</button
-    >
+    <button class="drawer-close" type="button" aria-label="Close menu" onclick={onClose}>
+      &times;
+    </button>
   </div>
   <p class="subtitle">mDNS-SD Visualizer</p>
 
