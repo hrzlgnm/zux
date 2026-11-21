@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.1](https://github.com/hrzlgnm/zux/compare/v1.24.0...v1.24.1) (2026-11-21)
+
+
+### Dependencies
+
+* update dependency @sveltejs/kit to v3.3.0 ([#678](https://github.com/hrzlgnm/zux/issues/678)) ([3c67816](https://github.com/hrzlgnm/zux/commit/3c6781675db861b3b1bc439708a65bf4a166be9b))
+* update dependency @sveltejs/kit to v3.3.1 ([#679](https://github.com/hrzlgnm/zux/issues/679)) ([35ae0c4](https://github.com/hrzlgnm/zux/commit/35ae0c407db559cb90b96d062d3ad6acce3e3f7b))
+* update dependency svelte to v5.58.0 ([#682](https://github.com/hrzlgnm/zux/issues/682)) ([a6aa063](https://github.com/hrzlgnm/zux/commit/a6aa063b0d20c5ff1cd4f0394a1d3c0f583d81d6))
+* update dependency vitest to v5.1.1 ([#681](https://github.com/hrzlgnm/zux/issues/681)) ([24effcd](https://github.com/hrzlgnm/zux/commit/24effcde0e45e90a060a8089cd5b43dfb6092b3e))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to 3f64531 ([#675](https://github.com/hrzlgnm/zux/issues/675)) ([6dd34eb](https://github.com/hrzlgnm/zux/commit/6dd34ebd8d70744746787dad880cfa85c201bfa6))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to d0a6721 ([#677](https://github.com/hrzlgnm/zux/issues/677)) ([b2a3ed1](https://github.com/hrzlgnm/zux/commit/b2a3ed1e302dba68a30c38c932c96bbe17df08d0))
+* update rust crate clap to v4.6.9 ([#674](https://github.com/hrzlgnm/zux/issues/674)) ([ec872ae](https://github.com/hrzlgnm/zux/commit/ec872ae0b0db637ff4a379115c5f024145428000))
+* update ubuntu:22.04 docker digest to 252bffe ([#673](https://github.com/hrzlgnm/zux/issues/673)) ([595de12](https://github.com/hrzlgnm/zux/commit/595de12c6c693eb459a354ded60ba2f88c3564d4))
+* update ubuntu:22.04 docker digest to f64b2ff ([#676](https://github.com/hrzlgnm/zux/issues/676)) ([062e21d](https://github.com/hrzlgnm/zux/commit/062e21dd92747fb5312290e46056115a1121e4b4))
+
+
+### Miscellaneous Chores
+
+* cache Gradle dependencies in Android release ([#671](https://github.com/hrzlgnm/zux/issues/671)) ([ac53171](https://github.com/hrzlgnm/zux/commit/ac5317186de7299eb1b57dd33858bc5ecf703d9f))
+
 ## [1.24.0](https://github.com/hrzlgnm/zux/compare/v1.23.2...v1.24.0) (2026-11-19)
 
 
