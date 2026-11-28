@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.1](https://github.com/hrzlgnm/zux/compare/v1.24.0...v1.24.1) (2026-11-28)
+
+
+### Dependencies
+
+* lock file maintenance ([#685](https://github.com/hrzlgnm/zux/issues/685)) ([8714892](https://github.com/hrzlgnm/zux/commit/87148923864add91a95d57735ee89c5985018007))
+* update anchore/scan-action action to v7.4.3 ([#693](https://github.com/hrzlgnm/zux/issues/693)) ([7b37549](https://github.com/hrzlgnm/zux/commit/7b37549403c5b73f16170b99894a44c9a7ead3a6))
+* update archlinux:base-devel docker digest to 949ecb1 ([#689](https://github.com/hrzlgnm/zux/issues/689)) ([3363b56](https://github.com/hrzlgnm/zux/commit/3363b56cae168b41be2b25bd15f7e008f5004d53))
+* update dependency @sveltejs/kit to v3.3.0 ([#678](https://github.com/hrzlgnm/zux/issues/678)) ([3c67816](https://github.com/hrzlgnm/zux/commit/3c6781675db861b3b1bc439708a65bf4a166be9b))
+* update dependency @sveltejs/kit to v3.3.1 ([#679](https://github.com/hrzlgnm/zux/issues/679)) ([35ae0c4](https://github.com/hrzlgnm/zux/commit/35ae0c407db559cb90b96d062d3ad6acce3e3f7b))
+* update dependency @sveltejs/kit to v3.4.0 ([#684](https://github.com/hrzlgnm/zux/issues/684)) ([33c5feb](https://github.com/hrzlgnm/zux/commit/33c5feba195f95f3824e4c310f22ad5032983825))
+* update dependency @sveltejs/vite-plugin-svelte to v7.3.2 ([#697](https://github.com/hrzlgnm/zux/issues/697)) ([443a997](https://github.com/hrzlgnm/zux/commit/443a997ea7dc2d5c5aa81e773a9da7b1ae7cd436))
+* update dependency @types/node to v26.6.10 ([#700](https://github.com/hrzlgnm/zux/issues/700)) ([810640f](https://github.com/hrzlgnm/zux/commit/810640f2cd010f016611975e1d56c396623c65d1))
+* update dependency @types/node to v26.6.7 ([#699](https://github.com/hrzlgnm/zux/issues/699)) ([8b54a13](https://github.com/hrzlgnm/zux/commit/8b54a13c3c3d05c16c91a15991b33b61e8dac700))
+* update dependency cargo-auditable to v0.7.8 ([#695](https://github.com/hrzlgnm/zux/issues/695)) ([6257043](https://github.com/hrzlgnm/zux/commit/6257043d5e175eb14138337d1b420b3d03598c91))
+* update dependency prettier-plugin-svelte to v4.2.0 ([#680](https://github.com/hrzlgnm/zux/issues/680)) ([1b0b5a7](https://github.com/hrzlgnm/zux/commit/1b0b5a7e265b81ce27f40652af32b091746676a3))
+* update dependency svelte to v5.58.0 ([#682](https://github.com/hrzlgnm/zux/issues/682)) ([a6aa063](https://github.com/hrzlgnm/zux/commit/a6aa063b0d20c5ff1cd4f0394a1d3c0f583d81d6))
+* update dependency svelte to v5.58.1 ([#686](https://github.com/hrzlgnm/zux/issues/686)) ([e8f48e6](https://github.com/hrzlgnm/zux/commit/e8f48e6021c6189056aa1e801b673103da859d56))
+* update dependency svelte to v5.59.1 ([#687](https://github.com/hrzlgnm/zux/issues/687)) ([b5e34f0](https://github.com/hrzlgnm/zux/commit/b5e34f0009b88d66c8e4d224e6408beff8673226))
+* update dependency typescript-eslint to v8.74.0 ([#698](https://github.com/hrzlgnm/zux/issues/698)) ([29ddbf2](https://github.com/hrzlgnm/zux/commit/29ddbf27701e661250a652a08a041421332e3284))
+* update dependency vitest to v5.1.1 ([#681](https://github.com/hrzlgnm/zux/issues/681)) ([24effcd](https://github.com/hrzlgnm/zux/commit/24effcde0e45e90a060a8089cd5b43dfb6092b3e))
+* update dependency vitest to v5.1.2 ([#702](https://github.com/hrzlgnm/zux/issues/702)) ([6e44bcd](https://github.com/hrzlgnm/zux/commit/6e44bcdc696e636fd3c7f6e74c3080a34ec2a2fb))
+* update ghcr.io/hrzlgnm/zux-arch-aur-builder:v1 docker digest to 8b35476 ([#691](https://github.com/hrzlgnm/zux/issues/691)) ([c8db8a7](https://github.com/hrzlgnm/zux/commit/c8db8a7c939e03965a03f7eacddbc153b77c5b01))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to 1eb3216 ([#692](https://github.com/hrzlgnm/zux/issues/692)) ([05c8b5d](https://github.com/hrzlgnm/zux/commit/05c8b5deffa8dea85eaa212e12a9cde9a785e72b))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to 3f64531 ([#675](https://github.com/hrzlgnm/zux/issues/675)) ([6dd34eb](https://github.com/hrzlgnm/zux/commit/6dd34ebd8d70744746787dad880cfa85c201bfa6))
+* update ghcr.io/hrzlgnm/zux-ubuntu-builder:v1 docker digest to d0a6721 ([#677](https://github.com/hrzlgnm/zux/issues/677)) ([b2a3ed1](https://github.com/hrzlgnm/zux/commit/b2a3ed1e302dba68a30c38c932c96bbe17df08d0))
+* update pnpm to v12.22.0 ([#688](https://github.com/hrzlgnm/zux/issues/688)) ([5f1cfd0](https://github.com/hrzlgnm/zux/commit/5f1cfd031017ccae1cf5bf942c56f5e26c6230f0))
+* update pnpm to v12.23.0 ([#696](https://github.com/hrzlgnm/zux/issues/696)) ([78bc307](https://github.com/hrzlgnm/zux/commit/78bc3075f271d17ee18b9363f5481aeb3aadcc02))
+* update rust crate clap to v4.6.10 ([#694](https://github.com/hrzlgnm/zux/issues/694)) ([75b6877](https://github.com/hrzlgnm/zux/commit/75b68774778aa50235aa05dd0ea1a0860d3048d4))
+* update rust crate clap to v4.6.9 ([#674](https://github.com/hrzlgnm/zux/issues/674)) ([ec872ae](https://github.com/hrzlgnm/zux/commit/ec872ae0b0db637ff4a379115c5f024145428000))
+* update ubuntu:22.04 docker digest to 252bffe ([#673](https://github.com/hrzlgnm/zux/issues/673)) ([595de12](https://github.com/hrzlgnm/zux/commit/595de12c6c693eb459a354ded60ba2f88c3564d4))
+* update ubuntu:22.04 docker digest to b000e69 ([#690](https://github.com/hrzlgnm/zux/issues/690)) ([717a6d4](https://github.com/hrzlgnm/zux/commit/717a6d4f69202b0fcc2e241634cc2802baa837e1))
+* update ubuntu:22.04 docker digest to f64b2ff ([#676](https://github.com/hrzlgnm/zux/issues/676)) ([062e21d](https://github.com/hrzlgnm/zux/commit/062e21dd92747fb5312290e46056115a1121e4b4))
+
+
+### Styles
+
+* apply prettier-plugin-svelte 4.2 element-content formatting ([#683](https://github.com/hrzlgnm/zux/issues/683)) ([e40aa3f](https://github.com/hrzlgnm/zux/commit/e40aa3f7c58227208754fb92f484aefdf577473c))
+
+
+### Miscellaneous Chores
+
+* cache Gradle dependencies in Android release ([#671](https://github.com/hrzlgnm/zux/issues/671)) ([ac53171](https://github.com/hrzlgnm/zux/commit/ac5317186de7299eb1b57dd33858bc5ecf703d9f))
+
 ## [1.24.0](https://github.com/hrzlgnm/zux/compare/v1.23.2...v1.24.0) (2026-11-19)
 
 
